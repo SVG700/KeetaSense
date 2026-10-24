@@ -1,0 +1,16 @@
+{
+  "weights": "synthetic_tiles_smoke.pt",
+  "trained_at": "2026-10-25T01:27:10",
+  "dataset": "ml/data/synthetic_yolo_tiles/data.yaml",
+  "synthetic_data": true,
+  "tile_mode": true,
+  "epochs": 1,
+  "imgsz": 320,
+  "augmentation": "camera",
+  "classes": [
+    "whitefly",
+    "macrolophus",
+    "nesidiocoris"
+  ],
+  "run_dir": "C:\\Users\\Samhith V Gupta\\Desktop\\Samhith\\KeetaSense\\ml\\runs\\synthetic_tiles_smoke"
+}

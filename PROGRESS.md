@@ -10,6 +10,9 @@
 - [x] Phase 5: Seed script, sample tape images, one-command scripts, README
 - [x] Final check from a clean clone (see "Final check" below)
 
+## Round 2 (hackathon preparation)
+- [x] Part 1: 4TU download/verify/extract, dataset summary report, improved tile mode (+ notebook switch), camera augmentations, per-class confidence thresholds, notebook auto-evaluate + one-zip export, install_model. Real dataset NOT present on this laptop: conversion of real data and pests.yaml name check still to do.
+
 ## What works (verified)
 
 - `python -m pytest` - **50 tests pass**: converter (VOC + YOLO formats, reproducible 70/15/15 split,

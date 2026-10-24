@@ -20,12 +20,16 @@ Augmentations chosen for small insects on yellow traps:
   - rotation (degrees) and up-down + left-right flips: insects land in any direction
   - blur and motion blur (albumentations): camera focus and tape movement
   - mild scale jitter only (scale=0.3): shrinking tiny insects more would erase them
+  - "camera" profile (default): LED colour cast, sensor noise, stronger JPEG and slight
+    perspective - mimics a printed image or real tape photographed by the Pi camera
 """
 from __future__ import annotations
 
 import argparse
+import json
 import shutil
 import sys
+from datetime import datetime
 from pathlib import Path
 
 from ml.common import ROOT
@@ -33,19 +37,40 @@ from ml.common import ROOT
 DEFAULT_PRETRAINED = ROOT / "ml/weights/yolov8n.pt"
 
 
-def build_albumentations():
-    """Blur-type augmentations; returns None if albumentations is not installed."""
+def build_albumentations(profile: str = "camera"):
+    """Extra augmentations (albumentations). Returns None if the library is missing.
+
+    "basic"  : blur, motion blur, brightness/contrast, JPEG artefacts
+    "camera" : basic + what our demo/trap camera adds - a PRINTED image or real tape
+               photographed under LEDs by a Pi camera: LED colour cast (colour jitter),
+               sensor noise, stronger JPEG, slight perspective (camera not exactly square on)
+    """
     try:
         import albumentations as A
     except ImportError:
-        print("[train] albumentations not installed - training without blur augmentation")
+        print("[train] albumentations not installed - training without blur/camera augmentation")
         return None
-    return [
+    augs = [
         A.Blur(blur_limit=(3, 5), p=0.10),
         A.MotionBlur(blur_limit=(3, 7), p=0.10),
         A.RandomBrightnessContrast(brightness_limit=0.15, contrast_limit=0.15, p=0.2),
-        A.ImageCompression(quality_range=(60, 95), p=0.1),  # phone-photo JPEG artefacts
+        A.ImageCompression(quality_range=(60, 95), p=0.1),
     ]
+    if profile == "camera":
+        augs += [
+            A.ColorJitter(brightness=0.2, contrast=0.2, saturation=0.2, hue=0.02, p=0.3),  # LED colour / exposure
+            A.GaussNoise(std_range=(0.01, 0.04), p=0.15),                                 # Pi camera sensor noise
+            A.ImageCompression(quality_range=(45, 85), p=0.2),                            # stronger JPEG
+            A.Perspective(scale=(0.01, 0.04), keep_size=True, p=0.25),                    # slight camera tilt
+        ]
+    return augs
+
+
+def write_model_card(weights: Path, info: dict) -> Path:
+    """Save training facts next to the weights (best.pt -> best.json); the app shows them."""
+    card = weights.with_suffix(".json")
+    card.write_text(json.dumps(info, indent=2), encoding="utf-8")
+    return card
 
 
 def load_base_model(model_arg: str):
@@ -75,6 +100,8 @@ def main() -> None:
     ap.add_argument("--patience", type=int, default=30, help="early stop after N epochs without improvement")
     ap.add_argument("--name", default="keetasense")
     ap.add_argument("--weights-out", default=str(ROOT / "ml/weights/best.pt"))
+    ap.add_argument("--aug", choices=["camera", "basic"], default="camera",
+                    help="augmentation profile ('camera' adds LED colour cast, noise, JPEG, perspective)")
     args = ap.parse_args()
 
     if not Path(args.data).exists():
@@ -95,7 +122,7 @@ def main() -> None:
     )
     if args.device is not None:
         train_args["device"] = args.device
-    augs = build_albumentations()
+    augs = build_albumentations(args.aug)
     if augs:
         train_args["augmentations"] = augs
 
@@ -110,6 +137,18 @@ def main() -> None:
     out.parent.mkdir(parents=True, exist_ok=True)
     shutil.copy2(best, out)
     print(f"[train] best weights copied to {out}")
+    tiling = Path(args.data).parent / "tiling.yaml"
+    card = write_model_card(out, {
+        "weights": out.name,
+        "trained_at": datetime.now().isoformat(timespec="seconds"),
+        "dataset": str(args.data),
+        "synthetic_data": "synthetic" in str(args.data).lower(),
+        "tile_mode": tiling.exists(),
+        "epochs": args.epochs, "imgsz": args.imgsz, "augmentation": args.aug,
+        "classes": list(model.names.values()) if isinstance(getattr(model, "names", None), dict) else None,
+        "run_dir": str(results.save_dir),
+    })
+    print(f"[train] model card -> {card}")
     print(f"[train] training curves and metrics are in {results.save_dir}")
 
 

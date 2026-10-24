@@ -32,3 +32,5 @@ frontend/dist/
 
 # Local editor / assistant settings
 .claude/
+ml/exports/
+ml/data/*_tiles/

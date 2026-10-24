@@ -28,6 +28,7 @@ class InsectClass:
     display_kn: str = ""
     aliases: list[str] = field(default_factory=list)
     synthetic_shape: str = "round"   # shape used by the synthetic generator
+    confidence_threshold: float | None = None  # per-class minimum confidence (optional)
 
 
 @lru_cache(maxsize=1)
@@ -49,6 +50,8 @@ def get_classes() -> list[InsectClass]:
             display_kn=c.get("display_kn", ""),
             aliases=[str(a) for a in c.get("aliases", [])],
             synthetic_shape=c.get("synthetic_shape", "round"),
+            confidence_threshold=(float(c["confidence_threshold"])
+                                  if c.get("confidence_threshold") is not None else None),
         ))
     return classes
 

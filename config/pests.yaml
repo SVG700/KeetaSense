@@ -17,24 +17,31 @@
 # The Wageningen "Yellow Sticky Traps" dataset uses WF / MR / NC.
 # "synthetic_shape" (round | stout | slim) is ONLY used by the synthetic test
 # image generator and the DEMO DETECTOR - never by the real trained model.
+# "confidence_threshold" (optional, 0-1): the AI model must be at least this
+# sure before a box of this class is counted. Lower = finds more insects but
+# more false alarms. Without it, KEETA_CONF_THRESHOLD from .env (0.25) is used.
+# Tune it per class with ml/evaluate.py on the real test split.
 classes:
   - name: whitefly
     category: pest
     display_en: Whitefly
     display_kn: ಬಿಳಿ ನೊಣ
     synthetic_shape: round
+    confidence_threshold: 0.25
     aliases: [WF, whitefly, whiteflies, white_fly, trialeurodes, bemisia]
   - name: macrolophus
     category: predator
     display_en: Macrolophus (predator bug)
     display_kn: ಮ್ಯಾಕ್ರೊಲೋಫಸ್ (ಪರಭಕ್ಷಕ ತಿಗಣೆ)
     synthetic_shape: stout
+    confidence_threshold: 0.25
     aliases: [MR, macrolophus, macrolophus_pygmaeus]
   - name: nesidiocoris
     category: predator
     display_en: Nesidiocoris (predator bug)
     display_kn: ನೆಸಿಡಿಯೊಕೊರಿಸ್ (ಪರಭಕ್ಷಕ ತಿಗಣೆ)
     synthetic_shape: slim
+    confidence_threshold: 0.25
     aliases: [NC, nesidiocoris, nesidiocoris_tenuis]
 
 # ---------------------------------------------------------------------------

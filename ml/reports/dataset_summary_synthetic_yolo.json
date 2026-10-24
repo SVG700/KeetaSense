@@ -1,0 +1,84 @@
+{
+  "created": "2026-10-25T01:22:43",
+  "dataset": "ml\\data\\synthetic_yolo",
+  "synthetic": true,
+  "source": "ml\\data\\synthetic_raw",
+  "format": "voc",
+  "raw_labels": {
+    "WF": {
+      "count": 1827,
+      "mapped_to": "whitefly"
+    },
+    "MR": {
+      "count": 246,
+      "mapped_to": "macrolophus"
+    },
+    "NC": {
+      "count": 241,
+      "mapped_to": "nesidiocoris"
+    }
+  },
+  "unmapped_labels": [],
+  "splits": {
+    "train": {
+      "images": 56,
+      "objects": 1667
+    },
+    "val": {
+      "images": 12,
+      "objects": 318
+    },
+    "test": {
+      "images": 12,
+      "objects": 329
+    }
+  },
+  "images_total": 80,
+  "objects_total": 2314,
+  "resolution": {
+    "width_min": 640,
+    "width_max": 640,
+    "height_min": 640,
+    "height_max": 640,
+    "most_common": "640x640"
+  },
+  "classes": {
+    "whitefly": {
+      "objects": 1827,
+      "share": 0.7895,
+      "per_split": {
+        "train": 1308,
+        "val": 248,
+        "test": 271
+      },
+      "size_px_median": 16.0,
+      "size_px_p10": 14.0,
+      "size_px_p90": 18.0
+    },
+    "macrolophus": {
+      "objects": 246,
+      "share": 0.1063,
+      "per_split": {
+        "train": 194,
+        "val": 30,
+        "test": 22
+      },
+      "size_px_median": 35.0,
+      "size_px_p10": 30.5,
+      "size_px_p90": 40.0
+    },
+    "nesidiocoris": {
+      "objects": 241,
+      "share": 0.1041,
+      "per_split": {
+        "train": 165,
+        "val": 40,
+        "test": 36
+      },
+      "size_px_median": 41.0,
+      "size_px_p10": 36.0,
+      "size_px_p90": 47.0
+    }
+  },
+  "warnings": []
+}

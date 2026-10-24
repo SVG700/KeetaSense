@@ -168,13 +168,28 @@ def detect(image, slice_size: int | None = None, overlap: float | None = None,
     with _lock:
         model = _load_model()
         if model is not None:
-            detections = _detect_yolo_sahi(model, img, slice_size, overlap, conf)
+            thresholds = class_conf_thresholds(conf)
+            # ask SAHI for everything above the LOWEST class threshold, then filter per class
+            raw = _detect_yolo_sahi(model, img, slice_size, overlap, min([conf, *thresholds.values()]))
+            detections = apply_class_thresholds(raw, thresholds, conf)
             mode, warning = MODE_YOLO, None
         else:
             detections = demo_detect(img)
             mode, warning = MODE_DEMO, DEMO_WARNING
 
     return build_result(img, detections, mode, warning)
+
+
+def class_conf_thresholds(default: float) -> dict[str, float]:
+    """Per-class confidence thresholds from pests.yaml (falls back to the global default)."""
+    return {c.name: (c.confidence_threshold if c.confidence_threshold is not None else default)
+            for c in get_classes()}
+
+
+def apply_class_thresholds(detections: list[dict], thresholds: dict[str, float],
+                           default: float) -> list[dict]:
+    """Keep a detection only if its confidence reaches its own class's threshold."""
+    return [d for d in detections if d["confidence"] >= thresholds.get(d["class_name"], default)]
 
 
 def build_result(img: np.ndarray, detections: list[dict], mode: str,

@@ -40,11 +40,12 @@ DOWNLOAD_HELP = """
  Please download the "Yellow Sticky Traps" dataset (Wageningen University,
  Nieuwenhuizen et al., CC0 licence) and unzip it into that folder:
 
-   Option A - original source (4TU.ResearchData, ~800 MB):
+   Recommended - original source (4TU.ResearchData, ~800 MB data.zip):
      https://data.4tu.nl/articles/_/12707066/1
-     DOI 10.4121/uuid:8b8ba63a-1010-4de7-a7fb-6f9e3baf128e
+     Put data.zip in this folder, then run:  python -m ml.download_4tu
+     (it checks the checksum and unpacks it)
 
-   Option B - a Kaggle mirror, using your Kaggle API key:
+   Fallback - a Kaggle mirror, using your Kaggle API key:
      python -m ml.download_kaggle --dataset <owner>/<dataset-name>
 
  Then run again:  python -m ml.convert_dataset
@@ -162,7 +163,7 @@ def stratified_split(items: list[dict], ratios=(0.70, 0.15, 0.15), seed: int = 4
 # ---------------------------------------------------------------------------
 # Main conversion
 # ---------------------------------------------------------------------------
-def convert(raw: Path, out: Path, seed: int = 42) -> dict | None:
+def convert(raw: Path, out: Path, seed: int = 42, write_summary: bool = False) -> dict | None:
     images = find_images(raw)
     if not images:
         print(DOWNLOAD_HELP.format(raw=raw))
@@ -245,7 +246,9 @@ def convert(raw: Path, out: Path, seed: int = 42) -> dict | None:
     splits = stratified_split(items, seed=seed)
     if out.exists():
         shutil.rmtree(out)
-    summary = {"source": str(raw), "format": fmt, "seed": seed, "classes": names, "splits": {}}
+    summary = {"source": str(raw), "format": fmt, "seed": seed, "classes": names, "splits": {},
+               "raw_labels": {l: {"count": n, "mapped_to": resolve_alias(l)} for l, n in raw_label_counts.most_common()},
+               "unmapped_labels": unmapped}
     for split, split_items in splits.items():
         (out / "images" / split).mkdir(parents=True, exist_ok=True)
         (out / "labels" / split).mkdir(parents=True, exist_ok=True)
@@ -267,6 +270,9 @@ def convert(raw: Path, out: Path, seed: int = 42) -> dict | None:
     (out / "data.yaml").write_text(yaml.safe_dump(data_yaml, sort_keys=False))
     (out / "split_summary.json").write_text(json.dumps(summary, indent=2))
     print(f"[convert] done -> {out / 'data.yaml'}")
+    if write_summary:
+        from ml.dataset_summary import write_report
+        print(f"[convert] dataset summary -> {write_report(out)}")
     return summary
 
 
@@ -278,7 +284,7 @@ def main() -> None:
     args = ap.parse_args()
     raw = Path(args.raw)
     raw.mkdir(parents=True, exist_ok=True)
-    result = convert(raw, Path(args.out), args.seed)
+    result = convert(raw, Path(args.out), args.seed, write_summary=True)
     sys.exit(0)  # always exit cleanly; messages above explain any problem
     return result
 

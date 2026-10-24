@@ -67,3 +67,17 @@ Each line: **decision** - reason.
 - **`.bat` scripts open one window per service; `.sh` scripts run services in the background and stop them on Ctrl+C** - natural for each platform.
 - **`.sh` scripts start Vite with `node .../vite.js` instead of `npm run dev`** - on Git Bash, killing npm left Vite running on port 5173 (found in the final check).
 - **The clean-state check clones the repo into `.tools/cleancheck` (git-ignored)** - stays inside the project folder.
+
+---
+# Round 2 (hackathon preparation, tag `pre-hackathon-baseline` = state before this round)
+
+## Part 1 - real dataset readiness
+- **`ml/download_4tu.py` does not download automatically; it prints instructions, then verifies size + MD5 of `data.zip` (published 800,596,912 bytes, MD5 141d48b274d7d3daf78ecfaa5bf39410) and unpacks** - 4TU download links are generated per session; a broken auto-download would be worse than clear manual steps. Kaggle stays as a fallback.
+- **Archives are extracted with a path-traversal guard; tar links/devices are skipped; a `.extracted_<name>` marker prevents re-extracting** - downloaded archives are untrusted input.
+- **The real dataset was NOT present during this round, so `config/pests.yaml` class names were not changed.** The aliases already cover the labels described for this dataset (WF, MR, NC). When `ml/reports/dataset_summary.md` is generated, check its "Raw labels found" table: any label marked "not mapped" must be added as an alias (or a new class) - **to confirm by you**.
+- **`dataset_summary.md` flags a class with < 100 examples, < 2 % share, or < 10 test examples** - below these, per-class training and metrics are unreliable (rule of thumb, adjustable at the top of `ml/dataset_summary.py`).
+- **Tiling keeps a cut box if >= 50 % of its area is inside the tile (clipped), keeps 10 % of empty tiles (seeded)** - with overlap the insect appears whole in a neighbour tile; a few empty tiles teach "plain tape = nothing".
+- **"camera" augmentation profile is the default: colour jitter (LED cast), Gaussian noise, stronger JPEG, perspective scale 0.01-0.04, on top of blur/brightness** - mimics printed images or tape photographed by the Pi camera; all mild so tiny insects survive.
+- **Per-class `confidence_threshold` in `pests.yaml` (0.25 each, same as before); SAHI runs at the lowest one and results are filtered per class; not applied to the demo detector** - lets us trade false alarms vs misses per class after real evaluation.
+- **`train.py` writes a model card `best.json` (trained date, dataset, tile mode, epochs, augmentation, classes)** - the app shows "trained <date>" from it.
+- **One-zip export (`ml/package_model.py`) + `ml/install_model.py`; packages from synthetic data are named `..._SYNTHETIC_...` and installing one prints a loud warning** - a smoke-test model must never be mistaken for the real one.
