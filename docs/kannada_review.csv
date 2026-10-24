@@ -1,0 +1,30 @@
+﻿key,English text,Kannada text,reviewer correction
+days_known,about {days} days,ಸುಮಾರು {days} ದಿನಗಳಲ್ಲಿ,
+days_unknown,not known yet,ಇನ್ನೂ ತಿಳಿದಿಲ್ಲ,
+SPRAY,"🔴 KeetaSense - {trap_name}
+Action: SPRAY
+{reason}
+","🔴 ಕೀಟಸೆನ್ಸ್ - {trap_name}
+ಕ್ರಮ: ಕೀಟನಾಶಕ ಸಿಂಪಡಿಸಿ
+{pest_name}: ದಿನಕ್ಕೆ ಸರಾಸರಿ {pests_per_day}. ಪ್ರತಿ ಪರಭಕ್ಷಕ ಕೀಟಕ್ಕೆ {ratio} ಹಾನಿಕಾರಕ ಕೀಟಗಳು - ಪರಭಕ್ಷಕಗಳು ನಿಯಂತ್ರಿಸಲು ಸಾಕಾಗುತ್ತಿಲ್ಲ.
+ಮುಂದಿನ ಪೀಳಿಗೆ: {days_text}.
+",
+RELEASE_BIOCONTROL,"🟠 KeetaSense - {trap_name}
+Action: RELEASE BIOCONTROL
+{reason}
+","🟠 ಕೀಟಸೆನ್ಸ್ - {trap_name}
+ಕ್ರಮ: ಜೈವಿಕ ನಿಯಂತ್ರಣ ಕೀಟಗಳನ್ನು ಬಿಡುಗಡೆ ಮಾಡಿ
+{pest_name}: ದಿನಕ್ಕೆ ಸರಾಸರಿ {pests_per_day}, ಆದರೆ ಪರಭಕ್ಷಕ ಕೀಟಗಳು ಸಮನಾಗಿ ಹೆಚ್ಚುತ್ತಿವೆ. ಸಿಂಪಡಣೆ ಮಾಡಬೇಡಿ - ಅದು ಪರಭಕ್ಷಕಗಳನ್ನೂ ಕೊಲ್ಲುತ್ತದೆ.
+ಮುಂದಿನ ಪೀಳಿಗೆ: {days_text}.
+",
+WAIT,"🟢 KeetaSense - {trap_name}
+Action: WAIT
+{reason}
+","🟢 ಕೀಟಸೆನ್ಸ್ - {trap_name}
+ಕ್ರಮ: ಕಾಯಿರಿ
+{pest_name}: ದಿನಕ್ಕೆ ಸರಾಸರಿ {pests_per_day} - ಮಿತಿಗಿಂತ ಕಡಿಮೆ. ಗಮನಿಸುತ್ತಿರಿ.
+ಮುಂದಿನ ಪೀಳಿಗೆ: {days_text}.
+",
+pest_name.whitefly,Whitefly,ಬಿಳಿ ನೊಣ,
+pest_name.macrolophus,Macrolophus (predator bug),ಮ್ಯಾಕ್ರೊಲೋಫಸ್ (ಪರಭಕ್ಷಕ ತಿಗಣೆ),
+pest_name.nesidiocoris,Nesidiocoris (predator bug),ನೆಸಿಡಿಯೊಕೊರಿಸ್ (ಪರಭಕ್ಷಕ ತಿಗಣೆ),

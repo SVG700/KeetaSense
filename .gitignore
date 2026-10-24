@@ -35,3 +35,4 @@ frontend/dist/
 ml/exports/
 ml/data/*_tiles/
 config/backups/
+*.bak

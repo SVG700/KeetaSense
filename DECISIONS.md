@@ -130,3 +130,9 @@ Each line: **decision** - reason.
 - **After saving, caches are cleared and every trap with that target pest gets a fresh Decision row (alerts fire if the action changed)** - "decisions recalculate immediately".
 - **`KEETA_PESTS_YAML` overrides the config path** - tests and trial runs work on a copy, never on the real file.
 - **No login on the Settings page** - it is a local demo tool on a trusted network; noted as a limitation.
+
+## Part 7 - Kannada review helper
+- **CSV columns exactly: key, English text, Kannada text, reviewer correction; written as UTF-8 with BOM** - Excel otherwise shows Kannada as garbage.
+- **Kannada insect names from `pests.yaml` are included as `pest_name.<class>` rows** - they appear inside the alerts, so they need the same review.
+- **Reviewer writes the full corrected text, or "OK", or leaves it empty; the import refuses any correction whose {placeholders} differ** - a missing `{trap_name}` would break every alert of that type.
+- **Import keeps `.bak` copies, rewrites the templates file with readable block-style YAML and the original header comments, and adds "Kannada reviewed by <name> on <date>"; pest names are changed by line edit** - reviewable diff, nothing else in pests.yaml changes; rendering of untouched templates is tested to be identical.
