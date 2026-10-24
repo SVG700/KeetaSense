@@ -1,0 +1,44 @@
+# Telegram alert templates (English and Kannada)
+# ================================================
+# !!! The Kannada text below was machine-drafted. A NATIVE KANNADA SPEAKER
+# !!! MUST CHECK AND CORRECT THE WORDING before farmers receive it.
+#
+# Placeholders filled in by backend/alerts.py:
+#   {trap_name} {pest_name} {pests_per_day} {predators_per_day} {ratio}
+#   {days_text} {reason}
+# {pest_name} and {days_text} are already in the right language.
+
+en:
+  days_known: "about {days} days"
+  days_unknown: "not known yet"
+  SPRAY: |
+    🔴 KeetaSense - {trap_name}
+    Action: SPRAY
+    {reason}
+  RELEASE_BIOCONTROL: |
+    🟠 KeetaSense - {trap_name}
+    Action: RELEASE BIOCONTROL
+    {reason}
+  WAIT: |
+    🟢 KeetaSense - {trap_name}
+    Action: WAIT
+    {reason}
+
+kn:
+  days_known: "ಸುಮಾರು {days} ದಿನಗಳಲ್ಲಿ"
+  days_unknown: "ಇನ್ನೂ ತಿಳಿದಿಲ್ಲ"
+  SPRAY: |
+    🔴 ಕೀಟಸೆನ್ಸ್ - {trap_name}
+    ಕ್ರಮ: ಕೀಟನಾಶಕ ಸಿಂಪಡಿಸಿ
+    {pest_name}: ದಿನಕ್ಕೆ ಸರಾಸರಿ {pests_per_day}. ಪ್ರತಿ ಪರಭಕ್ಷಕ ಕೀಟಕ್ಕೆ {ratio} ಹಾನಿಕಾರಕ ಕೀಟಗಳು - ಪರಭಕ್ಷಕಗಳು ನಿಯಂತ್ರಿಸಲು ಸಾಕಾಗುತ್ತಿಲ್ಲ.
+    ಮುಂದಿನ ಪೀಳಿಗೆ: {days_text}.
+  RELEASE_BIOCONTROL: |
+    🟠 ಕೀಟಸೆನ್ಸ್ - {trap_name}
+    ಕ್ರಮ: ಜೈವಿಕ ನಿಯಂತ್ರಣ ಕೀಟಗಳನ್ನು ಬಿಡುಗಡೆ ಮಾಡಿ
+    {pest_name}: ದಿನಕ್ಕೆ ಸರಾಸರಿ {pests_per_day}, ಆದರೆ ಪರಭಕ್ಷಕ ಕೀಟಗಳು ಸಮನಾಗಿ ಹೆಚ್ಚುತ್ತಿವೆ. ಸಿಂಪಡಣೆ ಮಾಡಬೇಡಿ - ಅದು ಪರಭಕ್ಷಕಗಳನ್ನೂ ಕೊಲ್ಲುತ್ತದೆ.
+    ಮುಂದಿನ ಪೀಳಿಗೆ: {days_text}.
+  WAIT: |
+    🟢 ಕೀಟಸೆನ್ಸ್ - {trap_name}
+    ಕ್ರಮ: ಕಾಯಿರಿ
+    {pest_name}: ದಿನಕ್ಕೆ ಸರಾಸರಿ {pests_per_day} - ಮಿತಿಗಿಂತ ಕಡಿಮೆ. ಗಮನಿಸುತ್ತಿರಿ.
+    ಮುಂದಿನ ಪೀಳಿಗೆ: {days_text}.

@@ -24,3 +24,18 @@ Each line: **decision** - reason.
 - **`synthetic_shape` (round/stout/slim) per class lives in `pests.yaml`** - keeps class names out of the generator and demo detector code.
 - **evaluate.py computes AP@0.5 itself from `detect()` outputs** - so the reported numbers measure the exact deployed pipeline (YOLO + SAHI), not plain YOLO validation.
 - **MAPE is computed only over images whose true count is > 0** - percentage error is undefined for zero; the report states how many images were used.
+
+## Backend
+- **One tape section = one day's catch; "pests per day" = average over the last `rolling_window_days` sections** - the tape advances once a day, so this works the same in real use and in the 20 s demo cycle (each cycle = one simulated day).
+- **Pest-to-predator ratio = pests / max(predators, 1)** - avoids division by zero and stays easy to explain.
+- **Rule order: below threshold -> WAIT; else ratio >= spray_ratio -> SPRAY; else RELEASE_BIOCONTROL; thresholds inclusive** - directly follows the problem statement; inclusive edges are tested.
+- **Degree-days accumulate from the first climate record (the "biofix") with the simple average method; forecast uses the mean DD of the last 7 days** - simplest standard method; IIHR may prefer a different biofix (e.g. last spray) - noted as a limitation.
+- **Daily Tmin/Tmax come from the DHT22 readings of each calendar day** - no extra weather service needed, works offline.
+- **Timestamps stored as naive local time (`NaiveDatetime`)** - one farm, one time zone, offline laptop; incoming ISO times with a zone are converted to local.
+- **Edge devices may send their own detections (`detections_json`); otherwise the backend runs detection** - lets the Pi do edge AI while phone/laptop uploads still work.
+- **A Decision row is stored after every new section; alerts fire when the action changes (or on a first non-WAIT decision)** - gives a decision history for the dashboard and avoids repeated alerts.
+- **Telegram sends run on a background thread; with no token, alerts are logged and stored with status "logged"** - the API never blocks or fails because of Telegram.
+- **Kannada templates are machine-drafted and flagged for review by a native speaker** - we cannot verify the wording ourselves.
+- **Phone check divides counts by `days_exposed` and uses a window of 1, with no degree-day data** - a single photo has no history; the reason text says so.
+- **SQLite + local media folder, CORS for the Vite dev server only** - runs fully offline on one laptop.
+- **A trap is "online" if it reported within 26 hours** - it must report at least daily; 2 hours of slack.
