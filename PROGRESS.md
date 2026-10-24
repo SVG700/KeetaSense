@@ -1,91 +1,108 @@
 # PROGRESS.md
 
-## Phases
+## Round 1 - build (all done)
 
 - [x] Phase 0: git repo, portable Python 3.12 (`.tools/`), pinned requirements
 - [x] Phase 1: ML pipeline (converter, Kaggle helper, synthetic data, tiling, train, infer + SAHI, demo detector, evaluate, Colab notebook) - smoke-tested on synthetic data
 - [x] Phase 2: Backend (FastAPI, decision engine, bilingual alerts, tests)
-- [x] Phase 3: Edge service (mock hardware, offline queue, demo mode, PI_SETUP.md) - verified live against the backend
-- [x] Phase 4: Frontend dashboard (overview, trap detail, phone check, live mode, dark mode, badges, error states) - built and checked in the browser
-- [x] Phase 5: Seed script, sample tape images, one-command scripts, README
-- [x] Final check from a clean clone (see "Final check" below)
+- [x] Phase 3: Edge service (mock hardware, offline queue, demo mode, PI_SETUP.md)
+- [x] Phase 4: Frontend dashboard (overview, trap detail, phone check, live mode, dark mode, badges, error states)
+- [x] Phase 5: Seed script, sample tape images, one-command scripts, README, clean-clone check
 
-## Round 2 (hackathon preparation)
-- [x] Part 1: 4TU download/verify/extract, dataset summary report, improved tile mode (+ notebook switch), camera augmentations, per-class confidence thresholds, notebook auto-evaluate + one-zip export, install_model. Real dataset NOT present on this laptop: conversion of real data and pests.yaml name check still to do.
-- [x] Part 2: automatic switch to best.pt with startup log + safe fallback, detector banner on every page, Model page with measured reports (warning when only synthetic). Checked in the browser in demo and AI-model mode (synthetic weights).
-- [x] Part 3: ml/camera_test.py (prepare + run, report ml/reports/camera_test.md), README section. Not yet run on real prints (needs the trained model, printer and Pi camera).
-- [x] Part 4: edge/tests_hw (camera, stepper, DHT22, backend link) with PASS/FAIL + hints, edge/calibrate_tape.py, startup self-check, robust per-part start-up, cycle recording; PI_SETUP.md bring-up order. All run in mock mode here; NOT run on a real Pi.
-- [x] Part 5: single-window launcher (start/demo/replay .bat + .sh) with Job Object cleanup, Ctrl+C handling and crash restart; backend serves the built dashboard; offline audit + tests; REPLAY mode with "Replay" label; /api/reset-demo + hidden button. Tested here: demo.bat and replay.bat in one console, force-kill and Ctrl+Break cleanup, reset button in the browser.
-- [x] Part 6: Settings page (view/edit thresholds, inline validation, backup, "Confirmed with IIHR mentor on <date>", decisions recalculated on save) + 14 tests. Tested in the browser against a scratch copy of pests.yaml.
-- [x] Part 7: backend/kannada_review.py export/import, docs/kannada_review.csv generated (8 texts). Waiting for a native Kannada reviewer.
+## Round 2 - hackathon preparation (tag `pre-hackathon-baseline` = state before this round)
 
-## What works (verified)
+Show judges exactly what was added: `git diff pre-hackathon-baseline --stat` or `git log pre-hackathon-baseline..`
 
-- `python -m pytest` - **50 tests pass**: converter (VOC + YOLO formats, reproducible 70/15/15 split,
-  empty-folder message), demo detector, AP/IoU maths, every decision rule incl. boundaries, degree-day
-  maths and forecast, the PLACEHOLDER comment on every threshold, every API endpoint incl. error cases,
-  alert logging in English + Kannada, edge stepper/queue/backoff/offline-then-sync, seed script.
-- ML pipeline on synthetic data: generate → convert → train (2 and 40 epochs on CPU) → evaluate
-  (YOLO+SAHI and demo detector) → `detect()`. Reports in `ml/reports/`.
-- Backend serves all endpoints, stores images, annotates them, computes decisions, logs alerts.
-- Edge service in mock mode: advance → capture → local detection → queue → sync; keeps data
-  when the backend is down and sends it later.
-- Dashboard: overview cards with traffic light, trap detail charts (counts with threshold line,
-  degree-days, forecast meter, annotated image, decision history), phone check upload, live mode
-  (5 s), light/dark mode, phone-width layout, "Simulated data" / "Demo detector" badges,
-  "backend not reachable" and empty states.
-- `scripts/demo.sh` / `demo.bat`: seed + backend + dashboard + edge mock in one command.
+- [x] **Part 1 - real dataset readiness:** `ml/download_4tu.py` (instructions, size + MD5 check, safe extraction), `ml/dataset_summary.py` (classes, counts, resolutions, insect sizes in px, warnings; written automatically by the converter), improved tile mode (box clipping by visible fraction, configurable empty-tile keep rate) with a `USE_TILES` switch in the notebook, "camera" augmentation profile (colour jitter, blur, noise, JPEG, perspective), per-class `confidence_threshold` in `pests.yaml`, notebook auto-evaluates on the real test split and downloads one zip (`ml/package_model.py`), `ml/install_model.py` for the laptop. **The real dataset was not present, so it was not converted and `pests.yaml` class names were not changed.**
+- [x] **Part 2 - demo detector -> real model:** `best.pt` is used automatically by backend, edge and phone check, with a clear startup log line; weights that fail to load fall back to the demo detector with a loud warning. A banner on every screen shows "Demo detector (synthetic only)" or "AI model: <file>, trained <date>". New **Model** page shows the measured evaluation reports and warns when only synthetic reports exist.
+- [x] **Part 3 - camera-domain test:** `ml/camera_test.py` (`prepare` picks test images to print, `run` compares photo vs original counts -> `ml/reports/camera_test.md`). Documented in the README. Not yet run on real prints.
+- [x] **Part 4 - Pi bring-up tools:** `edge/tests_hw/test_camera|test_stepper|test_dht22|test_backend_link.py` (PASS/WARN/FAIL + hints), `edge/calibrate_tape.py` (interactive, saves `STEPS_PER_SECTION` to `.env`), startup self-check table, each hardware part starts independently, every cycle recorded for replay. `edge/PI_SETUP.md` has the step-by-step bring-up order. **All run in mock mode here; nothing was run on a real Raspberry Pi.**
+- [x] **Part 5 - demo reliability:** `scripts/launcher.py` runs everything in ONE window (`start.bat`, `demo.bat`, new `replay.bat`, and `.sh` versions), Ctrl+C / closing the window stops everything (Windows Job Object), crashed services restart. The backend serves the built dashboard (one URL: http://127.0.0.1:8000). Offline audit: no CDN/remote assets; Ultralytics forced offline; Telegram with short timeouts on a background thread. REPLAY mode with a "▶ Replay" label; `/api/reset-demo` + hidden ↺ button (Alt+Shift+R). Synthetic images are always counted by the demo detector, so installing the real model cannot break the seeded demo.
+- [x] **Part 6 - Settings page:** view/edit thresholds, base temperature, degree-days per generation; inline validation; timestamped backup in `config/backups/`; edited lines get "Confirmed with IIHR mentor on <date>"; decisions recalculate immediately.
+- [x] **Part 7 - Kannada review helper:** `python -m backend.kannada_review export` -> `docs/kannada_review.csv` (key, English text, Kannada text, reviewer correction); `import` checks placeholders, keeps `.bak` copies and writes the corrections back.
+- [x] **Final check** (below).
 
-## Final check (2026-10-25, from a clean `git clone`)
+Tests: **103 pass** (`python -m pytest`), up from 50. Frontend: TypeScript strict build passes.
 
-1. `scripts\setup.bat` in a fresh clone on a laptop without Python: fell back to the portable
-   `uv`, installed Python 3.12, all pinned packages, `.env`, frontend packages - exit 0.
-2. `python -m pytest` in the clone: **50 passed**. `npm --prefix frontend run build`: OK.
-3. `CYCLES=5 bash scripts/demo.sh`: seeded 14 days, started backend + dashboard + mock edge.
-   Five edge cycles ran ~20 s apart (tape_01..05: 6, 9, 12, 38, 52 whiteflies counted on the edge),
-   all synced (0 left in the queue). The dashboard with Live on updated by itself (Polyhouse pests/day
-   24.3 -> 16.7), the decision went RELEASE BIOCONTROL -> WAIT -> SPRAY, and the alerts were logged in
-   English and Kannada.
-4. Bug found and fixed: stopping `demo.sh` left Vite running on Git Bash; re-run after the fix
-   (2 cycles) - all ports freed.
-5. Not run in this check: `start.bat` / `demo.bat` (they open separate console windows); their
-   commands are the same as the `.sh` scripts, which were run.
+## Final check (2026-10-25, fresh `git clone` of the final commit)
 
-## What is simulated
+1. `scripts\setup.bat` in the clone (no system Python -> portable `uv` path): exit 0.
+2. `python -m pytest` in the clone: **103 passed**.
+3. `scripts\demo.bat --no-browser --cycles 4` run through `cmd` (one console): the launcher built the
+   dashboard itself (no `dist` in git), seeded the demo, started backend + mock trap, printed the
+   self-check table (all PASS, detector WARN = demo detector), 4 cycles synced, decision went
+   RELEASE BIOCONTROL -> WAIT -> WAIT -> SPRAY, no tracebacks, all processes stopped, ports freed.
+4. `scripts\replay.bat` in the clone: replayed `demo/replay` cycles; the trap page showed "▶ Replay"
+   and the replay note; stopping the launcher stopped every process of the clone (0 left, port freed).
+5. Settings page in the browser (clone's own config): spray ratio 10 -> 8 saved, backup written,
+   comment changed to "Confirmed with IIHR mentor on 2026-10-25", both decisions recalculated.
+6. Earlier in this round (main folder): window-close simulated by force-killing the launcher -> Job
+   Object killed all children; Ctrl+Break to the launcher's process group -> clean exit 0; reset
+   button in the browser -> 28 seeded sections restored; crashed backend restarted by the launcher.
 
-- Insect counts come from the **DEMO DETECTOR** (blob counting) until `ml/weights/best.pt` exists.
-- All tape images (sample tape, seed history, synthetic dataset) are **synthetic drawings**.
-- Seed history (14 days × 2 traps) and edge mock sensor readings are **simulated**
-  (`simulated=True` in the database, badge on the dashboard).
-- Stepper, camera and DHT22 run in **mock mode**; the real-hardware code paths are written but
-  have **not been run on a Raspberry Pi**.
+Not verified on this laptop: a physical Ctrl+C keypress and closing a visible console window
+(simulated as above), Wi-Fi physically switched off (simulated by blocking all non-local network
+lookups in a test and in a YOLO run), anything on a real Raspberry Pi, the real dataset and model.
 
-## What you must do manually
+## What you must still do manually
 
-1. **Download the dataset** (https://data.4tu.nl/articles/_/12707066/1, CC0, ~800 MB) into
-   `ml/data/raw/` - or use `python -m ml.download_kaggle --dataset <owner>/<name>` with your kaggle.json.
-2. **Train on Colab**: run `ml/train_colab.ipynb` on a T4 GPU, then copy `best.pt` to
-   `ml/weights/best.pt` and keep the evaluation report (`ml/reports/eval_real_test.md`) - those are
-   the only accuracy numbers you should quote.
-3. **Telegram**: create a bot with @BotFather, put `TELEGRAM_BOT_TOKEN` and `TELEGRAM_CHAT_ID` in `.env`.
-4. **Confirm every threshold with the IIHR mentor** in `config/pests.yaml` (base temperature,
-   degree-days per generation, action threshold, spray ratio, rolling window).
-5. **Have a native Kannada speaker check** `backend/alert_templates.yaml` and the Kannada names in
-   `config/pests.yaml`.
-6. On the Pi: wire and calibrate per `edge/PI_SETUP.md` (`STEPS_PER_SECTION`), set `MOCK_HARDWARE=0`.
+1. **Dataset:** download `data.zip` from https://data.4tu.nl/articles/_/12707066/1 into `ml/data/raw/`,
+   run `python -m ml.download_4tu`, then `python -m ml.convert_dataset`. Read
+   `ml/reports/dataset_summary.md`: if any raw label is "not mapped", add it as an alias in
+   `config/pests.yaml` (and tell us - see DECISIONS.md, Part 1).
+2. **Train on Colab** with `ml/train_colab.ipynb` (T4 GPU, Run all). Install the zip on the laptop
+   (`python -m ml.install_model <zip>`) and on the Pi. Quote only numbers from `eval_real_test.md`.
+3. **Camera-domain test:** print 10 test images, photograph them in the trap, run `ml.camera_test`.
+4. **Raspberry Pi bring-up:** follow `edge/PI_SETUP.md` step 0-7 (camera, DHT22, stepper,
+   calibration, backend link, full run, record a replay pack into `demo/replay_real/`).
+5. **Telegram:** bot token + chat id in `.env`; test once with internet.
+6. **Thresholds:** get real values from the IIHR mentor and enter them on the Settings page.
+7. **Kannada:** send `docs/kannada_review.csv` to a native speaker; import with
+   `python -m backend.kannada_review import docs/kannada_review.csv --reviewer "Name"`.
+8. **Rehearse once with Wi-Fi off** (`scripts\demo.bat`, then `scripts\replay.bat`).
+
+## Hackathon day (4-5 November) - exact steps
+
+**Before leaving (with internet):**
+1. `git pull` (or copy the folder) on the demo laptop; run `scripts\setup.bat` once.
+2. Installed: `ml/weights/best.pt` (+ `best.json`) via `python -m ml.install_model`, and
+   `demo/replay_real/` from a rehearsal. Check the banner shows "AI model: best.pt, trained <date>".
+3. Charge the laptop and a power bank for the Pi; pack the trap, tape roll, spare tape, LED supply.
+
+**At the venue (no internet needed):**
+1. Laptop: `scripts\start.bat --lan` (real trap) - note the printed `http://<laptop-ip>:8000`.
+   Without the Pi: `scripts\demo.bat` (mock trap) instead.
+2. Pi: set `BACKEND_URL=http://<laptop-ip>:8000` in `.env`, run
+   `python -m edge.tests_hw.test_backend_link`, then `python -m edge.main --demo` (20 s cycles) -
+   check the self-check table is all PASS.
+3. Open http://127.0.0.1:8000 on the laptop (and on judges' phones via the printed address),
+   switch **Live on**.
+4. Show: Overview traffic lights -> trap detail (chart, degree-day forecast, annotated tape) ->
+   **Phone check** with a photo -> **Model** page (real measured numbers) -> **Settings** (enter the
+   mentor's thresholds; decisions update instantly) -> an alert in Kannada/English.
+5. **Between judge visits:** click the faint **↺** at the end of the footer (or Alt+Shift+R).
+6. **If the camera or Pi fails:** Ctrl+C the laptop window, run `scripts\replay.bat` - the dashboard
+   shows "▶ Replay"; say so to the judges.
+7. **If anything hangs:** close the window (everything stops), start the script again.
+
+## What is simulated (unchanged until the manual steps above are done)
+
+- Insect counts come from the **demo detector** until `ml/weights/best.pt` is installed.
+- All tape images in the repo (sample tape, seed history, `demo/replay/`) are **synthetic drawings**.
+- Seed history and mock sensor readings are **simulated** (`simulated=True`, badge on the dashboard).
+- Stepper, camera and DHT22 run in **mock mode** here.
 
 ## Known limitations
 
-- No real-insect accuracy exists yet; the demo detector only works on the synthetic images
-  (it would miscount real photos - every screen says "Demo detector").
-- Degree-days start from the first temperature record; IIHR may prefer a biofix such as the last
-  spray or transplanting date. Today's degree-day bar covers a partial day.
-- One target pest per trap (whitefly); adding thrips/Tuta needs classes + thresholds in
-  `pests.yaml` and a model trained on them.
-- Predator counts on traps are low and noisy; the ratio uses predators ≥ 1 to avoid division by zero.
-- The take-up spool diameter grows, so a fixed `STEPS_PER_SECTION` slowly advances more tape;
-  recalibrate mid-roll.
-- SAHI on a full 12 MP photo is slow on a Pi 4 (fine once a day; `LOCAL_DETECTION=0` offloads to the laptop).
-- No user accounts / authentication: the API is meant for a trusted local farm network.
-- `npm` uses its normal user-level download cache (outside the project) during `npm install`.
-- Frontend has no automated UI tests (verified manually in the browser; TypeScript strict build passes).
+- No real-insect accuracy exists yet; the demo detector only works on synthetic images.
+- Degree-days start from the first temperature record; IIHR may prefer another biofix date.
+  Today's degree-day bar covers a partial day.
+- One target pest per trap (whitefly).
+- Predator counts are low and noisy; the ratio counts predators as at least 1.
+- A growing take-up spool pulls slightly more tape per turn; recalibrate mid-roll.
+- On-device SAHI speed on a Pi 4/5 has **not been measured**; if slow, `LOCAL_DETECTION=0`.
+- No login on the dashboard, Settings page or reset endpoint (trusted local network only;
+  `KEETA_ALLOW_RESET=0` disables reset).
+- The camera sharpness check is a relative measure (plain tape has little texture).
+- `npm` uses its normal user-level download cache during `npm install`.
+- No automated browser tests for the frontend (checked manually in the browser each round).
