@@ -89,3 +89,9 @@ Each line: **decision** - reason.
 - **A banner under the header on every page shows the active detector (from /api/health)** - judges can never confuse demo counts with AI counts.
 - **Model page shows only numbers read from `ml/reports/eval_*.json`; a real-data report is featured over a newer synthetic one; a warning appears when only synthetic reports exist** - no number is ever computed or estimated in the UI.
 - **`YOLO_OFFLINE=1` is set by default at runtime (ml/__init__.py); `train.py` switches it back to 0** - Ultralytics otherwise does DNS look-ups and sends usage statistics; training on Colab needs the internet.
+
+## Part 3 - camera-domain test
+- **Photos are matched to originals when the original's file name (case-insensitive) appears inside the photo's name; the longest match wins** - works with "img_12_cam.jpg", "pi_img_12.jpg" etc., and "img_1" never steals "img_12".
+- **`prepare` picks the test images with the most labelled insects** - more insects per print = more signal per photo.
+- **Report gives absolute, signed and % difference (photo minus original) and, when labels exist, MAE against ground truth for both** - the signed value shows whether printing/camera loses insects or adds false ones.
+- **All console output is UTF-8 (ml/__init__.py reconfigures stdout/stderr)** - the Windows code page crashed on "→" and would on Kannada too.

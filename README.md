@@ -153,6 +153,23 @@ python -m ml.evaluate --data ml/data/synthetic_yolo/data.yaml --weights ml/weigh
 python -m ml.infer demo/sample_tape/tape_05.jpg
 ```
 
+## Camera-domain test (printed images under the trap camera)
+
+On stage the camera photographs **printed** test images (or real tape) under LEDs. Printing and the
+camera add blur, colour cast and perspective, so check how much the counts change:
+
+1. `python -m ml.camera_test prepare --n 10` - copies the 10 test images with the most insects to
+   `ml/data/camera_test/originals/` (needs the converted real dataset).
+2. Print each one in colour, one per page, filling the page.
+3. Put each print in the trap chamber and photograph it with the Pi camera
+   (`python -m edge.tests_hw.test_camera --out ml/data/camera_test/photos/img_12_cam.jpg`) or a phone.
+   The original's file name must appear inside the photo's name (`img_12.jpg` -> `img_12_cam.jpg`).
+4. `python -m ml.camera_test run` - runs the detector on every original/photo pair and writes
+   `ml/reports/camera_test.md`: mean count difference (absolute, signed, %) for pests and predators,
+   per class and per image, plus error against the labels.
+
+Run it with the trained model installed - with the demo detector the numbers mean nothing.
+
 ## Raspberry Pi
 
 See **[edge/PI_SETUP.md](edge/PI_SETUP.md)**: parts list, wiring tables for the ULN2003 stepper driver
