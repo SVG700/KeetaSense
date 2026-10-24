@@ -53,13 +53,20 @@ chamber, in the shade, so the LEDs do not heat it.
 
 Never power LEDs directly from a GPIO pin.
 
-## 3. Software install
+## 3. Bring-up order (do these in order; each step has its own PASS/FAIL tool)
+
+Every test prints **PASS / WARN / FAIL** with troubleshooting hints, and exits with
+code 1 on FAIL. Fix a FAIL before going to the next step.
+
+### Step 0 - OS and software
+
+Raspberry Pi OS (64-bit, Bookworm) with SSH enabled (Raspberry Pi Imager → settings: hostname,
+user, Wi-Fi, SSH). Then on the Pi:
 
 ```bash
-sudo apt update
+sudo apt update && sudo apt full-upgrade -y
 sudo apt install -y python3-picamera2 python3-venv git libgl1
-# Check the camera works:
-rpicam-hello -t 2000
+rpicam-hello --list-cameras          # the camera must be listed
 
 # Get the project onto the Pi (git clone or copy the folder), then:
 cd keetasense
@@ -76,39 +83,92 @@ In `.env` on the Pi set at least:
 
 ```
 MOCK_HARDWARE=0
-TRAP_ID=T1-polyhouse            # must exist in config/traps.yaml
+TRAP_ID=T1-polyhouse            # must exist in config/traps.yaml on the laptop
 BACKEND_URL=http://<laptop-ip>:8000
 LED_PIN=23
 ```
 
-Copy the trained `best.pt` to `ml/weights/best.pt` on the Pi so detection runs on
-the device. On a Pi 4, SAHI inference on a full 12 MP photo takes a while
-(about a minute is normal; it runs once a day). If it is too slow, set
-`LOCAL_DETECTION=0` and the backend will detect instead.
-
-## 4. Calibrate the tape advance
-
-`STEPS_PER_SECTION` = half-steps needed to pull exactly one camera-frame of fresh tape.
+### Step 1 - camera
 
 ```bash
-python -c "from edge.hardware.stepper import Stepper; Stepper([17,18,27,22], 0, mock=False).step(1000)"
+python -m edge.tests_hw.test_camera --real --out edge/data/hw_test/cam.jpg
 ```
+Checks: an image is captured, resolution, brightness (40-225), sharpness. Open the saved
+photo (e.g. `scp` it to the laptop) and check the tape fills the frame and is evenly lit.
 
-Measure how many millimetres the tape moved for 1000 half-steps, then:
-`STEPS_PER_SECTION = 1000 × (section length in mm) / (mm moved)`.
-Note: as the take-up spool fills, each turn pulls slightly more tape; recalibrate
-when a roll is half used, or leave a small gap between sections.
-
-## 5. Test one cycle
+### Step 2 - DHT22
 
 ```bash
-python -m edge.main --once
+python -m edge.tests_hw.test_dht22 --real --reads 5
 ```
+Checks: success rate of 5 reads (PASS at ≥ 60 %) and plausible values.
 
-You should see: stepper advancing → photo saved in `edge/data/images/` →
-local detection counts → climate reading → "Synced section" (or "kept offline").
+### Step 3 - stepper motor
 
-## 6. Run as a systemd service (starts at boot, restarts on crash)
+```bash
+python -m edge.tests_hw.test_stepper --real --steps 512 --direction both
+python -m edge.tests_hw.test_stepper --real --steps 4096 --direction forward --delay 0.002   # one full turn
+```
+Watch the shaft (stick a piece of tape on it) and the four LEDs on the ULN2003 board.
+
+### Step 4 - tape calibration (`STEPS_PER_SECTION`)
+
+Load the tape roll, draw a pen line on the tape at the top edge of the camera view, then:
+
+```bash
+python -m edge.calibrate_tape --real
+```
+Press **Enter** to advance by the step size (default 256 half-steps; type a number to change
+it, `b` to go back). After every step a photo with a red reference line is saved in
+`edge/data/calibration/`. When the pen line has just left the camera view, press **s**: the
+total is written to `.env` as `STEPS_PER_SECTION` (old file kept as `.env.bak`).
+As the take-up spool fills, each turn pulls slightly more tape - recalibrate when a roll is
+half used, or leave a small gap between sections.
+
+### Step 5 - backend link
+
+On the laptop start the backend so the Pi can reach it: `scripts\start.bat --lan`
+(or `bash scripts/start.sh --lan`). Then on the Pi:
+
+```bash
+python -m edge.tests_hw.test_backend_link
+```
+Checks: `/api/health` reachable (latency), `TRAP_ID` known by the backend, a test reading is
+accepted (dry run - nothing is stored).
+
+### Step 6 - full run with mock hardware OFF
+
+```bash
+python -m edge.main --once          # one complete cycle, starts with the self-check table
+python -m edge.main --demo          # one cycle every 20 s - watch the dashboard (Live on)
+```
+You should see the self-check table, then: stepper advancing → photo saved in
+`edge/data/images/` → local detection counts → climate reading → "Synced section".
+Note how long the "Local detection" step takes in the log timestamps: SAHI on a full
+12 MP photo can be slow on a Pi 4. If it is too slow for the demo, set `LOCAL_DETECTION=0`
+and the laptop backend detects instead.
+
+Copy the trained model to the Pi as well (`python -m ml.install_model <zip>` on the Pi) so the
+detection on the device uses the AI model; without it the Pi uses the demo detector.
+
+### Step 7 - make a replay pack (stage insurance)
+
+Every cycle is recorded in `edge/data/recording/<TRAP_ID>/`. After a good rehearsal run with
+real tape, turn it into a replay pack and copy it to the laptop:
+
+```bash
+python -m edge.replay edge/data/recording/T1-polyhouse demo/replay_real --note "rehearsal 3 Nov"
+```
+If the camera or Pi fails on stage, run on the laptop:
+`python -m edge.main --demo --replay demo/replay_real` - the dashboard labels it **Replay**.
+
+### Startup self-check
+
+`python -m edge.main` always starts with a quick check of camera, DHT22, stepper (no
+movement), backend link and detector, and prints a table. Problems are reported but the
+service still starts (data waits in the offline queue). Skip it with `--skip-selfcheck`.
+
+## 4. Run as a systemd service (starts at boot, restarts on crash)
 
 Create `/etc/systemd/system/keetasense-edge.service` (adjust user and path):
 
@@ -136,7 +196,7 @@ sudo systemctl enable --now keetasense-edge
 journalctl -u keetasense-edge -f      # watch the log
 ```
 
-## 7. Offline behaviour
+## 5. Offline behaviour
 
 Every photo and reading is first saved in `edge/data/queue.db`. If the laptop or
 network is down, items stay there and are retried with growing waits (10 s, 20 s,

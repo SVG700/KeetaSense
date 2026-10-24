@@ -38,6 +38,12 @@ class TapeSection(SQLModel, table=True):
     predator_total: int = 0
     detector_mode: str = "demo_detector"           # "yolo_sahi" or "demo_detector"
     simulated: bool = False
+    # where it came from: live (real trap) | mock (mock hardware) | replay (recorded cycle
+    # replayed on stage) | seed (demo/seed.py) | upload (posted by hand, e.g. curl)
+    source: str = "live"
+
+
+SECTION_SOURCES = {"live", "mock", "replay", "seed", "upload"}
 
 
 class ClimateReading(SQLModel, table=True):

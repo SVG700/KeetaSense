@@ -162,3 +162,36 @@ def test_phone_check_errors(client):
                        data={"target_pest": "dragon"}).status_code == 422
     assert client.post("/api/phone-check", files={"image": ("p.jpg", tape_jpeg(1), "image/jpeg")},
                        data={"days_exposed": "0"}).status_code == 422
+
+
+def test_climate_dry_run_does_not_store(client):
+    r = client.post("/api/climate?dry_run=true", json={"trap_id": TRAP, "temperature_c": 25, "humidity_pct": 60})
+    assert r.status_code == 200 and r.json()["stored"] is False
+    assert client.get(f"/api/traps/{TRAP}/history").json()["climate_daily"] == []
+
+
+def test_section_source_is_stored_and_validated(client):
+    files = {"image": ("t.jpg", tape_jpeg(3), "image/jpeg")}
+    r = client.post("/api/sections", files=files, data={"trap_id": TRAP, "source": "replay"})
+    assert r.status_code == 200 and r.json()["section"]["source"] == "replay"
+    assert client.get("/api/traps").json()[0]["latest_section"]["source"] == "replay"
+    files = {"image": ("t.jpg", tape_jpeg(3), "image/jpeg")}
+    assert client.post("/api/sections", files=files, data={"trap_id": TRAP, "source": "magic"}).status_code == 422
+
+
+def test_old_database_gets_source_column(tmp_path, monkeypatch):
+    import sqlite3
+    from backend import db
+    path = tmp_path / "old.db"
+    con = sqlite3.connect(path)   # a table as created by the first release (no "source")
+    con.execute("CREATE TABLE tapesection (id INTEGER PRIMARY KEY, trap_id VARCHAR, timestamp DATETIME, "
+                "image_path VARCHAR, annotated_path VARCHAR, counts JSON, pest_total INTEGER, "
+                "predator_total INTEGER, detector_mode VARCHAR, simulated BOOLEAN)")
+    con.commit()
+    con.close()
+    monkeypatch.setenv("KEETA_DB_PATH", str(path))
+    db.reset_engine()
+    db.init_db()
+    cols = [r[1] for r in sqlite3.connect(path).execute("PRAGMA table_info(tapesection)")]
+    assert "source" in cols
+    db.reset_engine()

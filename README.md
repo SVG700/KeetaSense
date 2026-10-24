@@ -144,7 +144,7 @@ Frontend type-check + build: `npm --prefix frontend run build`.
 3. Download `best.pt` and the report, put `best.pt` in `ml/weights/`, restart the backend.
    The "Demo detector" badge disappears and the dashboard shows "AI model (YOLOv8 + SAHI)".
 
-Locally you can test the whole ML pipeline on synthetic data in a few minutes:
+Locally you can test the whole ML pipeline on synthetic data (CPU, tiny smoke test only):
 ```bash
 python -m ml.synthetic --n 80
 python -m ml.convert_dataset --raw ml/data/synthetic_raw --out ml/data/synthetic_yolo

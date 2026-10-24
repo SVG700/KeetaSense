@@ -30,6 +30,21 @@ def reset_engine() -> None:
 def init_db() -> None:
     from backend import models  # noqa: F401  (registers the tables)
     SQLModel.metadata.create_all(get_engine())
+    _add_missing_columns()
+
+
+# Columns added after the first release. create_all() does not change existing
+# tables, so add them here; old databases keep working without a reset.
+NEW_COLUMNS = {"tapesection": {"source": "VARCHAR NOT NULL DEFAULT 'live'"}}
+
+
+def _add_missing_columns() -> None:
+    with get_engine().begin() as conn:
+        for table, columns in NEW_COLUMNS.items():
+            existing = {row[1] for row in conn.exec_driver_sql(f"PRAGMA table_info({table})")}
+            for name, ddl in columns.items():
+                if name not in existing:
+                    conn.exec_driver_sql(f"ALTER TABLE {table} ADD COLUMN {name} {ddl}")
 
 
 def get_session():

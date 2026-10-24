@@ -34,7 +34,7 @@ from sqlmodel import Session, func, select
 from backend import alerts, model_reports, services, settings
 from backend.db import get_engine, get_session, init_db
 from backend.decision_engine import DailyCatch, decide
-from backend.models import AlertLog, ClimateReading, Decision, TapeSection, Trap
+from backend.models import SECTION_SOURCES, AlertLog, ClimateReading, Decision, TapeSection, Trap
 from ml import infer
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s")
@@ -123,9 +123,12 @@ async def post_section(
     simulated: bool = Form(False, description="True when sent by mock hardware"),
     detections_json: str | None = Form(None, description="Optional: detections already made on the edge device"),
     detector_mode: str | None = Form(None),
+    source: str = Form("upload", description="live | mock | replay | seed | upload"),
     session: Session = Depends(get_session),
 ):
     trap = get_trap_or_404(session, trap_id)
+    if source not in SECTION_SOURCES:
+        raise HTTPException(422, f"source must be one of {sorted(SECTION_SOURCES)}")
     img = decode_or_400(await read_upload(image))
     detections = None
     if detections_json:
@@ -137,7 +140,7 @@ async def post_section(
     try:
         section, result, decision = services.process_section(
             session, trap, img, parse_timestamp(timestamp), simulated=simulated or trap.simulated,
-            detections=detections, detector_mode=detector_mode)
+            detections=detections, detector_mode=detector_mode, source=source)
     except (KeyError, TypeError, ValueError) as e:
         raise HTTPException(422, f"Could not process detections: {e}")
     return {
@@ -158,8 +161,12 @@ class ClimateIn(BaseModel):
 
 
 @app.post("/api/climate")
-def post_climate(body: ClimateIn, session: Session = Depends(get_session)):
+def post_climate(body: ClimateIn, dry_run: bool = False, session: Session = Depends(get_session)):
+    """Store a reading. dry_run=true only validates it (used by edge/tests_hw/test_backend_link.py)."""
     trap = get_trap_or_404(session, body.trap_id)
+    if dry_run:
+        return {"dry_run": True, "trap_id": trap.id, "temperature_c": body.temperature_c,
+                "humidity_pct": body.humidity_pct, "stored": False}
     row = services.add_climate(session, trap, parse_timestamp(body.timestamp), body.temperature_c,
                                body.humidity_pct, simulated=body.simulated or trap.simulated)
     return {"id": row.id, "trap_id": row.trap_id, "timestamp": row.timestamp.isoformat(timespec="seconds"),

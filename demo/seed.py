@@ -114,7 +114,8 @@ def main() -> None:
                     services.add_climate(session, trap, t, temp, hum, simulated=True)
                 counts = {name: poisson(rng, cfg[name](i)) for name in ("whitefly", "macrolophus", "nesidiocoris")}
                 img, _ = render_tape(counts, 1280, 800, seed=args.seed * 1000 + i + (0 if trap_id.startswith("T1") else 500))
-                _, result, decision = services.process_section(session, trap, img, shot, simulated=True, notify=False)
+                _, result, decision = services.process_section(session, trap, img, shot, simulated=True, notify=False,
+                                                                 source="seed")
                 print(f"[seed] {trap_id} {shot:%Y-%m-%d}: drawn {counts} -> counted pests={result.pest_total} "
                       f"predators={result.predator_total} -> {decision['action']}")
 

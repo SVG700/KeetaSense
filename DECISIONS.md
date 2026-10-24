@@ -95,3 +95,16 @@ Each line: **decision** - reason.
 - **`prepare` picks the test images with the most labelled insects** - more insects per print = more signal per photo.
 - **Report gives absolute, signed and % difference (photo minus original) and, when labels exist, MAE against ground truth for both** - the signed value shows whether printing/camera loses insects or adds false ones.
 - **All console output is UTF-8 (ml/__init__.py reconfigures stdout/stderr)** - the Windows code page crashed on "→" and would on Kannada too.
+
+## Part 4 - Raspberry Pi bring-up tools
+- **Each hardware test is a separate module with a `check()` function returning PASS/WARN/FAIL + hints, and a `main()` that exits 1 on FAIL** - runnable alone on the Pi, scriptable, and reused by the startup self-check.
+- **`--real` / `--mock` flags on every test; without them MOCK_HARDWARE decides** - the scripts can be rehearsed on a laptop; real mode is explicit on the Pi.
+- **The stepper test cannot sense motion, so it reports PASS when all commands were sent and asks the user to watch the shaft** - no fake "verified" claim.
+- **Camera sharpness = variance of the Laplacian, WARN below `CAMERA_MIN_SHARPNESS` (default 10); brightness WARN outside 40-225** - plain yellow tape has little texture, so the sharpness number is mainly for comparing focus attempts; thresholds are deliberately loose and only warn.
+- **DHT22 PASS at >= 60 % good reads with plausible values (-10..60 °C, 0..100 %)** - DHT22s miss reads normally; persistent failure is what matters.
+- **Backend link test uses `POST /api/climate?dry_run=true`** - validates the full path without storing a fake reading that would distort degree-days.
+- **Calibration writes `STEPS_PER_SECTION` into `.env` with a `.env.bak` copy and saves a photo after every move** - the team sees exactly where the mark is; nothing is lost.
+- **Startup self-check never blocks the service; each hardware part starts independently and a failed part is reported (camera missing -> no capture, climate still sent)** - partial hardware is better than no data on stage.
+- **Every cycle is recorded (`edge/data/recording/<trap>/manifest.jsonl` + images, `RECORD=1` default)** - any rehearsal automatically becomes a replay pack.
+- **Removed an unmeasured claim from PI_SETUP.md ("about a minute is normal" for Pi inference)** - replaced by instructions to measure it from the log.
+- **Tape sections get a `source` column (live | mock | replay | seed | upload), added to old databases by a small migration in `init_db`** - the dashboard can label replayed data; no reset needed.

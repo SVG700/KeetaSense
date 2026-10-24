@@ -96,7 +96,7 @@ def run_detection(img: np.ndarray, detections: list[dict] | None = None,
 # ---------------------------------------------------------------------------
 def process_section(session: Session, trap: Trap, img: np.ndarray, timestamp: datetime,
                     simulated: bool = False, detections: list[dict] | None = None,
-                    detector_mode: str | None = None, notify: bool = True
+                    detector_mode: str | None = None, notify: bool = True, source: str = "live"
                     ) -> tuple[TapeSection, infer.DetectionResult, dict]:
     """Detect insects on one tape section, store it, and update the decision."""
     result = run_detection(img, detections, detector_mode)
@@ -106,7 +106,7 @@ def process_section(session: Session, trap: Trap, img: np.ndarray, timestamp: da
         image_path=save_image(img, "uploads", stem),
         annotated_path=save_image(result.annotated_image, "annotated", stem),
         counts=result.counts, pest_total=result.pest_total, predator_total=result.predator_total,
-        detector_mode=result.mode, simulated=simulated,
+        detector_mode=result.mode, simulated=simulated, source=source,
     )
     session.add(section)
     session.commit()
@@ -193,7 +193,7 @@ def section_to_dict(s: TapeSection) -> dict:
         "id": s.id, "trap_id": s.trap_id, "timestamp": s.timestamp.isoformat(timespec="seconds"),
         "counts": s.counts, "pest_total": s.pest_total, "predator_total": s.predator_total,
         "image_url": media_url(s.image_path), "annotated_url": media_url(s.annotated_path),
-        "detector_mode": s.detector_mode, "simulated": s.simulated,
+        "detector_mode": s.detector_mode, "simulated": s.simulated, "source": s.source,
     }
 
 

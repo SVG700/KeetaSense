@@ -14,6 +14,7 @@
 - [x] Part 1: 4TU download/verify/extract, dataset summary report, improved tile mode (+ notebook switch), camera augmentations, per-class confidence thresholds, notebook auto-evaluate + one-zip export, install_model. Real dataset NOT present on this laptop: conversion of real data and pests.yaml name check still to do.
 - [x] Part 2: automatic switch to best.pt with startup log + safe fallback, detector banner on every page, Model page with measured reports (warning when only synthetic). Checked in the browser in demo and AI-model mode (synthetic weights).
 - [x] Part 3: ml/camera_test.py (prepare + run, report ml/reports/camera_test.md), README section. Not yet run on real prints (needs the trained model, printer and Pi camera).
+- [x] Part 4: edge/tests_hw (camera, stepper, DHT22, backend link) with PASS/FAIL + hints, edge/calibrate_tape.py, startup self-check, robust per-part start-up, cycle recording; PI_SETUP.md bring-up order. All run in mock mode here; NOT run on a real Pi.
 
 ## What works (verified)
 
