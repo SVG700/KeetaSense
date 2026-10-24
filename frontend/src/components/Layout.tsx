@@ -1,4 +1,5 @@
 // Page frame: header with navigation, live-mode toggle and theme toggle.
+import { useCallback, useEffect, useState } from "react";
 import { NavLink, Outlet } from "react-router-dom";
 import { api } from "../api";
 import { LIVE_REFRESH_MS, useLiveData, useSettings } from "../settings";
@@ -24,6 +25,44 @@ function DetectorBanner() {
         <NavLink to="/model" className="ml-auto text-xs underline underline-offset-2">Model details</NavLink>
       </div>
     </div>
+  );
+}
+
+/** Hidden demo helper: a faint "↺" in the footer (or Alt+Shift+R) restores the seeded demo data. */
+function ResetDemoButton() {
+  const [state, setState] = useState<"idle" | "busy" | "error">("idle");
+  const [message, setMessage] = useState("");
+
+  const reset = useCallback(async () => {
+    if (!window.confirm("Reset the demo? All current data is replaced by the 14-day simulated history.")) return;
+    setState("busy");
+    setMessage("Resetting demo data…");
+    try {
+      const r = await api.resetDemo();
+      setMessage(`Demo reset: ${r.sections_created} simulated sections in ${r.seconds} s. Reloading…`);
+      window.setTimeout(() => window.location.reload(), 800);
+    } catch (e) {
+      setState("error");
+      setMessage(`Reset failed: ${(e as Error).message}`);
+    }
+  }, []);
+
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.altKey && e.shiftKey && e.key.toLowerCase() === "r") reset();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [reset]);
+
+  return (
+    <>
+      <button onClick={reset} disabled={state === "busy"} title="Reset demo data (Alt+Shift+R)"
+              aria-label="Reset demo data" className="ml-1 opacity-30 hover:opacity-100 focus:opacity-100">
+        ↺
+      </button>
+      {message && <div role="status" className={`mt-2 ${state === "error" ? "text-red-700 dark:text-red-400" : ""}`}>{message}</div>}
+    </>
   );
 }
 
@@ -91,6 +130,7 @@ export default function Layout() {
       <footer className="mx-auto max-w-6xl px-4 pb-8 text-xs text-stone-500">
         KeetaSense · AI insect counting for yellow sticky traps · Chip to Crop hackathon (Presidency University × ICAR-IIHR).
         Thresholds are placeholders until confirmed with IIHR.
+        <ResetDemoButton />
       </footer>
     </div>
   );

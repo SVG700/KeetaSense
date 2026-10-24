@@ -46,6 +46,14 @@ export const SimulatedTag = () => (
   <Tag title="This data comes from demo/seed.py or mock hardware, not a real trap">⚗ Simulated data</Tag>
 );
 
+/** Shown when the data was REPLAYED from a recording (edge --replay), not captured just now. */
+export const ReplayTag = () => (
+  <span title="Replayed from a recorded run (edge --replay), not captured live just now"
+        className="inline-flex items-center gap-1 rounded-md border border-sky-400 bg-sky-50 px-2 py-0.5 text-xs font-semibold text-sky-900 dark:border-sky-600 dark:bg-sky-950 dark:text-sky-200">
+    ▶ Replay
+  </span>
+);
+
 export function DetectorTag({ mode }: { mode: DetectorMode | undefined }) {
   if (mode === "demo_detector")
     return <Tag title="No trained model weights yet: counts come from simple blob counting, not the AI model">⚠ Demo detector (synthetic only)</Tag>;

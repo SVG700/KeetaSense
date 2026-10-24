@@ -171,6 +171,9 @@ class EdgeService:
             return None
         try:
             from ml import infer  # heavy import, done lazily
+            if self.cfg.mock_hardware and not self.cfg.mock_use_model:
+                # synthetic sample images: the trained model would not recognise drawn insects
+                return infer.demo_detect(img), infer.MODE_DEMO
             r = infer.detect(img)
             return r.detections, r.mode
         except Exception:

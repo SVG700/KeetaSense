@@ -108,3 +108,16 @@ Each line: **decision** - reason.
 - **Every cycle is recorded (`edge/data/recording/<trap>/manifest.jsonl` + images, `RECORD=1` default)** - any rehearsal automatically becomes a replay pack.
 - **Removed an unmeasured claim from PI_SETUP.md ("about a minute is normal" for Pi inference)** - replaced by instructions to measure it from the log.
 - **Tape sections get a `source` column (live | mock | replay | seed | upload), added to old databases by a small migration in `init_db`** - the dashboard can label replayed data; no reset needed.
+
+## Part 5 - demo reliability
+- **One launcher (`scripts/launcher.py`) behind every `.bat`/`.sh`: all services in one console with `[backend]` / `[trap]` prefixes** - one window to watch and one to close.
+- **On Windows every child is placed in a Job Object with KILL_ON_JOB_CLOSE** - closing the window (or the launcher dying for any reason) kills all services; verified by force-killing the launcher.
+- **Ctrl+C / Ctrl+Break are handled by the launcher, which terminates the children (8 s grace, then kill)** - verified with Ctrl+Break sent to the launcher's process group (exit 0, port freed).
+- **The launcher restarts the backend or trap service if it crashes (max 5 times)** - observed working when a backend process was killed during testing.
+- **The backend serves the built dashboard (`frontend/dist`) at "/" with client-side routing; the launcher rebuilds it only when the source is newer** - one process, one URL, no Node at runtime; the Vite dev server remains available with `--dev`.
+- **The dashboard's default API address is "same host, port 8000"** - works on the laptop, from the backend-served page, and from a phone on the same Wi-Fi (`--lan`).
+- **`--lan` binds 0.0.0.0 and prints the laptop's IP addresses; the default stays 127.0.0.1** - the Pi and phones need it, but it should be a conscious choice.
+- **Offline audit: no CDN fonts/scripts/images in the dashboard (only XML namespaces and comments contain URLs); Ultralytics runs with YOLO_OFFLINE=1; Telegram uses 5-10 s timeouts on a background thread.** Verified by a test that blocks every non-local DNS lookup during the whole API flow, and a separate run of YOLO+SAHI inference with sockets blocked (0 attempts). Wi-Fi was NOT physically switched off on this laptop.
+- **Synthetic images (seed history and mock-camera samples) are ALWAYS counted by the demo detector, even after `best.pt` is installed (`MOCK_USE_MODEL=1` overrides for the mock camera)** - the real model would not recognise drawn insects and the demo history would collapse to zeros.
+- **`/api/reset-demo` deletes rows (not the database file) and re-seeds in-process; hidden "↺" in the footer or Alt+Shift+R; disable with `KEETA_ALLOW_RESET=0`** - deleting the file fails on Windows while the backend has it open.
+- **Replay packs are folders with `manifest.jsonl` + images; `demo/replay/` is a SYNTHETIC pack recorded from the mock trap; the launcher prefers `demo/replay_real/` when present** - works out of the box today, and the real pack drops in without code changes.

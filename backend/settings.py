@@ -29,6 +29,16 @@ def media_dir() -> Path:
     return _path("KEETA_MEDIA_DIR", "backend/data/media")
 
 
+def dashboard_dir() -> Path:
+    """Built dashboard (npm run build). If it exists, the backend serves it at "/"."""
+    return _path("KEETA_DASHBOARD_DIR", "frontend/dist")
+
+
+def allow_demo_reset() -> bool:
+    """POST /api/reset-demo wipes all data - allowed by default for the hackathon demo."""
+    return os.environ.get("KEETA_ALLOW_RESET", "1").strip() == "1"
+
+
 def cors_origins() -> list[str]:
     raw = os.environ.get("KEETA_CORS_ORIGINS", "http://localhost:5173,http://127.0.0.1:5173")
     return [o.strip() for o in raw.split(",") if o.strip()]

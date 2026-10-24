@@ -60,7 +60,10 @@ def telegram_configured() -> bool:
 
 async def _send_telegram(text: str) -> None:
     from telegram import Bot  # lazy import
-    async with Bot(settings.telegram_token()) as bot:
+    from telegram.request import HTTPXRequest
+    # short timeouts: with Wi-Fi off the attempt fails fast instead of hanging
+    request = HTTPXRequest(connect_timeout=5, read_timeout=10, write_timeout=10, pool_timeout=5)
+    async with Bot(settings.telegram_token(), request=request) as bot:
         await bot.send_message(chat_id=settings.telegram_chat_id(), text=text)
 
 

@@ -39,5 +39,6 @@ call npm --prefix frontend ci --no-fund --no-audit || exit /b 1
 if not exist "demo\sample_tape\tape_01.jpg" "%PY%" -m demo.generate_sample_tape
 
 echo.
-echo [setup] Done. Next:  scripts\demo.bat   (full live demo)   or   scripts\start.bat
+echo [setup] Done. Next:  scripts\demo.bat  (full live demo)  or  scripts\start.bat  or  scripts\replay.bat
+eplay.bat
 endlocal

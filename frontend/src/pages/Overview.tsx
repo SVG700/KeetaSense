@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { api, mediaUrl, type AlertItem, type Summary, type TrapSummary } from "../api";
 import { useLiveData } from "../settings";
 import {
-  ActionStrip, DecisionBadge, DetectorTag, EmptyState, ErrorState, SimulatedTag, Spinner, StatusDot,
+  ActionStrip, DecisionBadge, DetectorTag, EmptyState, ErrorState, ReplayTag, SimulatedTag, Spinner, StatusDot,
   Tag, prettyPest, timeAgo,
 } from "../components/ui";
 
@@ -70,7 +70,8 @@ function TrapCard({ trap }: { trap: TrapSummary }) {
           {trap.latest_climate && (
             <span className="text-xs text-stone-500">· {trap.latest_climate.temperature_c} °C, {trap.latest_climate.humidity_pct}% RH</span>
           )}
-          <span className="ml-auto flex gap-1.5">
+          <span className="ml-auto flex flex-wrap gap-1.5">
+            {s?.source === "replay" && <ReplayTag />}
             {(trap.simulated || s?.simulated) && <SimulatedTag />}
             {s && <DetectorTag mode={s.detector_mode} />}
           </span>
@@ -103,6 +104,7 @@ export default function Overview() {
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
+          {traps.some((t) => t.latest_section?.source === "replay") && <ReplayTag />}
           {summary.simulated_data && <SimulatedTag />}
           <DetectorTag mode={summary.detector_mode} />
           <Tag tone="stone" title="Telegram bot token in .env">

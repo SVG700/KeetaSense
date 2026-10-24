@@ -15,6 +15,7 @@
 - [x] Part 2: automatic switch to best.pt with startup log + safe fallback, detector banner on every page, Model page with measured reports (warning when only synthetic). Checked in the browser in demo and AI-model mode (synthetic weights).
 - [x] Part 3: ml/camera_test.py (prepare + run, report ml/reports/camera_test.md), README section. Not yet run on real prints (needs the trained model, printer and Pi camera).
 - [x] Part 4: edge/tests_hw (camera, stepper, DHT22, backend link) with PASS/FAIL + hints, edge/calibrate_tape.py, startup self-check, robust per-part start-up, cycle recording; PI_SETUP.md bring-up order. All run in mock mode here; NOT run on a real Pi.
+- [x] Part 5: single-window launcher (start/demo/replay .bat + .sh) with Job Object cleanup, Ctrl+C handling and crash restart; backend serves the built dashboard; offline audit + tests; REPLAY mode with "Replay" label; /api/reset-demo + hidden button. Tested here: demo.bat and replay.bat in one console, force-kill and Ctrl+Break cleanup, reset button in the browser.
 
 ## What works (verified)
 

@@ -27,4 +27,4 @@ npm --prefix frontend ci --no-fund --no-audit
 
 [ -f demo/sample_tape/tape_01.jpg ] || "$PY" -m demo.generate_sample_tape
 
-echo "[setup] Done. Next:  bash scripts/demo.sh   (full live demo)   or   bash scripts/start.sh"
+echo "[setup] Done. Next:  bash scripts/demo.sh  (full live demo)  or  bash scripts/start.sh  or  bash scripts/replay.sh"

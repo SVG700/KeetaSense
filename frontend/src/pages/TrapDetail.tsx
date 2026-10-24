@@ -5,7 +5,7 @@ import { api, mediaUrl } from "../api";
 import { useLiveData } from "../settings";
 import { CountsChart, DegreeDayChart, DegreeDayMeter } from "../components/charts";
 import {
-  ActionStrip, DecisionBadge, DetectorTag, EmptyState, ErrorState, SimulatedTag, Spinner, StatusDot,
+  ActionStrip, DecisionBadge, DetectorTag, EmptyState, ErrorState, ReplayTag, SimulatedTag, Spinner, StatusDot,
   prettyPest, timeAgo,
 } from "../components/ui";
 
@@ -42,6 +42,7 @@ export default function TrapDetail() {
               <div className="mt-2 flex flex-wrap items-center gap-2">
                 <StatusDot status={trap.status} />
                 <span className="text-xs text-stone-500">updated {timeAgo(trap.last_seen)}</span>
+                {latest?.source === "replay" && <ReplayTag />}
                 {simulated && <SimulatedTag />}
                 {latest && <DetectorTag mode={latest.detector_mode} />}
               </div>
@@ -95,6 +96,9 @@ export default function TrapDetail() {
           <h2 className="font-semibold">Latest tape section</h2>
           {latest ? (
             <>
+              {latest.source === "replay" && (
+                <p className="mb-2 text-sm font-medium text-sky-800 dark:text-sky-300">▶ Replay: this image was recorded earlier and replayed for the demo.</p>
+              )}
               <p className="mb-3 text-xs text-stone-500 dark:text-stone-400">
                 {new Date(latest.timestamp).toLocaleString()} ·{" "}
                 {Object.entries(latest.counts).map(([k, v]) => `${prettyPest(k)}: ${v}`).join(" · ")}

@@ -31,5 +31,8 @@ class EdgeConfig:
     dht22_pin: int = field(default_factory=lambda: int(os.environ.get("DHT22_PIN", 4)))
     led_pin: int | None = field(default_factory=lambda: int(os.environ["LED_PIN"]) if os.environ.get("LED_PIN") else None)
     local_detection: bool = field(default_factory=lambda: _bool("LOCAL_DETECTION", "1"))
+    # mock camera images are SYNTHETIC drawings: count them with the demo detector even when
+    # the real model is installed (set 1 if you put real tape photos in demo/sample_tape/)
+    mock_use_model: bool = field(default_factory=lambda: _bool("MOCK_USE_MODEL", "0"))
     data_dir: Path = field(default_factory=lambda: ROOT / os.environ.get("EDGE_DATA_DIR", "edge/data"))
     sample_dir: Path = field(default_factory=lambda: ROOT / "demo" / "sample_tape")

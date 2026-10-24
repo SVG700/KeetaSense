@@ -1,8 +1,11 @@
 // Talking to the KeetaSense backend.
 // Every function throws an ApiError with a friendly message if something goes wrong.
 
+// Default: the same machine that served this page, port 8000. That works for the Vite dev
+// server, for the dashboard served by the backend itself, and for a phone on the same Wi-Fi.
 export const API_BASE: string =
-  (import.meta.env.VITE_API_BASE as string | undefined)?.replace(/\/$/, "") || "http://127.0.0.1:8000";
+  (import.meta.env.VITE_API_BASE as string | undefined)?.replace(/\/$/, "") ||
+  `${window.location.protocol}//${window.location.hostname === "localhost" ? "127.0.0.1" : window.location.hostname}:8000`;
 
 export type Action = "SPRAY" | "RELEASE_BIOCONTROL" | "WAIT";
 export type DetectorMode = "yolo_sahi" | "demo_detector";
@@ -92,6 +95,7 @@ export interface Section {
   annotated_url: string | null;
   detector_mode: DetectorMode;
   simulated: boolean;
+  source: "live" | "mock" | "replay" | "seed" | "upload";
 }
 
 export interface Thresholds {
@@ -214,6 +218,9 @@ export const api = {
   traps: () => request<TrapSummary[]>("/api/traps"),
   history: (id: string, days = 30) => request<TrapHistory>(`/api/traps/${encodeURIComponent(id)}/history?days=${days}`),
   alerts: (limit = 8) => request<AlertItem[]>(`/api/alerts?limit=${limit}`),
+  resetDemo: () =>
+    request<{ removed: Record<string, number>; sections_created: number; seconds: number }>(
+      "/api/reset-demo", { method: "POST" }, 120000),
   phoneCheck: (file: File, daysExposed: number) => {
     const form = new FormData();
     form.append("image", file);

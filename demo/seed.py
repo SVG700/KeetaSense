@@ -9,12 +9,13 @@ The stories (chosen so the dashboard shows two different decisions):
                 were released and are keeping pace  -> RELEASE BIOCONTROL
   T2-openfield  whiteflies build up with almost no predators -> SPRAY
 
-Tape images are rendered by ml/synthetic.py and then counted by the real
-detection pipeline (ml.infer.detect), exactly like live data.
+Tape images are rendered by ml/synthetic.py and counted by the DEMO DETECTOR
+(they are drawings, so the trained AI model would not recognise them), then
+stored through the same code path as live data.
 
 Usage:
     python -m demo.seed            # refuses if data already exists
-    python -m demo.seed --reset    # wipe the database + images first
+    python -m demo.seed --reset    # wipe all data + images first (also: POST /api/reset-demo)
 """
 from __future__ import annotations
 
@@ -27,10 +28,10 @@ from datetime import datetime, timedelta
 
 from sqlmodel import Session, select
 
-from backend import settings
-from backend.db import get_engine, init_db, reset_engine
-from backend.models import TapeSection, Trap
-from backend import services
+from backend import services, settings
+from backend.db import get_engine, init_db
+from backend.models import AlertLog, ClimateReading, Decision, TapeSection, Trap
+from ml import infer
 from ml.synthetic import render_tape
 
 DAYS = 14
@@ -75,50 +76,73 @@ def climate_for_day(rng: random.Random, day_start: datetime, cfg: dict, until: d
         yield t, round(temp, 1), round(min(98, max(25, hum)), 1)
 
 
+def clear_all(session: Session) -> dict:
+    """Delete every tape section, reading, decision and alert, and all stored images.
+
+    Works while the backend is running (deletes rows instead of the database file,
+    which Windows would refuse to delete while it is open)."""
+    removed = {}
+    for model in (AlertLog, Decision, ClimateReading, TapeSection):
+        rows = session.exec(select(model)).all()
+        removed[model.__name__] = len(rows)
+        for row in rows:
+            session.delete(row)
+    session.commit()
+    media = settings.media_dir()
+    if media.exists():
+        shutil.rmtree(media, ignore_errors=True)
+    media.mkdir(parents=True, exist_ok=True)
+    return removed
+
+
+def seed_history(session: Session, seed: int = 7, log=print) -> int:
+    """Create the 14-day SIMULATED history. Returns the number of tape sections created.
+
+    The synthetic images are always counted by the DEMO DETECTOR (and labelled so):
+    they are drawings, so the real AI model would not recognise them."""
+    rng = random.Random(seed)
+    now = datetime.now().replace(microsecond=0)
+    services.sync_traps(session)
+    created = 0
+    for trap_id, cfg in TRAPS.items():
+        trap = session.get(Trap, trap_id)
+        if trap is None:
+            log(f"[seed] trap {trap_id} is not in config/traps.yaml - skipped")
+            continue
+        for i in range(DAYS):
+            d = DAYS - 1 - i                                  # days ago
+            day_start = (now - timedelta(days=d)).replace(hour=0, minute=0, second=0)
+            # the tape is photographed at 07:00 (or a few minutes ago, for today)
+            shot = min(day_start.replace(hour=7), now - timedelta(minutes=5))
+            for t, temp, hum in climate_for_day(rng, day_start, cfg, until=now):
+                services.add_climate(session, trap, t, temp, hum, simulated=True)
+            counts = {name: poisson(rng, cfg[name](i)) for name in ("whitefly", "macrolophus", "nesidiocoris")}
+            img, _ = render_tape(counts, 1280, 800, seed=seed * 1000 + i + (0 if trap_id.startswith("T1") else 500))
+            _, result, decision = services.process_section(
+                session, trap, img, shot, simulated=True, notify=False, source="seed",
+                detections=infer.demo_detect(img), detector_mode=infer.MODE_DEMO)
+            created += 1
+            log(f"[seed] {trap_id} {shot:%Y-%m-%d}: drawn {counts} -> counted pests={result.pest_total} "
+                f"predators={result.predator_total} -> {decision['action']}")
+    return created
+
+
 def main() -> None:
     logging.basicConfig(level=logging.WARNING)
     ap = argparse.ArgumentParser(description="Seed 14 days of SIMULATED history.")
-    ap.add_argument("--reset", action="store_true", help="delete the database and images first")
+    ap.add_argument("--reset", action="store_true", help="delete all existing data and images first")
     ap.add_argument("--seed", type=int, default=7)
     args = ap.parse_args()
 
-    if args.reset:
-        reset_engine()
-        db = settings.db_path()
-        if db.exists():
-            db.unlink()
-        if settings.media_dir().exists():
-            shutil.rmtree(settings.media_dir())
-        print(f"[seed] reset: removed {db} and {settings.media_dir()}")
-
     init_db()
-    rng = random.Random(args.seed)
-    now = datetime.now().replace(microsecond=0)
     with Session(get_engine()) as session:
-        services.sync_traps(session)
-        if session.exec(select(TapeSection)).first() is not None:
+        if args.reset:
+            removed = clear_all(session)
+            print(f"[seed] reset: removed {removed} and all images in {settings.media_dir()}")
+        elif session.exec(select(TapeSection)).first() is not None:
             print("[seed] the database already has tape sections. Use --reset to start fresh.")
             return
-
-        for trap_id, cfg in TRAPS.items():
-            trap = session.get(Trap, trap_id)
-            if trap is None:
-                print(f"[seed] trap {trap_id} is not in config/traps.yaml - skipped")
-                continue
-            for i in range(DAYS):
-                d = DAYS - 1 - i                                  # days ago
-                day_start = (now - timedelta(days=d)).replace(hour=0, minute=0, second=0)
-                # the tape is photographed at 07:00 (or a few minutes ago, for today)
-                shot = min(day_start.replace(hour=7), now - timedelta(minutes=5))
-                for t, temp, hum in climate_for_day(rng, day_start, cfg, until=now):
-                    services.add_climate(session, trap, t, temp, hum, simulated=True)
-                counts = {name: poisson(rng, cfg[name](i)) for name in ("whitefly", "macrolophus", "nesidiocoris")}
-                img, _ = render_tape(counts, 1280, 800, seed=args.seed * 1000 + i + (0 if trap_id.startswith("T1") else 500))
-                _, result, decision = services.process_section(session, trap, img, shot, simulated=True, notify=False,
-                                                                 source="seed")
-                print(f"[seed] {trap_id} {shot:%Y-%m-%d}: drawn {counts} -> counted pests={result.pest_total} "
-                      f"predators={result.predator_total} -> {decision['action']}")
-
+        seed_history(session, args.seed)
     print("[seed] done. All data above is SIMULATED (simulated=True in the database).")
 
 

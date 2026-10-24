@@ -20,13 +20,15 @@ from __future__ import annotations
 
 import json
 import logging
+import threading
+import time
 import uuid
 from contextlib import asynccontextmanager
 from datetime import date, datetime, timedelta
 
 from fastapi import Depends, FastAPI, File, Form, HTTPException, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
+from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 from sqlmodel import Session, func, select
@@ -291,6 +293,29 @@ def health(session: Session = Depends(get_session)):
     }
 
 
+_reset_lock = threading.Lock()
+
+
+@app.post("/api/reset-demo")
+def reset_demo(session: Session = Depends(get_session)):
+    """Wipe all data and restore the seeded demo state (hidden button in the dashboard footer).
+
+    Disable on a real deployment with KEETA_ALLOW_RESET=0."""
+    if not settings.allow_demo_reset():
+        raise HTTPException(403, "Demo reset is disabled (KEETA_ALLOW_RESET=0).")
+    if not _reset_lock.acquire(blocking=False):
+        raise HTTPException(409, "A reset is already running.")
+    try:
+        from demo import seed  # demo package: only needed for this endpoint
+        t0 = time.time()
+        removed = seed.clear_all(session)
+        created = seed.seed_history(session, log=log.info)
+        log.warning("DEMO RESET: removed %s, created %d simulated sections", removed, created)
+        return {"removed": removed, "sections_created": created, "seconds": round(time.time() - t0, 1)}
+    finally:
+        _reset_lock.release()
+
+
 @app.get("/api/model")
 def model_page():
     """Active detector + every evaluation report in ml/reports (newest first)."""
@@ -305,3 +330,20 @@ def model_page():
     else:
         warning = None
     return {"detector": infer.model_info(), "featured": featured, "reports": reports, "warning": warning}
+
+
+# ---------------------------------------------------------------------------
+# The dashboard itself (built with `npm run build`), served from the same port so
+# the demo needs only this one process and works with Wi-Fi off.
+# Registered LAST so /api/... and /media/... always win.
+# ---------------------------------------------------------------------------
+@app.get("/{path:path}", include_in_schema=False)
+def dashboard(path: str):
+    root = settings.dashboard_dir()
+    index = root / "index.html"
+    if path.startswith(("api/", "media/")) or not index.exists():
+        raise HTTPException(404, "Not found. (Dashboard not built? Run: npm --prefix frontend run build)")
+    target = (root / path).resolve()
+    if path and target.is_file() and root.resolve() in target.parents:
+        return FileResponse(target)
+    return FileResponse(index)  # client-side routes like /traps/T1-polyhouse
