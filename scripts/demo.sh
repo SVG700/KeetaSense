@@ -20,7 +20,8 @@ trap cleanup EXIT INT TERM
 
 "$PY" -m uvicorn backend.main:app --host 127.0.0.1 --port 8000 &
 PIDS+=($!)
-npm --prefix frontend run dev &
+# run vite directly (not via npm) so stopping this script really stops it
+(cd frontend && exec node node_modules/vite/bin/vite.js) &
 PIDS+=($!)
 
 echo "[demo] waiting for the backend ..."

@@ -60,3 +60,10 @@ Each line: **decision** - reason.
 - **API base defaults to http://127.0.0.1:8000 (override with VITE_API_BASE)** - same IPv6 "localhost" delay reason as the edge.
 - **Decision history shows only the moments the action changed** - one row per section would be noise.
 - **Phone check hides the "no temperature data" forecast sentence** - a single photo never has temperature history; the reason says so instead.
+
+## Demo, scripts, final check
+- **Seed: Polyhouse ends on RELEASE BIOCONTROL, Open field on SPRAY; images go through the real `detect()`** - the dashboard shows two different decisions with counts consistent with the images.
+- **Seed does not send alerts (`notify=False`)** - reseeding must never spam a real Telegram chat; live alerts come from the edge demo.
+- **`.bat` scripts open one window per service; `.sh` scripts run services in the background and stop them on Ctrl+C** - natural for each platform.
+- **`.sh` scripts start Vite with `node .../vite.js` instead of `npm run dev`** - on Git Bash, killing npm left Vite running on port 5173 (found in the final check).
+- **The clean-state check clones the repo into `.tools/cleancheck` (git-ignored)** - stays inside the project folder.
