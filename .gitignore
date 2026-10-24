@@ -1,0 +1,31 @@
+# Local tooling (portable Python + uv cache) and virtualenv
+.tools/
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+
+# Secrets
+.env
+kaggle.json
+
+# Datasets and generated data (large / regenerable)
+ml/data/raw/*
+!ml/data/raw/README.md
+ml/data/yolo/
+ml/data/synthetic_raw/
+ml/data/synthetic_yolo/
+ml/runs/
+ml/.ultralytics/
+*.pt
+!ml/weights/README.md
+
+# Runtime data
+backend/data/
+edge/data/
+*.db
+*.log
+
+# Frontend
+frontend/node_modules/
+frontend/dist/

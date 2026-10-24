@@ -1,0 +1,57 @@
+# KeetaSense - insect classes and decision thresholds
+# =====================================================
+# This is the ONLY place where insect classes are mapped to a category
+# ("pest" or "predator"). The ML converter, the detector and the decision
+# engine all read this file. Nothing about classes is hardcoded in code.
+#
+# IMPORTANT: every number in the "thresholds" section below is a placeholder
+# chosen so the demo behaves sensibly. They MUST be confirmed with the
+# ICAR-IIHR mentor before any real-world use.
+
+# ---------------------------------------------------------------------------
+# 1. Classes the model detects
+# ---------------------------------------------------------------------------
+# The order of this list defines the YOLO class ids (0, 1, 2, ...).
+# "aliases" are the label names that may appear in raw datasets; the dataset
+# converter maps any alias (case-insensitive) to the canonical "name".
+# The Wageningen "Yellow Sticky Traps" dataset uses WF / MR / NC.
+# "synthetic_shape" (round | stout | slim) is ONLY used by the synthetic test
+# image generator and the DEMO DETECTOR - never by the real trained model.
+classes:
+  - name: whitefly
+    category: pest
+    display_en: Whitefly
+    display_kn: ಬಿಳಿ ನೊಣ
+    synthetic_shape: round
+    aliases: [WF, whitefly, whiteflies, white_fly, trialeurodes, bemisia]
+  - name: macrolophus
+    category: predator
+    display_en: Macrolophus (predator bug)
+    display_kn: ಮ್ಯಾಕ್ರೊಲೋಫಸ್ (ಪರಭಕ್ಷಕ ತಿಗಣೆ)
+    synthetic_shape: stout
+    aliases: [MR, macrolophus, macrolophus_pygmaeus]
+  - name: nesidiocoris
+    category: predator
+    display_en: Nesidiocoris (predator bug)
+    display_kn: ನೆಸಿಡಿಯೊಕೊರಿಸ್ (ಪರಭಕ್ಷಕ ತಿಗಣೆ)
+    synthetic_shape: slim
+    aliases: [NC, nesidiocoris, nesidiocoris_tenuis]
+
+# ---------------------------------------------------------------------------
+# 2. Decision thresholds, per target pest
+# ---------------------------------------------------------------------------
+# Each trap in traps.yaml names a target pest (e.g. whitefly); the decision
+# engine uses that pest's block below.
+thresholds:
+  whitefly:
+    # Lower developmental temperature threshold (deg C) for degree-days.
+    base_temp_c: 10.0  # PLACEHOLDER - confirm with IIHR mentor
+    # Degree-days needed for one whitefly generation (egg to adult).
+    degree_days_per_generation: 300.0  # PLACEHOLDER - confirm with IIHR mentor
+    # Average pests caught per tape section (= per day) that triggers action.
+    action_threshold_per_day: 25  # PLACEHOLDER - confirm with IIHR mentor
+    # Pest-to-predator ratio at or above which predators are NOT keeping pace.
+    # Below this ratio, predators are keeping pace -> release more biocontrol.
+    spray_ratio: 10.0  # PLACEHOLDER - confirm with IIHR mentor
+    # How many of the most recent tape sections (days) to average over.
+    rolling_window_days: 3  # PLACEHOLDER - confirm with IIHR mentor

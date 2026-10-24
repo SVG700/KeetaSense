@@ -1,0 +1,20 @@
+# KeetaSense - trap registry
+# The backend loads these traps at startup (creating any that are missing).
+# The edge device uses TRAP_ID from .env to say which trap it is.
+#
+# simulated: true marks traps whose data comes from demo/seed.py or the
+# mock-hardware edge service. The dashboard shows a "Simulated data" badge.
+
+traps:
+  - id: T1-polyhouse
+    name: Polyhouse trap
+    location: Polyhouse, tomato block A
+    crop: Tomato
+    target_pest: whitefly
+    simulated: true
+  - id: T2-openfield
+    name: Open field trap
+    location: Open field, tomato plot 3
+    crop: Tomato
+    target_pest: whitefly
+    simulated: true
