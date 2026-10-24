@@ -1,0 +1,52 @@
+@import "tailwindcss";
+
+/* Dark mode is switched by adding the "dark" class to <html> (see theme.ts). */
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* Brand colours: leaf green + sticky-trap yellow. */
+@theme {
+  --color-leaf-50: #f0fdf4;
+  --color-leaf-100: #dcfce7;
+  --color-leaf-500: #22c55e;
+  --color-leaf-600: #16a34a;
+  --color-leaf-700: #15803d;
+  --color-leaf-800: #166534;
+  --color-leaf-900: #14532d;
+  --color-trap-300: #fde047;
+  --color-trap-400: #facc15;
+  --color-trap-500: #eab308;
+  --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", "Noto Sans Kannada", sans-serif;
+}
+
+/* Chart + status colours as CSS variables, with separate dark-mode steps.
+   Series: categorical slots 1 and 2 (validated for colour-blind safety in
+   both modes). Status colours are reserved for the decision traffic light. */
+:root {
+  --series-pest: #2a78d6;
+  --series-predator: #eb6834;
+  --series-climate: #1baf7a;
+  --surface: #ffffff;
+  --chart-grid: #e5e7eb;
+  --chart-axis: #6b7280;
+  --chart-threshold: #9ca3af;
+  --status-good: #0ca30c;
+  --status-warning: #fab219;
+  --status-critical: #d03b3b;
+}
+.dark {
+  --series-pest: #3987e5;
+  --series-predator: #d95926;
+  --series-climate: #199e70;
+  --surface: #1c1917;
+  --chart-grid: #2e2e2c;
+  --chart-axis: #a3a29b;
+  --chart-threshold: #6b6a64;
+}
+
+body {
+  @apply bg-stone-50 text-stone-900 dark:bg-stone-950 dark:text-stone-100 antialiased;
+}
+
+.card {
+  @apply rounded-2xl border border-stone-200 bg-white shadow-sm dark:border-stone-800 dark:bg-stone-900;
+}

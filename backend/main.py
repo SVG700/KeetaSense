@@ -184,6 +184,7 @@ async def phone_check(
     catch = DailyCatch(round(result.pest_total / days_exposed), round(result.predator_total / days_exposed))
     th.rolling_window_days = 1
     decision = decide([catch], [], th, settings.pest_display_name(target_pest).lower()).to_dict()
+    decision["reason"] = decision["reason"].replace(" No temperature data yet, so no generation forecast.", "")
     decision["reason"] += " (Based on a single photo, so there is no trend or temperature history.)"
     return {
         "counts": result.counts, "pest_total": result.pest_total, "predator_total": result.predator_total,

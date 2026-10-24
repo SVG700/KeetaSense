@@ -8,6 +8,7 @@ from __future__ import annotations
 import logging
 import uuid
 from collections import defaultdict
+from dataclasses import asdict
 from datetime import date, datetime, timedelta
 
 import cv2
@@ -110,7 +111,7 @@ def process_section(session: Session, trap: Trap, img: np.ndarray, timestamp: da
     session.add(section)
     session.commit()
     session.refresh(section)
-    decision = update_decision(session, trap, notify=notify)
+    decision = update_decision(session, trap, notify=notify, now=timestamp)
     return section, result, decision
 
 
@@ -218,4 +219,5 @@ def trap_summary(session: Session, trap: Trap) -> dict:
                            "temperature_c": climate.temperature_c,
                            "humidity_pct": climate.humidity_pct} if climate else None,
         "decision": compute_decision(session, trap),
+        "thresholds": asdict(thresholds_for(trap.target_pest)),
     }

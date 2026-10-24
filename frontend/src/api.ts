@@ -1,0 +1,168 @@
+// Talking to the KeetaSense backend.
+// Every function throws an ApiError with a friendly message if something goes wrong.
+
+export const API_BASE: string =
+  (import.meta.env.VITE_API_BASE as string | undefined)?.replace(/\/$/, "") || "http://127.0.0.1:8000";
+
+export type Action = "SPRAY" | "RELEASE_BIOCONTROL" | "WAIT";
+export type DetectorMode = "yolo_sahi" | "demo_detector";
+
+export interface DegreeDays {
+  accumulated: number;
+  generations_completed: number;
+  progress_dd: number;
+  progress_fraction: number;
+  dd_remaining: number;
+  avg_daily_dd: number | null;
+  days_to_next_generation: number | null;
+  days_of_data: number;
+}
+
+export interface Decision {
+  action: Action;
+  reason: string;
+  pests_per_day: number;
+  predators_per_day: number;
+  ratio: number | null;
+  window_days_used: number;
+  degree_days: DegreeDays;
+}
+
+export interface Section {
+  id: number;
+  trap_id: string;
+  timestamp: string;
+  counts: Record<string, number>;
+  pest_total: number;
+  predator_total: number;
+  image_url: string | null;
+  annotated_url: string | null;
+  detector_mode: DetectorMode;
+  simulated: boolean;
+}
+
+export interface Thresholds {
+  base_temp_c: number;
+  degree_days_per_generation: number;
+  action_threshold_per_day: number;
+  spray_ratio: number;
+  rolling_window_days: number;
+}
+
+export interface TrapSummary {
+  id: string;
+  name: string;
+  location: string;
+  crop: string;
+  target_pest: string;
+  simulated: boolean;
+  status: "online" | "offline" | "no_data";
+  last_seen: string | null;
+  latest_section: Section | null;
+  latest_climate: { timestamp: string; temperature_c: number; humidity_pct: number } | null;
+  decision: Decision;
+  thresholds: Thresholds;
+}
+
+export interface ClimateDay {
+  date: string;
+  tmin: number;
+  tmax: number;
+  humidity_avg: number;
+  degree_days: number;
+  readings: number;
+  simulated: boolean;
+}
+
+export interface TrapHistory {
+  trap: TrapSummary;
+  sections: Section[];
+  climate_daily: ClimateDay[];
+  decisions: { timestamp: string; action: Action; reason: string }[];
+}
+
+export interface Summary {
+  traps_total: number;
+  actions: Record<Action, number>;
+  pests_today: number;
+  predators_today: number;
+  sections_today: number;
+  sections_total: number;
+  last_update: string | null;
+  simulated_data: boolean;
+  detector_mode: DetectorMode;
+  telegram_configured: boolean;
+  alerts_total: number;
+}
+
+export interface AlertItem {
+  id: number;
+  trap_id: string;
+  timestamp: string;
+  action: Action;
+  previous_action: Action | null;
+  language: string;
+  message: string;
+  status: string;
+}
+
+export interface PhoneCheckResult {
+  counts: Record<string, number>;
+  pest_total: number;
+  predator_total: number;
+  days_exposed: number;
+  annotated_url: string;
+  detector_mode: DetectorMode;
+  warning: string | null;
+  decision: Decision;
+}
+
+export class ApiError extends Error {
+  offline: boolean; // true = the backend could not be reached at all
+  constructor(message: string, offline = false) {
+    super(message);
+    this.offline = offline;
+  }
+}
+
+/** Full URL for an image path returned by the backend, e.g. "/media/annotated/x.jpg". */
+export const mediaUrl = (path: string | null | undefined) => (path ? `${API_BASE}${path}` : "");
+
+async function request<T>(path: string, init?: RequestInit, timeoutMs = 15000): Promise<T> {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  let resp: Response;
+  try {
+    resp = await fetch(`${API_BASE}${path}`, { ...init, signal: controller.signal });
+  } catch {
+    throw new ApiError(`Cannot reach the KeetaSense backend at ${API_BASE}.`, true);
+  } finally {
+    clearTimeout(timer);
+  }
+  if (!resp.ok) {
+    let detail = `${resp.status} ${resp.statusText}`;
+    try {
+      const body = await resp.json();
+      if (body?.detail) detail = typeof body.detail === "string" ? body.detail : JSON.stringify(body.detail);
+    } catch {
+      /* body was not JSON - keep the status text */
+    }
+    throw new ApiError(detail);
+  }
+  return resp.json() as Promise<T>;
+}
+
+export const api = {
+  health: () => request<{ status: string; detector_mode: DetectorMode }>("/api/health"),
+  summary: () => request<Summary>("/api/summary"),
+  traps: () => request<TrapSummary[]>("/api/traps"),
+  history: (id: string, days = 30) => request<TrapHistory>(`/api/traps/${encodeURIComponent(id)}/history?days=${days}`),
+  alerts: (limit = 8) => request<AlertItem[]>(`/api/alerts?limit=${limit}`),
+  phoneCheck: (file: File, daysExposed: number) => {
+    const form = new FormData();
+    form.append("image", file);
+    form.append("days_exposed", String(daysExposed));
+    // detection on a big photo can take a while on a laptop CPU
+    return request<PhoneCheckResult>("/api/phone-check", { method: "POST", body: form }, 120000);
+  },
+};

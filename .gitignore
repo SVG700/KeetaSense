@@ -29,3 +29,6 @@ edge/data/
 # Frontend
 frontend/node_modules/
 frontend/dist/
+
+# Local editor / assistant settings
+.claude/

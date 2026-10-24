@@ -49,3 +49,14 @@ Each line: **decision** - reason.
 - **Real mode: one tape cycle every `CYCLE_HOURS` (24) and a climate reading every `CLIMATE_MINUTES` (30)** - frequent readings give true daily Tmin/Tmax for degree-days.
 - **Default `BACKEND_URL` uses 127.0.0.1, not localhost** - on Windows "localhost" tries IPv6 first and added ~2 s to every request.
 - **Pi 5 uses `rpi-lgpio` (drop-in for RPi.GPIO)** - classic RPi.GPIO does not support the Pi 5 GPIO chip.
+
+## Frontend
+- **React 18.3.1 + Vite 8 + Tailwind 4 + Recharts 3, versions pinned exactly** - current stable releases; React 18 kept for widest library compatibility.
+- **Chart colours: pests = categorical slot 1 (blue), predators = slot 2 (orange), degree-days = slot 3 (aqua); validated colour-blind safe in light and dark** - red/green would clash with the traffic light and fail for red-green colour blindness.
+- **Traffic light uses reserved status colours (critical red / warning amber / good green), always with an icon and a word** - never colour alone.
+- **Straight (linear) lines, legend + tooltip + table view, action threshold as a dashed reference line** - smoothed curves overshoot real counts; the table view is the accessible alternative.
+- **Live mode polls every 5 s and keeps the last good data if a refresh fails** - the demo never goes blank on a network blip.
+- **Theme and live-mode choice stored in localStorage (wrapped in try/catch)** - per-viewer convenience only.
+- **API base defaults to http://127.0.0.1:8000 (override with VITE_API_BASE)** - same IPv6 "localhost" delay reason as the edge.
+- **Decision history shows only the moments the action changed** - one row per section would be noise.
+- **Phone check hides the "no temperature data" forecast sentence** - a single photo never has temperature history; the reason says so instead.
