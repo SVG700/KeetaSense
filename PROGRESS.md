@@ -12,6 +12,7 @@
 
 ## Round 2 (hackathon preparation)
 - [x] Part 1: 4TU download/verify/extract, dataset summary report, improved tile mode (+ notebook switch), camera augmentations, per-class confidence thresholds, notebook auto-evaluate + one-zip export, install_model. Real dataset NOT present on this laptop: conversion of real data and pests.yaml name check still to do.
+- [x] Part 2: automatic switch to best.pt with startup log + safe fallback, detector banner on every page, Model page with measured reports (warning when only synthetic). Checked in the browser in demo and AI-model mode (synthetic weights).
 
 ## What works (verified)
 

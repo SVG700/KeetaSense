@@ -81,3 +81,11 @@ Each line: **decision** - reason.
 - **Per-class `confidence_threshold` in `pests.yaml` (0.25 each, same as before); SAHI runs at the lowest one and results are filtered per class; not applied to the demo detector** - lets us trade false alarms vs misses per class after real evaluation.
 - **`train.py` writes a model card `best.json` (trained date, dataset, tile mode, epochs, augmentation, classes)** - the app shows "trained <date>" from it.
 - **One-zip export (`ml/package_model.py`) + `ml/install_model.py`; packages from synthetic data are named `..._SYNTHETIC_...` and installing one prints a loud warning** - a smoke-test model must never be mistaken for the real one.
+
+## Part 2 - switch from demo detector to the real model
+- **`ml/weights/best.pt` is picked up automatically by every component, because backend, edge and phone check all call `ml.infer.detect()`** - one code path, one switch.
+- **A weights file that fails to load never crashes anything: logged loudly (ERROR banner) and the demo detector takes over; the dashboard banner says "weights file failed to load"** - the stage demo must survive a corrupt download.
+- **Detector label: "Demo detector (synthetic only)" or "AI model: <file>, trained <date>"; the date comes from the model card `best.json`, otherwise the file date (shown as "file date")** - honest about where the date comes from.
+- **A banner under the header on every page shows the active detector (from /api/health)** - judges can never confuse demo counts with AI counts.
+- **Model page shows only numbers read from `ml/reports/eval_*.json`; a real-data report is featured over a newer synthetic one; a warning appears when only synthetic reports exist** - no number is ever computed or estimated in the UI.
+- **`YOLO_OFFLINE=1` is set by default at runtime (ml/__init__.py); `train.py` switches it back to 0** - Ultralytics otherwise does DNS look-ups and sends usage statistics; training on Colab needs the internet.

@@ -7,6 +7,59 @@ export const API_BASE: string =
 export type Action = "SPRAY" | "RELEASE_BIOCONTROL" | "WAIT";
 export type DetectorMode = "yolo_sahi" | "demo_detector";
 
+export interface DetectorInfo {
+  mode: DetectorMode;
+  label: string; // "Demo detector (synthetic only)" or "AI model: best.pt, trained 2026-11-02"
+  reason: string | null;
+  weights_name: string | null;
+  weights_path: string;
+  trained_at: string | null;
+  trained_at_source: string | null;
+  synthetic_data: boolean | null;
+  classes: string[] | null;
+  load_error: string | null;
+}
+
+export interface ClassMetrics {
+  category: string;
+  ground_truth: number;
+  predictions: number;
+  true_positives: number;
+  precision: number | null;
+  recall: number | null;
+  ap50: number | null;
+}
+
+export interface CountingError {
+  mae: number;
+  mape_percent: number | null;
+  images_used_for_mape: number;
+  mean_true_count: number;
+}
+
+export interface EvalReport {
+  name: string;
+  file: string;
+  created: string | null;
+  dataset: string | null;
+  synthetic_data: boolean;
+  detector_mode: DetectorMode | null;
+  weights: string | null;
+  test_images: number | null;
+  iou_threshold: number | null;
+  confidence_threshold: number | null;
+  map50: number | null;
+  per_class: Record<string, ClassMetrics>;
+  counting_error: Record<string, CountingError>;
+}
+
+export interface ModelPageData {
+  detector: DetectorInfo;
+  featured: EvalReport | null;
+  reports: EvalReport[];
+  warning: string | null;
+}
+
 export interface DegreeDays {
   accumulated: number;
   generations_completed: number;
@@ -91,6 +144,7 @@ export interface Summary {
   last_update: string | null;
   simulated_data: boolean;
   detector_mode: DetectorMode;
+  detector: DetectorInfo;
   telegram_configured: boolean;
   alerts_total: number;
 }
@@ -113,6 +167,7 @@ export interface PhoneCheckResult {
   days_exposed: number;
   annotated_url: string;
   detector_mode: DetectorMode;
+  detector: DetectorInfo;
   warning: string | null;
   decision: Decision;
 }
@@ -153,7 +208,8 @@ async function request<T>(path: string, init?: RequestInit, timeoutMs = 15000): 
 }
 
 export const api = {
-  health: () => request<{ status: string; detector_mode: DetectorMode }>("/api/health"),
+  health: () => request<{ status: string; detector_mode: DetectorMode; detector: DetectorInfo }>("/api/health"),
+  model: () => request<ModelPageData>("/api/model"),
   summary: () => request<Summary>("/api/summary"),
   traps: () => request<TrapSummary[]>("/api/traps"),
   history: (id: string, days = 30) => request<TrapHistory>(`/api/traps/${encodeURIComponent(id)}/history?days=${days}`),

@@ -23,10 +23,12 @@ KEETA_CONF_THRESHOLD, KEETA_DEVICE.
 """
 from __future__ import annotations
 
+import json
 import logging
 import os
 import threading
 from dataclasses import dataclass, field
+from datetime import datetime
 from pathlib import Path
 
 import cv2
@@ -98,15 +100,36 @@ def _device() -> str:
 # ---------------------------------------------------------------------------
 _model = None            # SAHI detection model, or None in demo mode
 _model_loaded = False
+_model_info: dict = {}   # what is loaded, for the startup log, API and dashboard
 _lock = threading.Lock()  # the backend may call detect() from several threads
 
 DEMO_WARNING = ("DEMO DETECTOR: no trained weights found, using simple blob counting "
                 "tuned for synthetic images. Counts are NOT from the AI model.")
 
 
+def _read_model_card(wp: Path) -> dict:
+    """Training facts saved by ml/train.py next to the weights (best.pt -> best.json)."""
+    card = wp.with_suffix(".json")
+    try:
+        return json.loads(card.read_text(encoding="utf-8")) if card.exists() else {}
+    except (OSError, ValueError):
+        log.warning("Could not read model card %s", card)
+        return {}
+
+
+def _demo_info(reason: str, error: str | None = None) -> dict:
+    return {"mode": MODE_DEMO, "label": "Demo detector (synthetic only)", "reason": reason,
+            "weights_name": None, "weights_path": str(weights_path()), "trained_at": None,
+            "trained_at_source": None, "synthetic_data": None, "classes": None, "load_error": error}
+
+
 def _load_model():
-    """Load YOLO weights through SAHI, or return None to use the demo detector."""
-    global _model, _model_loaded
+    """Load YOLO weights through SAHI, or return None to use the demo detector.
+
+    Never raises: any problem with the weights falls back to the demo detector
+    with a loud warning, so the demo keeps running.
+    """
+    global _model, _model_loaded, _model_info
     if _model_loaded:
         return _model
     _model_loaded = True
@@ -115,32 +138,62 @@ def _load_model():
         log.warning("=" * 70)
         log.warning("NO TRAINED WEIGHTS at %s", wp)
         log.warning("Running in DEMO DETECTOR mode - counts are NOT from the AI model.")
-        log.warning("Train on Colab (ml/train_colab.ipynb) and copy best.pt there.")
+        log.warning("Train on Colab (ml/train_colab.ipynb), then: python -m ml.install_model <zip>")
         log.warning("=" * 70)
-        _model = None
+        _model, _model_info = None, _demo_info("no weights file")
         return None
     try:
         from sahi import AutoDetectionModel  # lazy import: heavy library
         _model = AutoDetectionModel.from_pretrained(
             model_type="ultralytics", model_path=str(wp),
             confidence_threshold=_settings()["conf"], device=_device())
-        log.info("Loaded YOLO weights %s on %s (SAHI sliced inference)", wp, _device())
-    except Exception:
-        log.exception("Could not load weights %s - falling back to DEMO DETECTOR", wp)
-        _model = None
+    except Exception as e:
+        log.error("=" * 70)
+        log.exception("COULD NOT LOAD WEIGHTS %s", wp)
+        log.error("FALLING BACK TO DEMO DETECTOR - counts are NOT from the AI model.")
+        log.error("=" * 70)
+        _model, _model_info = None, _demo_info("weights failed to load", f"{e.__class__.__name__}: {e}")
+        return None
+
+    card = _read_model_card(wp)
+    if card.get("trained_at"):
+        trained_at, source = card["trained_at"], "model card"
+    else:  # no card: the file date is the best we know
+        trained_at, source = datetime.fromtimestamp(wp.stat().st_mtime).isoformat(timespec="seconds"), "file date"
+    mapping = getattr(_model, "category_mapping", None) or {}  # SAHI: {"0": "whitefly", ...}
+    model_classes = [str(v) for _, v in sorted(mapping.items(), key=lambda kv: int(kv[0]))] or card.get("classes") or []
+    label = f"AI model: {wp.name}, trained {trained_at[:10]}"
+    _model_info = {"mode": MODE_YOLO, "label": label, "reason": None, "weights_name": wp.name,
+                   "weights_path": str(wp), "trained_at": trained_at, "trained_at_source": source,
+                   "synthetic_data": card.get("synthetic_data"), "classes": model_classes, "load_error": None}
+    log.info("=" * 70)
+    log.info("DETECTOR: %s (SAHI sliced inference on %s)", label, _device())
+    if card.get("synthetic_data"):
+        log.warning("This model was trained on SYNTHETIC data - it will not work on real insects!")
+    unknown = [n for n in model_classes if category_of(n) == "unknown"]
+    if unknown:
+        log.warning("Model classes not in config/pests.yaml (counted as neither pest nor predator): %s", unknown)
+    log.info("=" * 70)
     return _model
 
 
 def reset_detector() -> None:
     """Forget the cached model (used by tests or after copying new weights)."""
-    global _model, _model_loaded
+    global _model, _model_loaded, _model_info
     with _lock:
-        _model, _model_loaded = None, False
+        _model, _model_loaded, _model_info = None, False, {}
 
 
 def current_mode() -> str:
     with _lock:
         return MODE_YOLO if _load_model() is not None else MODE_DEMO
+
+
+def model_info() -> dict:
+    """What detector is active: mode, label for the UI, weights file, training date."""
+    with _lock:
+        _load_model()
+        return dict(_model_info)
 
 
 # ---------------------------------------------------------------------------

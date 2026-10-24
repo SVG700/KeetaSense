@@ -48,7 +48,7 @@ export const SimulatedTag = () => (
 
 export function DetectorTag({ mode }: { mode: DetectorMode | undefined }) {
   if (mode === "demo_detector")
-    return <Tag title="No trained model weights yet: counts come from simple blob counting, not the AI model">⚠ Demo detector</Tag>;
+    return <Tag title="No trained model weights yet: counts come from simple blob counting, not the AI model">⚠ Demo detector (synthetic only)</Tag>;
   if (mode === "yolo_sahi") return <Tag tone="green" title="Fine-tuned YOLOv8n with SAHI sliced inference">AI model (YOLOv8 + SAHI)</Tag>;
   return null;
 }

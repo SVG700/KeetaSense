@@ -27,6 +27,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import shutil
 import sys
 from datetime import datetime
@@ -75,6 +76,8 @@ def write_model_card(weights: Path, info: dict) -> Path:
 
 def load_base_model(model_arg: str):
     """Load pretrained YOLOv8n (downloads once into ml/weights/); fall back to scratch."""
+    # training may use the internet (pretrained weights, fonts for plots), unlike the running app
+    os.environ["YOLO_OFFLINE"] = os.environ.get("KEETA_TRAIN_OFFLINE", "0")
     from ultralytics import YOLO
     path = Path(model_arg)
     if path.name == "yolov8n.pt" and not path.exists():

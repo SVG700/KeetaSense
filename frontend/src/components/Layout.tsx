@@ -1,6 +1,31 @@
 // Page frame: header with navigation, live-mode toggle and theme toggle.
 import { NavLink, Outlet } from "react-router-dom";
-import { LIVE_REFRESH_MS, useSettings } from "../settings";
+import { api } from "../api";
+import { LIVE_REFRESH_MS, useLiveData, useSettings } from "../settings";
+
+/** Thin bar under the header: which detector produced the counts on this screen. */
+function DetectorBanner() {
+  const { data } = useLiveData(api.health);
+  const d = data?.detector;
+  if (!d) return null; // backend unreachable: the page itself shows the error
+  const demo = d.mode === "demo_detector";
+  return (
+    <div
+      className={`border-b text-sm ${demo
+        ? "border-amber-200 bg-amber-50 text-amber-900 dark:border-amber-900 dark:bg-amber-950 dark:text-amber-200"
+        : "border-leaf-600/30 bg-leaf-50 text-leaf-900 dark:border-leaf-800 dark:bg-leaf-900/30 dark:text-leaf-100"}`}
+      role="status"
+    >
+      <div className="mx-auto flex max-w-6xl flex-wrap items-center gap-x-2 px-4 py-1.5">
+        <span aria-hidden>{demo ? "⚠" : "✓"}</span>
+        <span className="font-medium">{d.label}</span>
+        {demo && <span className="text-xs opacity-80">— counts come from simple blob counting, not the AI model{d.reason === "weights failed to load" ? " (the weights file failed to load - see backend log)" : ""}.</span>}
+        {!demo && d.synthetic_data && <span className="text-xs font-semibold">— trained on SYNTHETIC data only!</span>}
+        <NavLink to="/model" className="ml-auto text-xs underline underline-offset-2">Model details</NavLink>
+      </div>
+    </div>
+  );
+}
 
 function NavItem({ to, children }: { to: string; children: string }) {
   return (
@@ -33,6 +58,7 @@ export default function Layout() {
           <nav className="flex gap-1">
             <NavItem to="/">Overview</NavItem>
             <NavItem to="/phone-check">Phone check</NavItem>
+            <NavItem to="/model">Model</NavItem>
           </nav>
           <div className="ml-auto flex items-center gap-2">
             <button
@@ -57,6 +83,7 @@ export default function Layout() {
             </button>
           </div>
         </div>
+        <DetectorBanner />
       </header>
       <main className="mx-auto max-w-6xl px-4 py-6">
         <Outlet />

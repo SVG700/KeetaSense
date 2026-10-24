@@ -31,7 +31,7 @@ from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 from sqlmodel import Session, func, select
 
-from backend import alerts, services, settings
+from backend import alerts, model_reports, services, settings
 from backend.db import get_engine, get_session, init_db
 from backend.decision_engine import DailyCatch, decide
 from backend.models import AlertLog, ClimateReading, Decision, TapeSection, Trap
@@ -51,7 +51,9 @@ async def lifespan(app: FastAPI):
     init_db()
     with Session(get_engine()) as s:
         services.sync_traps(s)
-    log.info("Detector mode: %s", infer.current_mode())
+    detector = infer.model_info()
+    log.info("Detector: %s%s", detector["label"],
+             f" ({detector['reason']})" if detector.get("reason") else "")
     log.info("Telegram alerts: %s", "configured" if alerts.telegram_configured() else "log only (no token)")
     yield
 
@@ -191,7 +193,8 @@ async def phone_check(
         "days_exposed": days_exposed, "detections": result.detections,
         "image_size": list(result.image_size),
         "annotated_url": services.media_url(annotated_rel),
-        "detector_mode": result.mode, "warning": result.warning, "decision": decision,
+        "detector_mode": result.mode, "detector": infer.model_info(),
+        "warning": result.warning, "decision": decision,
     }
 
 
@@ -248,6 +251,7 @@ def summary(session: Session = Depends(get_session)):
         "simulated_data": any(t.simulated for t in traps)
                           or session.exec(select(TapeSection).where(TapeSection.simulated)).first() is not None,
         "detector_mode": infer.current_mode(),
+        "detector": infer.model_info(),
         "telegram_configured": alerts.telegram_configured(),
         "alerts_total": session.exec(select(func.count()).select_from(AlertLog)).one(),
     }
@@ -274,6 +278,23 @@ def health(session: Session = Depends(get_session)):
         "time": datetime.now().isoformat(timespec="seconds"),
         "database": db_status,
         "detector_mode": infer.current_mode(),
+        "detector": infer.model_info(),
         "weights_path": str(infer.weights_path()),
         "telegram": "configured" if alerts.telegram_configured() else "log_only",
     }
+
+
+@app.get("/api/model")
+def model_page():
+    """Active detector + every evaluation report in ml/reports (newest first)."""
+    reports = model_reports.list_reports()
+    real = [r for r in reports if not r["synthetic_data"]]
+    featured = real[0] if real else (reports[0] if reports else None)
+    if not reports:
+        warning = "No evaluation report yet. Run ml/evaluate.py on the real test split (Colab notebook step 5)."
+    elif not real:
+        warning = ("Only SYNTHETIC evaluation reports exist. They prove the pipeline runs but say nothing "
+                   "about accuracy on real insects.")
+    else:
+        warning = None
+    return {"detector": infer.model_info(), "featured": featured, "reports": reports, "warning": warning}
