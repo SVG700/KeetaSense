@@ -39,3 +39,13 @@ Each line: **decision** - reason.
 - **Phone check divides counts by `days_exposed` and uses a window of 1, with no degree-day data** - a single photo has no history; the reason text says so.
 - **SQLite + local media folder, CORS for the Vite dev server only** - runs fully offline on one laptop.
 - **A trap is "online" if it reported within 26 hours** - it must report at least daily; 2 hours of slack.
+
+## Edge
+- **`MOCK_HARDWARE=1` by default; Pi libraries (picamera2, RPi.GPIO, adafruit_dht) imported only inside real-mode constructors** - the same code runs on Windows/Mac/Linux.
+- **Mock camera cycles through 12 SYNTHETIC images in `demo/sample_tape/` that tell a WAIT -> SPRAY -> BIOCONTROL -> WAIT story** - judges see the decision change live.
+- **Half-step sequence (8 states) with coils released after each move** - smoother and more torque than full-step; releasing stops the 28BYJ-48 from heating.
+- **Edge detects locally and sends its detections; if local detection fails, it sends only the image** - edge AI when possible, graceful fallback otherwise.
+- **Offline queue in SQLite, exponential backoff 10 s doubling to max 10 min; HTTP 4xx items are dropped, 5xx/network errors retried** - no data loss offline, no infinite retry of invalid data.
+- **Real mode: one tape cycle every `CYCLE_HOURS` (24) and a climate reading every `CLIMATE_MINUTES` (30)** - frequent readings give true daily Tmin/Tmax for degree-days.
+- **Default `BACKEND_URL` uses 127.0.0.1, not localhost** - on Windows "localhost" tries IPv6 first and added ~2 s to every request.
+- **Pi 5 uses `rpi-lgpio` (drop-in for RPi.GPIO)** - classic RPi.GPIO does not support the Pi 5 GPIO chip.

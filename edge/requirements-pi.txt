@@ -1,0 +1,11 @@
+# Extra packages for the Raspberry Pi (install AFTER the main requirements).
+# picamera2 is NOT installed with pip - it comes from Raspberry Pi OS:
+#   sudo apt install -y python3-picamera2
+# and the virtualenv must be created with --system-site-packages to see it.
+
+adafruit-circuitpython-dht==4.0.12
+adafruit-blinka==9.2.0
+# Raspberry Pi 4 and older: RPi.GPIO. Raspberry Pi 5: rpi-lgpio (a drop-in
+# replacement that provides the same "import RPi.GPIO"). Install ONE of them:
+RPi.GPIO==0.7.1 ; platform_machine == "armv7l"
+rpi-lgpio==0.6 ; platform_machine == "aarch64"

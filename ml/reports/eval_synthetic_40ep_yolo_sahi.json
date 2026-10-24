@@ -1,0 +1,230 @@
+{
+  "created": "2026-10-25T00:57:49",
+  "dataset": "ml\\data\\synthetic_yolo\\data.yaml",
+  "synthetic_data": true,
+  "detector_mode": "yolo_sahi",
+  "weights": "C:\\Users\\Samhith V Gupta\\Desktop\\Samhith\\KeetaSense\\ml\\weights\\synthetic_40ep.pt",
+  "iou_threshold": 0.5,
+  "confidence_threshold": 0.25,
+  "test_images": 12,
+  "map50": 1.0,
+  "per_class": {
+    "whitefly": {
+      "category": "pest",
+      "ground_truth": 271,
+      "predictions": 271,
+      "true_positives": 271,
+      "precision": 1.0,
+      "recall": 1.0,
+      "ap50": 1.0
+    },
+    "macrolophus": {
+      "category": "predator",
+      "ground_truth": 22,
+      "predictions": 22,
+      "true_positives": 22,
+      "precision": 1.0,
+      "recall": 1.0,
+      "ap50": 1.0
+    },
+    "nesidiocoris": {
+      "category": "predator",
+      "ground_truth": 36,
+      "predictions": 36,
+      "true_positives": 36,
+      "precision": 1.0,
+      "recall": 1.0,
+      "ap50": 1.0
+    }
+  },
+  "counting_error": {
+    "whitefly": {
+      "mae": 0.0,
+      "mape_percent": 0.0,
+      "images_used_for_mape": 12,
+      "mean_true_count": 22.58
+    },
+    "macrolophus": {
+      "mae": 0.0,
+      "mape_percent": 0.0,
+      "images_used_for_mape": 6,
+      "mean_true_count": 1.83
+    },
+    "nesidiocoris": {
+      "mae": 0.0,
+      "mape_percent": 0.0,
+      "images_used_for_mape": 11,
+      "mean_true_count": 3.0
+    },
+    "all_pests": {
+      "mae": 0.0,
+      "mape_percent": 0.0,
+      "images_used_for_mape": 12,
+      "mean_true_count": 22.58
+    },
+    "all_predators": {
+      "mae": 0.0,
+      "mape_percent": 0.0,
+      "images_used_for_mape": 11,
+      "mean_true_count": 4.83
+    }
+  },
+  "per_image": [
+    {
+      "image": "synthetic_0004.jpg",
+      "true_whitefly": 39,
+      "pred_whitefly": 39,
+      "true_macrolophus": 0,
+      "pred_macrolophus": 0,
+      "true_nesidiocoris": 4,
+      "pred_nesidiocoris": 4,
+      "true_pest": 39,
+      "true_predator": 4,
+      "pred_pest": 39,
+      "pred_predator": 4
+    },
+    {
+      "image": "synthetic_0005.jpg",
+      "true_whitefly": 32,
+      "pred_whitefly": 32,
+      "true_macrolophus": 0,
+      "pred_macrolophus": 0,
+      "true_nesidiocoris": 0,
+      "pred_nesidiocoris": 0,
+      "true_pest": 32,
+      "true_predator": 0,
+      "pred_pest": 32,
+      "pred_predator": 0
+    },
+    {
+      "image": "synthetic_0013.jpg",
+      "true_whitefly": 26,
+      "pred_whitefly": 26,
+      "true_macrolophus": 2,
+      "pred_macrolophus": 2,
+      "true_nesidiocoris": 1,
+      "pred_nesidiocoris": 1,
+      "true_pest": 26,
+      "true_predator": 3,
+      "pred_pest": 26,
+      "pred_predator": 3
+    },
+    {
+      "image": "synthetic_0015.jpg",
+      "true_whitefly": 11,
+      "pred_whitefly": 11,
+      "true_macrolophus": 0,
+      "pred_macrolophus": 0,
+      "true_nesidiocoris": 3,
+      "pred_nesidiocoris": 3,
+      "true_pest": 11,
+      "true_predator": 3,
+      "pred_pest": 11,
+      "pred_predator": 3
+    },
+    {
+      "image": "synthetic_0016.jpg",
+      "true_whitefly": 11,
+      "pred_whitefly": 11,
+      "true_macrolophus": 2,
+      "pred_macrolophus": 2,
+      "true_nesidiocoris": 6,
+      "pred_nesidiocoris": 6,
+      "true_pest": 11,
+      "true_predator": 8,
+      "pred_pest": 11,
+      "pred_predator": 8
+    },
+    {
+      "image": "synthetic_0019.jpg",
+      "true_whitefly": 39,
+      "pred_whitefly": 39,
+      "true_macrolophus": 0,
+      "pred_macrolophus": 0,
+      "true_nesidiocoris": 3,
+      "pred_nesidiocoris": 3,
+      "true_pest": 39,
+      "true_predator": 3,
+      "pred_pest": 39,
+      "pred_predator": 3
+    },
+    {
+      "image": "synthetic_0030.jpg",
+      "true_whitefly": 9,
+      "pred_whitefly": 9,
+      "true_macrolophus": 4,
+      "pred_macrolophus": 4,
+      "true_nesidiocoris": 5,
+      "pred_nesidiocoris": 5,
+      "true_pest": 9,
+      "true_predator": 9,
+      "pred_pest": 9,
+      "pred_predator": 9
+    },
+    {
+      "image": "synthetic_0033.jpg",
+      "true_whitefly": 29,
+      "pred_whitefly": 29,
+      "true_macrolophus": 2,
+      "pred_macrolophus": 2,
+      "true_nesidiocoris": 5,
+      "pred_nesidiocoris": 5,
+      "true_pest": 29,
+      "true_predator": 7,
+      "pred_pest": 29,
+      "pred_predator": 7
+    },
+    {
+      "image": "synthetic_0037.jpg",
+      "true_whitefly": 7,
+      "pred_whitefly": 7,
+      "true_macrolophus": 6,
+      "pred_macrolophus": 6,
+      "true_nesidiocoris": 2,
+      "pred_nesidiocoris": 2,
+      "true_pest": 7,
+      "true_predator": 8,
+      "pred_pest": 7,
+      "pred_predator": 8
+    },
+    {
+      "image": "synthetic_0056.jpg",
+      "true_whitefly": 26,
+      "pred_whitefly": 26,
+      "true_macrolophus": 0,
+      "pred_macrolophus": 0,
+      "true_nesidiocoris": 2,
+      "pred_nesidiocoris": 2,
+      "true_pest": 26,
+      "true_predator": 2,
+      "pred_pest": 26,
+      "pred_predator": 2
+    },
+    {
+      "image": "synthetic_0071.jpg",
+      "true_whitefly": 9,
+      "pred_whitefly": 9,
+      "true_macrolophus": 6,
+      "pred_macrolophus": 6,
+      "true_nesidiocoris": 4,
+      "pred_nesidiocoris": 4,
+      "true_pest": 9,
+      "true_predator": 10,
+      "pred_pest": 9,
+      "pred_predator": 10
+    },
+    {
+      "image": "synthetic_0079.jpg",
+      "true_whitefly": 33,
+      "pred_whitefly": 33,
+      "true_macrolophus": 0,
+      "pred_macrolophus": 0,
+      "true_nesidiocoris": 1,
+      "pred_nesidiocoris": 1,
+      "true_pest": 33,
+      "true_predator": 1,
+      "pred_pest": 33,
+      "pred_predator": 1
+    }
+  ]
+}
