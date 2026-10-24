@@ -62,9 +62,14 @@ def traps_config() -> list[dict]:
         return yaml.safe_load(f)["traps"]
 
 
+def pests_yaml_path() -> Path:
+    from ml.common import pests_yaml_path as path  # one definition for ML and backend
+    return path()
+
+
 @lru_cache(maxsize=1)
 def pests_config() -> dict:
-    with open(ROOT / "config" / "pests.yaml", encoding="utf-8") as f:
+    with open(pests_yaml_path(), encoding="utf-8") as f:
         return yaml.safe_load(f)
 
 
@@ -73,3 +78,11 @@ def pest_display_name(pest: str, lang: str = "en") -> str:
         if c["name"] == pest:
             return c.get(f"display_{lang}") or c["name"]
     return pest
+
+
+def reload_config() -> None:
+    """Forget cached YAML so the next read sees edits (Settings page saves)."""
+    from ml.common import load_pests_config
+    pests_config.cache_clear()
+    traps_config.cache_clear()
+    load_pests_config.cache_clear()

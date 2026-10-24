@@ -6,6 +6,7 @@ predator, so the mapping lives in exactly one place: config/pests.yaml.
 """
 from __future__ import annotations
 
+import os
 from dataclasses import dataclass, field
 from functools import lru_cache
 from pathlib import Path
@@ -16,6 +17,11 @@ import yaml
 ROOT = Path(__file__).resolve().parent.parent
 CONFIG_DIR = ROOT / "config"
 PESTS_YAML = CONFIG_DIR / "pests.yaml"
+
+
+def pests_yaml_path() -> Path:
+    """config/pests.yaml, or KEETA_PESTS_YAML (tests point this at a temporary copy)."""
+    return Path(os.environ.get("KEETA_PESTS_YAML", str(PESTS_YAML)))
 
 
 @dataclass
@@ -33,8 +39,8 @@ class InsectClass:
 
 @lru_cache(maxsize=1)
 def load_pests_config() -> dict:
-    """Read config/pests.yaml once and cache it."""
-    with open(PESTS_YAML, encoding="utf-8") as f:
+    """Read config/pests.yaml once and cache it (reload_config() clears the cache)."""
+    with open(pests_yaml_path(), encoding="utf-8") as f:
         return yaml.safe_load(f)
 
 

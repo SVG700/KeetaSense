@@ -63,6 +63,33 @@ export interface ModelPageData {
   warning: string | null;
 }
 
+export interface ThresholdField {
+  label: string;
+  unit: string;
+  type: "float" | "int";
+  min: number;
+  min_exclusive: boolean;
+  max: number;
+  help: string;
+  value: number;
+  status: "placeholder" | "confirmed" | "unmarked";
+  confirmed_on: string | null;
+}
+
+export interface ThresholdsPage {
+  pests: Record<string, Record<string, ThresholdField>>;
+  backups: string[];
+  file: string;
+}
+
+export interface SaveThresholdsResult {
+  pest: string;
+  changed: string[];
+  confirmed_unchanged: string[];
+  backup: string | null;
+  decisions: Record<string, Action>;
+}
+
 export interface DegreeDays {
   accumulated: number;
   generations_completed: number;
@@ -178,9 +205,11 @@ export interface PhoneCheckResult {
 
 export class ApiError extends Error {
   offline: boolean; // true = the backend could not be reached at all
-  constructor(message: string, offline = false) {
+  errors?: Record<string, string>; // per-field validation errors (Settings page)
+  constructor(message: string, offline = false, errors?: Record<string, string>) {
     super(message);
     this.offline = offline;
+    this.errors = errors;
   }
 }
 
@@ -200,13 +229,19 @@ async function request<T>(path: string, init?: RequestInit, timeoutMs = 15000): 
   }
   if (!resp.ok) {
     let detail = `${resp.status} ${resp.statusText}`;
+    let fieldErrors: Record<string, string> | undefined;
     try {
       const body = await resp.json();
-      if (body?.detail) detail = typeof body.detail === "string" ? body.detail : JSON.stringify(body.detail);
+      if (body?.detail?.errors) {
+        fieldErrors = body.detail.errors;
+        detail = Object.values(fieldErrors!).join(" ");
+      } else if (body?.detail) {
+        detail = typeof body.detail === "string" ? body.detail : JSON.stringify(body.detail);
+      }
     } catch {
       /* body was not JSON - keep the status text */
     }
-    throw new ApiError(detail);
+    throw new ApiError(detail, false, fieldErrors);
   }
   return resp.json() as Promise<T>;
 }
@@ -218,6 +253,13 @@ export const api = {
   traps: () => request<TrapSummary[]>("/api/traps"),
   history: (id: string, days = 30) => request<TrapHistory>(`/api/traps/${encodeURIComponent(id)}/history?days=${days}`),
   alerts: (limit = 8) => request<AlertItem[]>(`/api/alerts?limit=${limit}`),
+  thresholds: () => request<ThresholdsPage>("/api/settings/thresholds"),
+  saveThresholds: (pest: string, values: Record<string, number>, confirmUnchanged: boolean) =>
+    request<SaveThresholdsResult>(`/api/settings/thresholds/${encodeURIComponent(pest)}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ values, confirm_unchanged: confirmUnchanged }),
+    }),
   resetDemo: () =>
     request<{ removed: Record<string, number>; sections_created: number; seconds: number }>(
       "/api/reset-demo", { method: "POST" }, 120000),

@@ -121,3 +121,12 @@ Each line: **decision** - reason.
 - **Synthetic images (seed history and mock-camera samples) are ALWAYS counted by the demo detector, even after `best.pt` is installed (`MOCK_USE_MODEL=1` overrides for the mock camera)** - the real model would not recognise drawn insects and the demo history would collapse to zeros.
 - **`/api/reset-demo` deletes rows (not the database file) and re-seeds in-process; hidden "↺" in the footer or Alt+Shift+R; disable with `KEETA_ALLOW_RESET=0`** - deleting the file fails on Windows while the backend has it open.
 - **Replay packs are folders with `manifest.jsonl` + images; `demo/replay/` is a SYNTHETIC pack recorded from the mock trap; the launcher prefers `demo/replay_real/` when present** - works out of the box today, and the real pack drops in without code changes.
+
+## Part 6 - threshold Settings page
+- **The editor rewrites only the edited lines of `pests.yaml` (regex on `key: value  # comment` inside `thresholds:` -> `<pest>:`), never re-dumps the YAML** - all other lines and comments stay byte-for-byte the same (tested).
+- **Editable: base temperature, degree-days per generation, action threshold, spray ratio, rolling window. Rules: required, numeric, not negative; base temp 0-40 °C; DD per generation > 0 and <= 5000; action threshold > 0 and <= 10000; spray ratio > 0 and <= 1000; window a whole number 1-30** - "no negative or empty values" as asked, plus upper limits that catch typos. The same rules run in the browser (inline errors) and on the server.
+- **Only values that actually changed get "Confirmed with IIHR mentor on <date>"; a checkbox can also confirm unchanged values** - a mentor may confirm that a placeholder value is right.
+- **Backup to `config/backups/pests_<date_time>.yaml` (git-ignored) before every write; atomic replace via a temp file; the new text must parse as YAML before it is written; nothing is written when nothing changed** - a bad save can always be undone and never leaves a half-written config.
+- **After saving, caches are cleared and every trap with that target pest gets a fresh Decision row (alerts fire if the action changed)** - "decisions recalculate immediately".
+- **`KEETA_PESTS_YAML` overrides the config path** - tests and trial runs work on a copy, never on the real file.
+- **No login on the Settings page** - it is a local demo tool on a trusted network; noted as a limitation.

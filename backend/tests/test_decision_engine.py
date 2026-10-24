@@ -118,14 +118,15 @@ def test_decision_is_json_friendly():
 
 
 # --- configuration ---------------------------------------------------------
-def test_every_threshold_in_pests_yaml_is_marked_placeholder():
+def test_every_threshold_in_pests_yaml_is_placeholder_or_confirmed():
     text = (settings.ROOT / "config" / "pests.yaml").read_text(encoding="utf-8")
     block = text.split("thresholds:", 1)[1]
     value_lines = [l for l in block.splitlines()
                    if re.match(r"^\s+\w+:\s*[\d.]+", l)]
     assert value_lines, "no threshold values found"
-    for line in value_lines:
-        assert "PLACEHOLDER - confirm with IIHR mentor" in line, line
+    for line in value_lines:   # the Settings page turns PLACEHOLDER into "Confirmed ... on <date>"
+        assert ("PLACEHOLDER - confirm with IIHR mentor" in line
+                or "Confirmed with IIHR mentor on" in line), line
 
 
 @pytest.mark.parametrize("pest", list(settings.pests_config()["thresholds"]))

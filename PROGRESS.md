@@ -16,6 +16,7 @@
 - [x] Part 3: ml/camera_test.py (prepare + run, report ml/reports/camera_test.md), README section. Not yet run on real prints (needs the trained model, printer and Pi camera).
 - [x] Part 4: edge/tests_hw (camera, stepper, DHT22, backend link) with PASS/FAIL + hints, edge/calibrate_tape.py, startup self-check, robust per-part start-up, cycle recording; PI_SETUP.md bring-up order. All run in mock mode here; NOT run on a real Pi.
 - [x] Part 5: single-window launcher (start/demo/replay .bat + .sh) with Job Object cleanup, Ctrl+C handling and crash restart; backend serves the built dashboard; offline audit + tests; REPLAY mode with "Replay" label; /api/reset-demo + hidden button. Tested here: demo.bat and replay.bat in one console, force-kill and Ctrl+Break cleanup, reset button in the browser.
+- [x] Part 6: Settings page (view/edit thresholds, inline validation, backup, "Confirmed with IIHR mentor on <date>", decisions recalculated on save) + 14 tests. Tested in the browser against a scratch copy of pests.yaml.
 
 ## What works (verified)
 

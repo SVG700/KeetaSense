@@ -94,10 +94,11 @@ export default function Layout() {
               Keeta<span className="text-leaf-700 dark:text-leaf-500">Sense</span>
             </span>
           </NavLink>
-          <nav className="flex gap-1">
+          <nav className="flex flex-wrap gap-1">
             <NavItem to="/">Overview</NavItem>
             <NavItem to="/phone-check">Phone check</NavItem>
             <NavItem to="/model">Model</NavItem>
+            <NavItem to="/settings">Settings</NavItem>
           </nav>
           <div className="ml-auto flex items-center gap-2">
             <button
@@ -129,7 +130,7 @@ export default function Layout() {
       </main>
       <footer className="mx-auto max-w-6xl px-4 pb-8 text-xs text-stone-500">
         KeetaSense · AI insect counting for yellow sticky traps · Chip to Crop hackathon (Presidency University × ICAR-IIHR).
-        Thresholds are placeholders until confirmed with IIHR.
+        Thresholds are placeholders until confirmed with IIHR (see Settings).
         <ResetDemoButton />
       </footer>
     </div>

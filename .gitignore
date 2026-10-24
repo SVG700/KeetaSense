@@ -34,3 +34,4 @@ frontend/dist/
 .claude/
 ml/exports/
 ml/data/*_tiles/
+config/backups/

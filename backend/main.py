@@ -33,7 +33,7 @@ from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 from sqlmodel import Session, func, select
 
-from backend import alerts, model_reports, services, settings
+from backend import alerts, model_reports, services, settings, thresholds_editor
 from backend.db import get_engine, get_session, init_db
 from backend.decision_engine import DailyCatch, decide
 from backend.models import SECTION_SOURCES, AlertLog, ClimateReading, Decision, TapeSection, Trap
@@ -291,6 +291,36 @@ def health(session: Session = Depends(get_session)):
         "weights_path": str(infer.weights_path()),
         "telegram": "configured" if alerts.telegram_configured() else "log_only",
     }
+
+
+# ---------------------------------------------------------------------------
+# Settings page: decision thresholds (config/pests.yaml)
+# ---------------------------------------------------------------------------
+class ThresholdsIn(BaseModel):
+    values: dict[str, float | int | str | None]
+    confirm_unchanged: bool = False   # also mark values that did not change as confirmed
+
+
+@app.get("/api/settings/thresholds")
+def get_thresholds():
+    return {"pests": thresholds_editor.read_thresholds(), "backups": thresholds_editor.list_backups()[:10],
+            "file": str(settings.pests_yaml_path())}
+
+
+@app.put("/api/settings/thresholds/{pest}")
+def put_thresholds(pest: str, body: ThresholdsIn, session: Session = Depends(get_session)):
+    try:
+        result = thresholds_editor.save(pest, body.values, body.confirm_unchanged)
+    except ValueError as e:
+        detail = e.args[0] if e.args and isinstance(e.args[0], dict) else {"errors": {"_": str(e)}}
+        raise HTTPException(422, detail)
+    settings.reload_config()                      # next reads see the new values
+    decisions = {}
+    for trap in session.exec(select(Trap).where(Trap.target_pest == pest)).all():
+        decisions[trap.id] = services.update_decision(session, trap)["action"]   # recalculated now
+    log.warning("THRESHOLDS for %s saved: changed %s, confirmed %s (backup %s)", pest, result["changed"],
+                result["confirmed_unchanged"], result["backup"])
+    return {**result, "decisions": decisions, "pests": thresholds_editor.read_thresholds()}
 
 
 _reset_lock = threading.Lock()

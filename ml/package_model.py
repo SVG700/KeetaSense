@@ -21,7 +21,7 @@ import zipfile
 from datetime import datetime
 from pathlib import Path
 
-from ml.common import PESTS_YAML, ROOT
+from ml.common import ROOT, pests_yaml_path
 
 
 def package(weights: Path, report_name: str | None, data_dir: Path | None, out_dir: Path) -> Path:
@@ -44,7 +44,7 @@ def package(weights: Path, report_name: str | None, data_dir: Path | None, out_d
                 files.append((p, f"reports/{p.name}"))
     for p in reports.glob("dataset_summary.*"):
         files.append((p, f"reports/{p.name}"))
-    files.append((PESTS_YAML, "config_used/pests.yaml"))
+    files.append((pests_yaml_path(), "config_used/pests.yaml"))
     if data_dir:
         for name in ("data.yaml", "split_summary.json", "tiling.yaml"):
             if (data_dir / name).exists():
