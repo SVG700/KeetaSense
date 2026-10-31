@@ -140,3 +140,12 @@ Each line: **decision** - reason.
 ## Repair, 31 Oct 2026
 - **Keep the project OUTSIDE OneDrive (or exclude `.venv`, `.tools`, `frontend/node_modules`, `backend/data` from sync)** - an interrupted move into OneDrive on 29 Oct split the installed tools between two folders, and files that came back carried OneDrive's cloud reparse tag (0x9000201a), which made TypeScript 7 skip every source file ("No inputs were found").
 - **`*.tsbuildinfo` is git-ignored** - it is a build cache that changes on every build.
+
+## Round 3 - forecasting, weather, languages, network, impact (backend done, dashboard pending)
+- **Weather from Open-Meteo (free, no key, CC BY 4.0), fetched in the background and cached on disk; `KEETA_WEATHER=live|simulated|off`** - the API never waits for the internet; simulated weather is labelled and has rain in ~4 h for offline stage demos (`--sim-weather`).
+- **Spray window: no spraying if rain (>= 50 % or >= 0.5 mm) is due within 6 h, wind > 15 km/h, or outside 06-18 h; limits in `config/advisory.yaml` (PLACEHOLDER)**.
+- **Pest-pressure forecast = least-squares line of ln(count+1) against accumulated degree-days; future degree-days from the weather forecast** - simple, explainable; its backtest error is measured on each trap's own (currently simulated) data.
+- **Telegram, not WhatsApp, for the two-way bot** - the WhatsApp Business API needs Meta business verification and is paid per conversation; Telegram is free and works today.
+- **Kannada, Hindi and Tamil texts are machine-drafted** and flagged for native review.
+- **3 extra SIMULATED stations (T3-T5) with an outbreak spreading from T2; early warning within 10 km, sent once per neighbouring outbreak**.
+- **Impact numbers are estimates from labelled example assumptions (`config/impact.yaml`) plus the system's own SPRAY history - never presented as measurements.**

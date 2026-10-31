@@ -55,6 +55,18 @@ after the repair: 103 tests pass, frontend builds, `demo.bat` (3 cycles) and `re
 run in one window with no errors and stop cleanly. The OneDrive copy is incomplete (no source code)
 and is not used.
 
+## Round 3 (1 Nov) - forecasting, weather, languages, network, impact
+
+Done (backend + bot, 172 tests pass):
+- Open-Meteo weather (cached, offline-safe, `--sim-weather`) and "don't spray, rain in N hours" advice
+- 3-7 day pest-pressure forecast from counts + weather (`/api/advisory/{trap}`)
+- Advisories and "Can I spray today?" in English, Kannada, Hindi, Tamil (machine-drafted)
+- Telegram bot (`python -m backend.telegram_bot`, auto-started by the launcher when a token is set)
+- 5 simulated stations, early warnings, heat grid (`/api/network`); impact estimate (`/api/impact`)
+
+NOT done yet (dashboard side): advisory + forecast + weather panel and voice readout on the trap page,
+outbreak map page, impact calculator page, PWA install/offline cache. README not yet updated.
+
 ## What you must still do manually
 
 1. **Dataset:** download `data.zip` from https://data.4tu.nl/articles/_/12707066/1 into `ml/data/raw/`,
