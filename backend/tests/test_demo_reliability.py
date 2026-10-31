@@ -14,10 +14,10 @@ def test_reset_demo_restores_seeded_state(client):
     r = client.post("/api/reset-demo")
     assert r.status_code == 200, r.text
     body = r.json()
-    assert body["removed"]["TapeSection"] == 1 and body["sections_created"] == 28
+    assert body["removed"]["TapeSection"] == 1 and body["sections_created"] == 70
     with Session(db.get_engine()) as s:
         sections = s.exec(select(TapeSection)).all()
-    assert len(sections) == 28
+    assert len(sections) == 70
     assert all(x.source == "seed" and x.simulated and x.detector_mode == "demo_detector" for x in sections)
     assert client.get("/api/alerts").json() == []
     # images of the reset data are served

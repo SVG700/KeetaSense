@@ -13,6 +13,7 @@ os.environ["KEETA_DB_PATH"] = str(_TMP / "unused.db")
 os.environ["KEETA_WEIGHTS"] = str(_TMP / "no_weights.pt")   # force the demo detector
 os.environ["TELEGRAM_BOT_TOKEN"] = ""
 os.environ["TELEGRAM_CHAT_ID"] = ""
+os.environ["KEETA_WEATHER"] = "off"                         # tests never call the internet
 
 import cv2  # noqa: E402
 import pytest  # noqa: E402

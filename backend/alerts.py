@@ -15,7 +15,7 @@ from functools import lru_cache
 from pathlib import Path
 
 import yaml
-from sqlmodel import Session
+from sqlmodel import Session, select
 
 from backend import settings
 from backend.db import get_engine
@@ -86,6 +86,21 @@ def _send_in_background(alert_id: int, text: str) -> None:
     threading.Thread(target=worker, daemon=True).start()
 
 
+def send_alert(session: Session, trap_id: str, action: str, previous_action: str | None,
+               lang: str, text: str) -> AlertLog:
+    """Store one alert and send it to Telegram (or only log it if Telegram is not set up)."""
+    row = AlertLog(trap_id=trap_id, action=action, previous_action=previous_action, language=lang, message=text,
+                   status="pending" if telegram_configured() else "logged")
+    session.add(row)
+    session.commit()
+    session.refresh(row)
+    if telegram_configured():
+        _send_in_background(row.id, text)
+    else:
+        log.warning("[ALERT - Telegram not configured, logged only] (%s)\n%s", lang, text)
+    return row
+
+
 def notify_decision_change(session: Session, trap: Trap, decision: dict,
                            previous_action: str | None) -> list[AlertLog]:
     """Create (and send, if configured) one alert per language."""
@@ -93,16 +108,18 @@ def notify_decision_change(session: Session, trap: Trap, decision: dict,
     for lang in settings.alert_languages():
         if lang not in templates():
             continue
-        text = render_message(lang, trap, decision)
-        row = AlertLog(trap_id=trap.id, action=decision["action"], previous_action=previous_action,
-                       language=lang, message=text,
-                       status="pending" if telegram_configured() else "logged")
-        session.add(row)
-        session.commit()
-        session.refresh(row)
-        if telegram_configured():
-            _send_in_background(row.id, text)
-        else:
-            log.warning("[ALERT - Telegram not configured, logged only] (%s)\n%s", lang, text)
-        rows.append(row)
+        rows.append(send_alert(session, trap.id, decision["action"], previous_action, lang,
+                               render_message(lang, trap, decision)))
     return rows
+
+
+def notify_early_warning(session: Session, trap: Trap, warning: dict, texts: dict[str, str]) -> list[AlertLog]:
+    """Early warning: a neighbouring farm crossed its threshold. Sent ONCE per (trap, neighbour).
+
+    For these alerts, previous_action holds the neighbour's trap id (used to avoid repeats)."""
+    already = session.exec(select(AlertLog).where(AlertLog.trap_id == trap.id, AlertLog.action == "EARLY_WARNING",
+                                                  AlertLog.previous_action == warning["neighbour_id"])).first()
+    if already:
+        return []
+    return [send_alert(session, trap.id, "EARLY_WARNING", warning["neighbour_id"], lang, text)
+            for lang, text in texts.items() if lang in settings.alert_languages()]

@@ -1,9 +1,13 @@
-# KeetaSense - trap registry
+# KeetaSense - trap / station registry
 # The backend loads these traps at startup (creating any that are missing).
 # The edge device uses TRAP_ID from .env to say which trap it is.
 #
 # simulated: true marks traps whose data comes from demo/seed.py or the
 # mock-hardware edge service. The dashboard shows a "Simulated data" badge.
+#
+# latitude / longitude: used for the weather forecast (Open-Meteo) and the
+# outbreak map. The coordinates below are around ICAR-IIHR, Hesaraghatta,
+# Bengaluru; T3-T5 are SIMULATED neighbouring farms for the network demo.
 
 traps:
   - id: T1-polyhouse
@@ -12,9 +16,37 @@ traps:
     crop: Tomato
     target_pest: whitefly
     simulated: true
+    latitude: 13.1360
+    longitude: 77.4940
   - id: T2-openfield
     name: Open field trap
     location: Open field, tomato plot 3
     crop: Tomato
     target_pest: whitefly
     simulated: true
+    latitude: 13.1310
+    longitude: 77.4985
+  - id: T3-hesaraghatta
+    name: Hesaraghatta farm
+    location: Neighbouring farm, Hesaraghatta village
+    crop: Tomato
+    target_pest: whitefly
+    simulated: true
+    latitude: 13.1585
+    longitude: 77.4785
+  - id: T4-rajanukunte
+    name: Rajanukunte farm
+    location: Neighbouring farm, Rajanukunte
+    crop: Tomato
+    target_pest: whitefly
+    simulated: true
+    latitude: 13.1700
+    longitude: 77.5530
+  - id: T5-chikkajala
+    name: Chikkajala farm
+    location: Neighbouring farm, near Chikkajala
+    crop: Tomato
+    target_pest: whitefly
+    simulated: true
+    latitude: 13.0980
+    longitude: 77.5350

@@ -1,0 +1,62 @@
+# KeetaSense - impact calculator assumptions
+# ===========================================
+# !!! These are EXAMPLE VALUES so the calculator works in the demo. They are NOT
+# !!! measured and NOT from a cited source. Replace each with local figures
+# !!! (IIHR, KVK, the farmer's own records) before quoting any result.
+# The dashboard's Impact page lets you change every value on screen.
+
+area_acres:
+  value: 1
+  label: Farm area
+  unit: acres
+  note: ASSUMPTION - example value
+season_days:
+  value: 120
+  label: Crop season length
+  unit: days
+  note: ASSUMPTION - example value for tomato
+calendar_sprays_per_season:
+  value: 12
+  label: Sprays per season without KeetaSense (calendar spraying)
+  unit: sprays
+  note: ASSUMPTION - example value, ask the farmer
+keetasense_sprays_per_season:
+  value: null
+  label: Sprays per season with KeetaSense
+  unit: sprays
+  note: empty = estimated from this system's own SPRAY decisions, scaled to the season
+respray_interval_days:
+  value: 7
+  label: Re-spray interval while SPRAY continues
+  unit: days
+  note: ASSUMPTION - example value, follow the pesticide label
+cost_per_spray_inr_per_acre:
+  value: 1500
+  label: Cost of one spray (chemical + labour)
+  unit: ₹ per acre
+  note: ASSUMPTION - example value
+pesticide_litres_per_spray_per_acre:
+  value: 1.0
+  label: Pesticide product used per spray
+  unit: litres per acre
+  note: ASSUMPTION - example value, follow the pesticide label
+yield_tonnes_per_acre:
+  value: 15
+  label: Expected yield
+  unit: tonnes per acre
+  note: ASSUMPTION - example value
+price_inr_per_kg:
+  value: 15
+  label: Farm-gate price
+  unit: ₹ per kg
+  note: ASSUMPTION - example value
+yield_loss_pct_without:
+  value: 15
+  label: Pest yield loss with calendar spraying
+  unit: "%"
+  note: ASSUMPTION - example value
+yield_loss_pct_with:
+  value: 7
+  label: Pest yield loss with KeetaSense monitoring
+  unit: "%"
+  note: ASSUMPTION - example value

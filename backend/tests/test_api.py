@@ -29,7 +29,7 @@ def test_traps_loaded_from_config(client):
     r = client.get("/api/traps")
     assert r.status_code == 200
     ids = [t["id"] for t in r.json()]
-    assert ids == ["T1-polyhouse", "T2-openfield"]
+    assert ids == ["T1-polyhouse", "T2-openfield", "T3-hesaraghatta", "T4-rajanukunte", "T5-chikkajala"]
     assert r.json()[0]["status"] == "no_data"
     assert r.json()[0]["decision"]["action"] == "WAIT"
 
@@ -114,7 +114,7 @@ def test_decision_changes_to_spray_and_alerts_are_logged(client):
     assert r.status_code == 200
     assert r.json()["action"] == "SPRAY"
     assert r.json()["reason"]
-    alerts = client.get("/api/alerts").json()
+    alerts = [a for a in client.get("/api/alerts").json() if a["trap_id"] == TRAP]
     assert {a["language"] for a in alerts} == {"en", "kn"}
     assert all(a["status"] == "logged" and a["action"] == "SPRAY" for a in alerts)
 
@@ -130,9 +130,9 @@ def test_summary(client):
     r = client.get("/api/summary")
     assert r.status_code == 200
     s = r.json()
-    assert s["traps_total"] == 2
+    assert s["traps_total"] == 5
     assert s["pests_today"] == 8 and s["predators_today"] == 1
-    assert sum(s["actions"].values()) == 2
+    assert sum(s["actions"].values()) == 5
     assert s["detector_mode"] == "demo_detector" and s["simulated_data"] is True
 
 

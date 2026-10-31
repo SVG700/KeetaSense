@@ -4,10 +4,12 @@
 !!! made-up climate readings. All rows are stored with simulated=True and
 !!! the dashboard shows a "Simulated data" badge.
 
-The stories (chosen so the dashboard shows two different decisions):
+The stories (chosen so the dashboard shows different decisions):
   T1-polyhouse  whiteflies build up in the warm polyhouse, but Macrolophus
                 were released and are keeping pace  -> RELEASE BIOCONTROL
   T2-openfield  whiteflies build up with almost no predators -> SPRAY
+  T3-T5         SIMULATED neighbouring farms: the outbreak reaches them later the
+                farther away they are -> WAIT, with early warnings
 
 Tape images are rendered by ml/synthetic.py and counted by the DEMO DETECTOR
 (they are drawings, so the trained AI model would not recognise them), then
@@ -36,7 +38,9 @@ from ml.synthetic import render_tape
 
 DAYS = 14
 
-# Per-trap simulation settings
+# Per-trap simulation settings. T3-T5 are SIMULATED neighbouring farms: the
+# open-field outbreak (T2) spreads to them later the farther away they are, so the
+# outbreak map and early warnings have something to show.
 TRAPS = {
     "T1-polyhouse": {
         "temp_mean": 27.5, "temp_swing": 5.0,             # warm polyhouse
@@ -44,10 +48,28 @@ TRAPS = {
         "macrolophus": lambda d: 0.4 + 0.45 * d,          # released, building up
         "nesidiocoris": lambda d: 0.2 + 0.15 * d,
     },
-    "T2-openfield": {
+    "T2-openfield": {                                     # outbreak starts here
         "temp_mean": 24.5, "temp_swing": 6.5,
         "whitefly": lambda d: 4 * math.exp(0.17 * d),     # ~4 -> ~36 per day
         "macrolophus": lambda d: 0.4,
+        "nesidiocoris": lambda d: 0.3,
+    },
+    "T3-hesaraghatta": {                                  # ~3.5 km away: outbreak arriving
+        "temp_mean": 24.0, "temp_swing": 6.5,
+        "whitefly": lambda d: 3 * math.exp(0.17 * max(0, d - 3)),   # ~3 -> ~16, rising
+        "macrolophus": lambda d: 0.3,
+        "nesidiocoris": lambda d: 0.2,
+    },
+    "T4-rajanukunte": {                                   # ~7.5 km away: still quiet
+        "temp_mean": 23.5, "temp_swing": 6.5,
+        "whitefly": lambda d: 2.5 + 0.25 * d,
+        "macrolophus": lambda d: 0.4,
+        "nesidiocoris": lambda d: 0.3,
+    },
+    "T5-chikkajala": {                                    # ~5 km away: beginning to rise
+        "temp_mean": 24.0, "temp_swing": 6.0,
+        "whitefly": lambda d: 2.5 * math.exp(0.12 * max(0, d - 2)),  # ~2.5 -> ~9
+        "macrolophus": lambda d: 0.3,
         "nesidiocoris": lambda d: 0.3,
     },
 }
@@ -117,7 +139,7 @@ def seed_history(session: Session, seed: int = 7, log=print) -> int:
             for t, temp, hum in climate_for_day(rng, day_start, cfg, until=now):
                 services.add_climate(session, trap, t, temp, hum, simulated=True)
             counts = {name: poisson(rng, cfg[name](i)) for name in ("whitefly", "macrolophus", "nesidiocoris")}
-            img, _ = render_tape(counts, 1280, 800, seed=seed * 1000 + i + (0 if trap_id.startswith("T1") else 500))
+            img, _ = render_tape(counts, 1280, 800, seed=seed * 1000 + i + 500 * list(TRAPS).index(trap_id))
             _, result, decision = services.process_section(
                 session, trap, img, shot, simulated=True, notify=False, source="seed",
                 detections=infer.demo_detect(img), detector_mode=infer.MODE_DEMO)

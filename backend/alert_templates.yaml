@@ -1,7 +1,8 @@
-# Telegram alert templates (English and Kannada)
-# ================================================
-# !!! The Kannada text below was machine-drafted. A NATIVE KANNADA SPEAKER
-# !!! MUST CHECK AND CORRECT THE WORDING before farmers receive it.
+# Telegram alert templates (English, Kannada, Hindi, Tamil)
+# =========================================================
+# !!! The Kannada, Hindi and Tamil texts were machine-drafted. A NATIVE SPEAKER
+# !!! OF EACH LANGUAGE MUST CHECK AND CORRECT THE WORDING before farmers receive it.
+# Which languages are sent: ALERT_LANGUAGES in .env (e.g. en,kn or en,kn,hi,ta).
 #
 # Placeholders filled in by backend/alerts.py:
 #   {trap_name} {pest_name} {pests_per_day} {predators_per_day} {ratio}
@@ -42,3 +43,41 @@ kn:
     ಕ್ರಮ: ಕಾಯಿರಿ
     {pest_name}: ದಿನಕ್ಕೆ ಸರಾಸರಿ {pests_per_day} - ಮಿತಿಗಿಂತ ಕಡಿಮೆ. ಗಮನಿಸುತ್ತಿರಿ.
     ಮುಂದಿನ ಪೀಳಿಗೆ: {days_text}.
+
+hi:
+  days_known: "लगभग {days} दिनों में"
+  days_unknown: "अभी पता नहीं"
+  SPRAY: |
+    🔴 कीटसेंस - {trap_name}
+    कार्रवाई: कीटनाशक का छिड़काव करें
+    {pest_name}: प्रतिदिन औसतन {pests_per_day}। हर शिकारी कीट पर {ratio} हानिकारक कीट - शिकारी कीट नियंत्रण नहीं कर पा रहे।
+    अगली पीढ़ी: {days_text}।
+  RELEASE_BIOCONTROL: |
+    🟠 कीटसेंस - {trap_name}
+    कार्रवाई: जैविक नियंत्रण कीट छोड़ें
+    {pest_name}: प्रतिदिन औसतन {pests_per_day}, लेकिन शिकारी कीट भी साथ-साथ बढ़ रहे हैं। छिड़काव न करें - इससे शिकारी कीट भी मर जाएँगे।
+    अगली पीढ़ी: {days_text}।
+  WAIT: |
+    🟢 कीटसेंस - {trap_name}
+    कार्रवाई: इंतज़ार करें
+    {pest_name}: प्रतिदिन औसतन {pests_per_day} - सीमा से कम। निगरानी जारी रखें।
+    अगली पीढ़ी: {days_text}।
+
+ta:
+  days_known: "சுமார் {days} நாட்களில்"
+  days_unknown: "இன்னும் தெரியவில்லை"
+  SPRAY: |
+    🔴 கீடசென்ஸ் - {trap_name}
+    நடவடிக்கை: பூச்சிக்கொல்லி தெளிக்கவும்
+    {pest_name}: நாளொன்றுக்கு சராசரி {pests_per_day}. ஒவ்வொரு இரைகொல்லி பூச்சிக்கும் {ratio} தீங்கு செய்யும் பூச்சிகள் - இரைகொல்லிகளால் கட்டுப்படுத்த முடியவில்லை.
+    அடுத்த தலைமுறை: {days_text}.
+  RELEASE_BIOCONTROL: |
+    🟠 கீடசென்ஸ் - {trap_name}
+    நடவடிக்கை: உயிரியல் கட்டுப்பாட்டு பூச்சிகளை விடுவிக்கவும்
+    {pest_name}: நாளொன்றுக்கு சராசரி {pests_per_day}, ஆனால் இரைகொல்லி பூச்சிகளும் சமமாக அதிகரிக்கின்றன. தெளிக்க வேண்டாம் - அது இரைகொல்லிகளையும் கொல்லும்.
+    அடுத்த தலைமுறை: {days_text}.
+  WAIT: |
+    🟢 கீடசென்ஸ் - {trap_name}
+    நடவடிக்கை: காத்திருக்கவும்
+    {pest_name}: நாளொன்றுக்கு சராசரி {pests_per_day} - வரம்புக்குக் கீழே. கண்காணித்துக் கொண்டே இருங்கள்.
+    அடுத்த தலைமுறை: {days_text}.

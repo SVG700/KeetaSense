@@ -16,9 +16,9 @@ def test_seed_creates_simulated_history(tmp_path, monkeypatch):
     seed.main()
     with Session(db.get_engine()) as s:
         sections = s.exec(select(TapeSection)).all()
-        assert len(sections) == 2 * seed.DAYS
+        assert len(sections) == len(seed.TRAPS) * seed.DAYS
         assert all(x.simulated for x in sections)
-        assert {x.trap_id for x in sections} == {"T1-polyhouse", "T2-openfield"}
+        assert {x.trap_id for x in sections} == set(seed.TRAPS)
         assert s.exec(select(ClimateReading)).first().simulated
     assert (tmp_path / "media" / "annotated").exists()
     db.reset_engine()

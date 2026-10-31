@@ -33,7 +33,7 @@ from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 from sqlmodel import Session, func, select
 
-from backend import alerts, model_reports, services, settings, thresholds_editor
+from backend import advisory, alerts, impact, model_reports, services, settings, thresholds_editor, weather
 from backend.db import get_engine, get_session, init_db
 from backend.decision_engine import DailyCatch, decide
 from backend.models import SECTION_SOURCES, AlertLog, ClimateReading, Decision, TapeSection, Trap
@@ -145,6 +145,7 @@ async def post_section(
             detections=detections, detector_mode=detector_mode, source=source)
     except (KeyError, TypeError, ValueError) as e:
         raise HTTPException(422, f"Could not process detections: {e}")
+    check_early_warnings(session)
     return {
         "section": services.section_to_dict(section),
         "counts": result.counts, "pest_total": result.pest_total, "predator_total": result.predator_total,
@@ -291,6 +292,74 @@ def health(session: Session = Depends(get_session)):
         "weights_path": str(infer.weights_path()),
         "telegram": "configured" if alerts.telegram_configured() else "log_only",
     }
+
+
+# ---------------------------------------------------------------------------
+# Advisory: forecast + weather + can-I-spray + early warnings, in en/kn/hi/ta
+# ---------------------------------------------------------------------------
+def check_early_warnings(session: Session) -> None:
+    """After new data: alert farms near an outbreak (once per neighbouring outbreak). Never raises."""
+    try:
+        state = advisory.network_state(session)
+        for s in state["stations"]:
+            if not s["warnings"]:
+                continue
+            trap = session.get(Trap, s["id"])
+            w = s["warnings"][0]
+            texts = {}
+            for lang in advisory.templates():
+                t = advisory.templates()[lang]
+                texts[lang] = ("⚠ " + t["title"].format(trap_name=trap.name) + "\n"
+                               + t["warning"].format(neighbour=w["neighbour"], km=advisory._fmt(w["km"])))
+            alerts.notify_early_warning(session, trap, w, texts)
+    except Exception:
+        log.exception("Early-warning check failed (the section itself was stored)")
+
+
+def _lang(lang: str) -> str:
+    if lang not in advisory.LANGUAGES:
+        raise HTTPException(422, f"lang must be one of {list(advisory.LANGUAGES)}")
+    return lang
+
+
+@app.get("/api/advisory/{trap_id}")
+def get_advisory(trap_id: str, lang: str = "en", session: Session = Depends(get_session)):
+    """Everything for one farmer: decision, 3-7 day forecast, spray window, warnings, in a language."""
+    trap = get_trap_or_404(session, trap_id)
+    adv = advisory.build(session, trap)
+    return {**adv, "rendered": advisory.render(adv, _lang(lang)),
+            "spray_answer": advisory.answer_spray_question(adv, lang), "languages": advisory.LANGUAGES}
+
+
+@app.get("/api/network")
+def get_network(session: Session = Depends(get_session)):
+    """All stations with pest pressure, early warnings and the interpolated heat map."""
+    return advisory.network_state(session)
+
+
+class ImpactIn(BaseModel):
+    values: dict[str, float | int | str | None] = {}
+
+
+@app.get("/api/impact")
+def get_impact(session: Session = Depends(get_session)):
+    """Impact estimate with the default (example) assumptions from config/impact.yaml."""
+    return impact.compute(session)
+
+
+@app.post("/api/impact")
+def post_impact(body: ImpactIn, session: Session = Depends(get_session)):
+    """Recalculate with the user's own numbers (nothing is saved)."""
+    try:
+        return impact.compute(session, body.values)
+    except ValueError as e:
+        raise HTTPException(422, e.args[0])
+
+
+@app.get("/api/weather/{trap_id}")
+def get_weather(trap_id: str, session: Session = Depends(get_session)):
+    get_trap_or_404(session, trap_id)
+    return {"mode": weather.mode(), "forecast": weather.get_forecast(trap_id)}
 
 
 # ---------------------------------------------------------------------------

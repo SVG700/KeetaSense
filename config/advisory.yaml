@@ -1,0 +1,32 @@
+# KeetaSense - advisory settings (weather, forecasting, early warning)
+# ======================================================================
+# Every number marked PLACEHOLDER is a sensible starting value for the demo
+# and MUST be confirmed with the IIHR mentor / the pesticide label.
+
+# When is it OK to spray? Checked against the hourly weather forecast.
+spray_conditions:
+  # A spray needs this many dry hours afterwards, or rain washes it off.
+  rain_free_hours: 6            # PLACEHOLDER - confirm with IIHR mentor
+  # An hour counts as "rain" if the chance of rain is at least this ...
+  rain_probability_pct: 50      # PLACEHOLDER - confirm with IIHR mentor
+  # ... or the expected rain is at least this many millimetres.
+  rain_mm: 0.5                  # PLACEHOLDER - confirm with IIHR mentor
+  # Above this wind speed the spray drifts away.
+  max_wind_kmh: 15              # PLACEHOLDER - confirm with IIHR mentor
+  # Only suggest spraying between these hours (24 h clock, local time).
+  earliest_hour: 6              # PLACEHOLDER - confirm with IIHR mentor
+  latest_hour: 18               # PLACEHOLDER - confirm with IIHR mentor
+
+# Pest-pressure forecast (simple regression of counts on accumulated warmth).
+forecast:
+  days_ahead: 7                 # forecast horizon shown (3-7 days)
+  history_sections: 14          # how many recent tape sections the model learns from
+  min_sections: 5               # fewer than this -> "not enough data to forecast"
+
+# Early warning between neighbouring farms (outbreak map).
+early_warning:
+  radius_km: 10                 # PLACEHOLDER - confirm with IIHR mentor
+
+# Weather data source: Open-Meteo (free, no key; data CC BY 4.0).
+weather:
+  refresh_minutes: 60           # how often to fetch a new forecast
