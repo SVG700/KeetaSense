@@ -136,3 +136,7 @@ Each line: **decision** - reason.
 - **Kannada insect names from `pests.yaml` are included as `pest_name.<class>` rows** - they appear inside the alerts, so they need the same review.
 - **Reviewer writes the full corrected text, or "OK", or leaves it empty; the import refuses any correction whose {placeholders} differ** - a missing `{trap_name}` would break every alert of that type.
 - **Import keeps `.bak` copies, rewrites the templates file with readable block-style YAML and the original header comments, and adds "Kannada reviewed by <name> on <date>"; pest names are changed by line edit** - reviewable diff, nothing else in pests.yaml changes; rendering of untouched templates is tested to be identical.
+
+## Repair, 31 Oct 2026
+- **Keep the project OUTSIDE OneDrive (or exclude `.venv`, `.tools`, `frontend/node_modules`, `backend/data` from sync)** - an interrupted move into OneDrive on 29 Oct split the installed tools between two folders, and files that came back carried OneDrive's cloud reparse tag (0x9000201a), which made TypeScript 7 skip every source file ("No inputs were found").
+- **`*.tsbuildinfo` is git-ignored** - it is a build cache that changes on every build.

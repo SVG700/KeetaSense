@@ -295,5 +295,3 @@ traps exists yet**: it comes from the Colab notebook's evaluation on the real te
 Dataset: Nieuwenhuizen et al., *Raw data from Yellow Sticky Traps with insects for training of deep
 learning Convolutional Neural Network for object detection*, Wageningen University & Research, CC0,
 DOI 10.4121/uuid:8b8ba63a-1010-4de7-a7fb-6f9e3baf128e.
-#   K e e t a S e n s e  
- 

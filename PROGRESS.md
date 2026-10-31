@@ -44,6 +44,17 @@ Not verified on this laptop: a physical Ctrl+C keypress and closing a visible co
 (simulated as above), Wi-Fi physically switched off (simulated by blocking all non-local network
 lookups in a test and in a YOLO run), anything on a real Raspberry Pi, the real dataset and model.
 
+## Repair (31 Oct 2026)
+
+An interrupted move into OneDrive (29 Oct) had split `.venv`, the portable Python and
+`frontend/node_modules` between this folder and `OneDrive\Desktop\Samhith\KeetaSense`, and left
+OneDrive cloud tags on 314 project files. Repaired in this folder: tools reinstalled with
+`scripts\setup.bat`, synthetic data regenerated, the 314 files rewritten as normal files (contents
+verified identical by SHA-256), a garbled UTF-16 line removed from the end of README.md. Verified
+after the repair: 103 tests pass, frontend builds, `demo.bat` (3 cycles) and `replay.bat` (2 cycles)
+run in one window with no errors and stop cleanly. The OneDrive copy is incomplete (no source code)
+and is not used.
+
 ## What you must still do manually
 
 1. **Dataset:** download `data.zip` from https://data.4tu.nl/articles/_/12707066/1 into `ml/data/raw/`,
