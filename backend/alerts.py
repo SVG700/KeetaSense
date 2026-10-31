@@ -17,7 +17,7 @@ from pathlib import Path
 import yaml
 from sqlmodel import Session, select
 
-from backend import settings
+from backend import bot_store, settings
 from backend.db import get_engine
 from backend.models import AlertLog, Trap
 
@@ -55,25 +55,48 @@ def render_message(lang: str, trap: Trap, decision: dict) -> str:
 
 
 def telegram_configured() -> bool:
+    """A bot token AND a main alert chat (TELEGRAM_CHAT_ID) are set."""
     return bool(settings.telegram_token() and settings.telegram_chat_id())
 
 
-async def _send_telegram(text: str) -> None:
+def recipients(trap_id: str, lang: str) -> list[str]:
+    """Telegram chats that should get this trap's alert in this language:
+    the main alert chat (for ALERT_LANGUAGES) + bot users following this trap in this language."""
+    if not settings.telegram_token():
+        return []
+    chats = []
+    if settings.telegram_chat_id() and lang in settings.alert_languages():
+        chats.append(settings.telegram_chat_id())
+    chats += [cid for cid, user_lang in bot_store.subscribers(trap_id) if user_lang == lang and cid not in chats]
+    return chats
+
+
+def languages_for(trap_id: str) -> list[str]:
+    """ALERT_LANGUAGES plus every language a subscriber of this trap uses."""
+    langs = list(settings.alert_languages())
+    for _, lang in bot_store.subscribers(trap_id):
+        if lang not in langs:
+            langs.append(lang)
+    return langs
+
+
+async def _send_telegram(text: str, chat_ids: list[str]) -> None:
     from telegram import Bot  # lazy import
     from telegram.request import HTTPXRequest
     # short timeouts: with Wi-Fi off the attempt fails fast instead of hanging
     request = HTTPXRequest(connect_timeout=5, read_timeout=10, write_timeout=10, pool_timeout=5)
     async with Bot(settings.telegram_token(), request=request) as bot:
-        await bot.send_message(chat_id=settings.telegram_chat_id(), text=text)
+        for chat_id in chat_ids:
+            await bot.send_message(chat_id=chat_id, text=text)
 
 
-def _send_in_background(alert_id: int, text: str) -> None:
+def _send_in_background(alert_id: int, text: str, chat_ids: list[str]) -> None:
     """Send on a separate thread so a slow network never blocks the API."""
     def worker():
         status, error = "sent", None
         try:
-            asyncio.run(_send_telegram(text))
-            log.info("Telegram alert %s sent", alert_id)
+            asyncio.run(_send_telegram(text, chat_ids))
+            log.info("Telegram alert %s sent to %d chat(s)", alert_id, len(chat_ids))
         except Exception as e:  # network down, wrong token, ...
             status, error = "failed", str(e)[:500]
             log.error("Telegram alert %s failed: %s", alert_id, e)
@@ -88,14 +111,15 @@ def _send_in_background(alert_id: int, text: str) -> None:
 
 def send_alert(session: Session, trap_id: str, action: str, previous_action: str | None,
                lang: str, text: str) -> AlertLog:
-    """Store one alert and send it to Telegram (or only log it if Telegram is not set up)."""
+    """Store one alert and send it to Telegram (or only log it if nobody can receive it)."""
+    chats = recipients(trap_id, lang)
     row = AlertLog(trap_id=trap_id, action=action, previous_action=previous_action, language=lang, message=text,
-                   status="pending" if telegram_configured() else "logged")
+                   status="pending" if chats else "logged")
     session.add(row)
     session.commit()
     session.refresh(row)
-    if telegram_configured():
-        _send_in_background(row.id, text)
+    if chats:
+        _send_in_background(row.id, text, chats)
     else:
         log.warning("[ALERT - Telegram not configured, logged only] (%s)\n%s", lang, text)
     return row
@@ -105,7 +129,7 @@ def notify_decision_change(session: Session, trap: Trap, decision: dict,
                            previous_action: str | None) -> list[AlertLog]:
     """Create (and send, if configured) one alert per language."""
     rows = []
-    for lang in settings.alert_languages():
+    for lang in languages_for(trap.id):
         if lang not in templates():
             continue
         rows.append(send_alert(session, trap.id, decision["action"], previous_action, lang,
@@ -122,4 +146,4 @@ def notify_early_warning(session: Session, trap: Trap, warning: dict, texts: dic
     if already:
         return []
     return [send_alert(session, trap.id, "EARLY_WARNING", warning["neighbour_id"], lang, text)
-            for lang, text in texts.items() if lang in settings.alert_languages()]
+            for lang, text in texts.items() if lang in languages_for(trap.id)]

@@ -9,6 +9,8 @@ Options:
     --no-browser   do not open the browser
     --no-seed      (demo) keep the current data instead of resetting it
     --cycles N     (demo/replay) stop everything after N edge cycles (used for testing)
+    --sim-weather  SIMULATED weather (clearly labelled) when there is no internet on stage
+    --no-bot       do not start the Telegram bot (it starts when TELEGRAM_BOT_TOKEN is set)
 
 The scripts in this folder (start.bat, demo.bat, replay.bat, *.sh) just call this file.
 
@@ -176,6 +178,17 @@ def lan_addresses() -> list[str]:
         return []
 
 
+def bot_token() -> str:
+    """TELEGRAM_BOT_TOKEN from the environment or the project's .env file."""
+    if os.environ.get("TELEGRAM_BOT_TOKEN"):
+        return os.environ["TELEGRAM_BOT_TOKEN"].strip()
+    try:
+        from dotenv import dotenv_values
+        return (dotenv_values(ROOT / ".env").get("TELEGRAM_BOT_TOKEN") or "").strip()
+    except ImportError:
+        return ""
+
+
 def dashboard_needs_build() -> bool:
     dist = ROOT / "frontend" / "dist" / "index.html"
     if not dist.exists():
@@ -218,10 +231,15 @@ def main() -> int:
     ap.add_argument("--no-browser", action="store_true")
     ap.add_argument("--no-seed", action="store_true")
     ap.add_argument("--cycles", type=int)
+    ap.add_argument("--sim-weather", action="store_true",
+                    help="use SIMULATED weather (labelled; rain in ~4 h) - for a demo without internet")
+    ap.add_argument("--no-bot", action="store_true", help="do not start the Telegram bot")
     args = ap.parse_args()
 
     os.chdir(ROOT)
-    env = child_env()
+    env = child_env({"KEETA_WEATHER": "simulated"} if args.sim_weather else None)
+    if args.sim_weather:
+        say("launcher", "weather: SIMULATED (labelled as such on every screen)")
     if port_in_use(PORT):
         say("launcher", f"ERROR: port {PORT} is already in use - is KeetaSense already running in another window?")
         return 1
@@ -244,7 +262,7 @@ def main() -> int:
     edge = None
     if args.mode in ("demo", "replay"):
         edge_cmd = [PY, "-m", "edge.main", "--demo"]
-        edge_env = child_env({"MOCK_HARDWARE": "1"})
+        edge_env = dict(env, MOCK_HARDWARE="1")
         if args.mode == "replay":
             folder = Path(args.replay_dir) if args.replay_dir else (
                 ROOT / "demo" / "replay_real" if (ROOT / "demo" / "replay_real" / "manifest.jsonl").exists()
@@ -283,6 +301,11 @@ def main() -> int:
         if edge:
             edge.start()
             services.append(edge)
+        if bot_token() and not args.no_bot:   # Telegram bot for farmers (needs internet to reach Telegram)
+            bot = Service("bot", [PY, "-m", "backend.telegram_bot"], env, restart=True)
+            bot.start()
+            services.append(bot)
+            say("launcher", "Telegram bot started (TELEGRAM_BOT_TOKEN is set)")
         if not args.no_browser:
             webbrowser.open(url)
 
