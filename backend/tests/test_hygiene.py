@@ -5,7 +5,7 @@ import pytest
 from sqlmodel import Session, select
 
 from backend import alerts, db, hygiene
-from backend.models import AlertLog, Trap, TrapHealth
+from backend.models import AlertLog, TapeSection, Trap, TrapHealth
 
 TRAP = "T1-polyhouse"
 T0 = datetime(2026, 11, 2, 10, 0)            # a Monday morning, outside quiet hours and after the digest
@@ -160,3 +160,49 @@ def test_health_texts_exist_in_every_language():
             "reminder_prefix", "unit_hours", "unit_minutes")
     for lang in ("en", "kn", "hi", "ta"):
         assert all(k in t[lang] for k in keys), lang
+
+
+# --- morning summary: yesterday's catch with its time window ---------------------------------------
+MORNING = datetime(2026, 11, 3, 7, 0)
+
+
+def add_section(s, when, pests, predators=0, **extra):
+    s.add(TapeSection(trap_id=TRAP, timestamp=when, image_path="x.jpg", pest_total=pests, predator_total=predators,
+                      **extra))
+    s.commit()
+
+
+def digest_en(s, now=MORNING):
+    hygiene.tick(s, now)
+    return [a for a in alerts_of(s, "DIGEST") if a.language == "en" and a.trap_id == TRAP][-1].message
+
+
+def test_digest_reports_yesterdays_catch_and_window(session):
+    add_section(session, datetime(2026, 11, 1, 6, 55), 50, 4)
+    add_section(session, datetime(2026, 11, 2, 6, 58), 31, 3)              # the day before yesterday -> yesterday
+    add_section(session, datetime(2026, 11, 3, 7, 30), 99)                 # after the summary: not reported yet
+    msg = digest_en(session)
+    assert msg.splitlines()[0] == "📋 KeetaSense morning summary - Polyhouse trap - 03-11-2026"
+    assert "Caught from 06:55 01-11 to 06:58 02-11: 31 Whitefly, 3 predators." in msg
+    assert "3-day average" in msg
+    kn = [a for a in alerts_of(session, "DIGEST") if a.language == "kn" and a.trap_id == TRAP][-1].message
+    assert "06:55 01-11 ರಿಂದ 06:58 02-11 ವರೆಗೆ ಹಿಡಿದವು: 31" in kn
+
+
+def test_digest_uses_scout_corrected_count(session):
+    add_section(session, datetime(2026, 11, 2, 7, 0), 20, 1, corrected_pest_total=17, corrected_predator_total=2)
+    msg = digest_en(session)
+    assert "Caught from new tape to 07:00 02-11: 17 Whitefly, 2 predators. (corrected by scout)" in msg
+
+
+def test_digest_bad_photo_and_no_new_photo(session):
+    add_section(session, datetime(2026, 11, 1, 7, 0), 20)
+    add_section(session, datetime(2026, 11, 2, 7, 0), 0, quality_status="BAD",
+                quality_reasons=[{"code": "blur", "level": "BAD"}])
+    assert "The photo for 07:00 01-11 to 07:00 02-11 is not usable (" in digest_en(session)
+    later = datetime(2026, 11, 4, 7, 0)                                    # 48 h after the last photo (> 36 h)
+    assert "No new tape photo since 07:00 02-11 - check the trap." in digest_en(session, later)
+
+
+def test_digest_without_any_photo(session):
+    assert "No tape photo yet." in digest_en(session)

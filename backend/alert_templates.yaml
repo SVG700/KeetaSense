@@ -44,9 +44,15 @@ en:
   MOTOR_FAULT: |
     ⚙ KeetaSense - {trap_name}
     MOTOR FAULT: the tape is not advancing ({detail}). Check the motor and tape.
-  digest_title: "📋 KeetaSense daily summary - {trap_name} - {date}"
-  digest_action: "Advice: {action}. {pest_name}: {pests} per day, predators: {predators} per day."
+  digest_title: "📋 KeetaSense morning summary - {trap_name} - {date}"
+  digest_action: "Advice: {action} (3-day average: {pests} {pest_name} and {predators} predators per day)."
   digest_health: "Trap: {state}, tape left {pct}%, photos waiting to upload: {queue}."
+  digest_catch: "Caught from {start} to {end}: {pests} {pest_name}, {predators} predators."
+  digest_corrected: "(corrected by scout)"
+  digest_bad_photo: "The photo for {start} to {end} is not usable ({reasons}) - check the trap."
+  digest_no_photo: "No new tape photo since {time} - check the trap."
+  digest_no_photo_yet: "No tape photo yet."
+  word_new_tape: "new tape"
   word_SPRAY: "SPRAY"
   word_RELEASE_BIOCONTROL: "RELEASE BIOCONTROL"
   word_WAIT: "WAIT"
@@ -95,9 +101,15 @@ kn:
   MOTOR_FAULT: |
     ⚙ ಕೀಟಸೆನ್ಸ್ - {trap_name}
     ಮೋಟಾರ್ ದೋಷ: ಟೇಪ್ ಮುಂದೆ ಸರಿಯುತ್ತಿಲ್ಲ ({detail}). ಮೋಟಾರ್ ಮತ್ತು ಟೇಪ್ ಪರಿಶೀಲಿಸಿ.
-  digest_title: "📋 ಕೀಟಸೆನ್ಸ್ ದೈನಂದಿನ ಸಾರಾಂಶ - {trap_name} - {date}"
-  digest_action: "ಸಲಹೆ: {action}. {pest_name}: ದಿನಕ್ಕೆ {pests}, ಪರಭಕ್ಷಕಗಳು: ದಿನಕ್ಕೆ {predators}."
+  digest_title: "📋 ಕೀಟಸೆನ್ಸ್ ಬೆಳಗಿನ ಸಾರಾಂಶ - {trap_name} - {date}"
+  digest_action: "ಸಲಹೆ: {action} (3 ದಿನಗಳ ಸರಾಸರಿ: ದಿನಕ್ಕೆ {pests} {pest_name} ಮತ್ತು {predators} ಪರಭಕ್ಷಕಗಳು)."
   digest_health: "ಬಲೆ: {state}, ಉಳಿದ ಟೇಪ್ {pct}%, ಅಪ್‌ಲೋಡ್‌ಗೆ ಕಾಯುತ್ತಿರುವ ಚಿತ್ರಗಳು: {queue}."
+  digest_catch: "{start} ರಿಂದ {end} ವರೆಗೆ ಹಿಡಿದವು: {pests} {pest_name}, {predators} ಪರಭಕ್ಷಕಗಳು."
+  digest_corrected: "(ಸ್ಕೌಟ್ ಸರಿಪಡಿಸಿದ್ದಾರೆ)"
+  digest_bad_photo: "{start} ರಿಂದ {end} ವರೆಗಿನ ಚಿತ್ರ ಬಳಸಲು ಯೋಗ್ಯವಾಗಿಲ್ಲ ({reasons}) - ಬಲೆಯನ್ನು ಪರಿಶೀಲಿಸಿ."
+  digest_no_photo: "{time} ರಿಂದ ಹೊಸ ಟೇಪ್ ಚಿತ್ರವಿಲ್ಲ - ಬಲೆಯನ್ನು ಪರಿಶೀಲಿಸಿ."
+  digest_no_photo_yet: "ಇನ್ನೂ ಯಾವುದೇ ಟೇಪ್ ಚಿತ್ರವಿಲ್ಲ."
+  word_new_tape: "ಹೊಸ ಟೇಪ್"
   word_SPRAY: "ಸಿಂಪಡಿಸಿ"
   word_RELEASE_BIOCONTROL: "ಜೈವಿಕ ನಿಯಂತ್ರಣ ಬಿಡುಗಡೆ"
   word_WAIT: "ಕಾಯಿರಿ"
@@ -146,9 +158,15 @@ hi:
   MOTOR_FAULT: |
     ⚙ कीटसेंस - {trap_name}
     मोटर खराबी: टेप आगे नहीं बढ़ रहा ({detail})। मोटर और टेप जाँचें।
-  digest_title: "📋 कीटसेंस दैनिक सारांश - {trap_name} - {date}"
-  digest_action: "सलाह: {action}। {pest_name}: प्रतिदिन {pests}, शिकारी कीट: प्रतिदिन {predators}।"
+  digest_title: "📋 कीटसेंस सुबह का सारांश - {trap_name} - {date}"
+  digest_action: "सलाह: {action} (3 दिन का औसत: प्रतिदिन {pests} {pest_name} और {predators} शिकारी कीट)।"
   digest_health: "ट्रैप: {state}, बचा टेप {pct}%, अपलोड के लिए प्रतीक्षारत फ़ोटो: {queue}।"
+  digest_catch: "{start} से {end} तक पकड़े गए: {pests} {pest_name}, {predators} शिकारी कीट।"
+  digest_corrected: "(स्काउट द्वारा सुधारा गया)"
+  digest_bad_photo: "{start} से {end} तक की फ़ोटो उपयोग योग्य नहीं ({reasons}) - ट्रैप जाँचें।"
+  digest_no_photo: "{time} से कोई नई टेप फ़ोटो नहीं - ट्रैप जाँचें।"
+  digest_no_photo_yet: "अभी तक कोई टेप फ़ोटो नहीं।"
+  word_new_tape: "नया टेप"
   word_SPRAY: "छिड़काव करें"
   word_RELEASE_BIOCONTROL: "जैविक नियंत्रण छोड़ें"
   word_WAIT: "इंतज़ार करें"
@@ -197,9 +215,15 @@ ta:
   MOTOR_FAULT: |
     ⚙ கீடசென்ஸ் - {trap_name}
     மோட்டார் கோளாறு: டேப் நகரவில்லை ({detail}). மோட்டார் மற்றும் டேப்பைச் சரிபார்க்கவும்.
-  digest_title: "📋 கீடசென்ஸ் தினசரி சுருக்கம் - {trap_name} - {date}"
-  digest_action: "ஆலோசனை: {action}. {pest_name}: நாளொன்றுக்கு {pests}, இரைகொல்லிகள்: நாளொன்றுக்கு {predators}."
+  digest_title: "📋 கீடசென்ஸ் காலை சுருக்கம் - {trap_name} - {date}"
+  digest_action: "ஆலோசனை: {action} (3 நாள் சராசரி: நாளொன்றுக்கு {pests} {pest_name}, {predators} இரைகொல்லிகள்)."
   digest_health: "பொறி: {state}, மீதமுள்ள டேப் {pct}%, பதிவேற்றக் காத்திருக்கும் படங்கள்: {queue}."
+  digest_catch: "{start} முதல் {end} வரை பிடிபட்டவை: {pests} {pest_name}, {predators} இரைகொல்லிகள்."
+  digest_corrected: "(சாரணரால் திருத்தப்பட்டது)"
+  digest_bad_photo: "{start} முதல் {end} வரையிலான படம் பயன்படுத்த முடியாது ({reasons}) - பொறியைச் சரிபார்க்கவும்."
+  digest_no_photo: "{time} முதல் புதிய டேப் படம் இல்லை - பொறியைச் சரிபார்க்கவும்."
+  digest_no_photo_yet: "இன்னும் டேப் படம் இல்லை."
+  word_new_tape: "புதிய டேப்"
   word_SPRAY: "தெளிக்கவும்"
   word_RELEASE_BIOCONTROL: "உயிரியல் கட்டுப்பாடு விடுவிக்கவும்"
   word_WAIT: "காத்திருக்கவும்"

@@ -140,5 +140,7 @@ alert_hygiene:
   # One daily summary per trap at this time.
   digest_hour: 7                 # PLACEHOLDER - confirm with the farmers
   digest_minute: 0               # PLACEHOLDER - confirm with the farmers
+  # The summary reports the newest tape photo only if it is at most this old (else "no new photo").
+  digest_max_photo_age_hours: 36 # Team decision - a daily trap plus a few hours' slack
   # An action alert that nobody acknowledged (Sprayed / Released / Not yet) is repeated ONCE after this.
   realert_after_hours: 4         # PLACEHOLDER - confirm with the farmers
