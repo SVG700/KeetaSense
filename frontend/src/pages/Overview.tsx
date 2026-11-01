@@ -2,6 +2,7 @@
 import { Link } from "react-router-dom";
 import { api, mediaUrl, type AlertItem, type Summary, type TrapSummary } from "../api";
 import { useT } from "../i18n";
+import { HealthBadge } from "../components/HealthCard";
 import { useLiveData } from "../settings";
 import {
   ActionStrip, BorderlineTag, DecisionBadge, DetectorTag, EmptyState, ErrorState, QualityBadge, ReplayTag, SimulatedTag, Spinner, StatusDot,
@@ -76,6 +77,7 @@ function TrapCard({ trap }: { trap: TrapSummary }) {
             <span className="text-xs text-stone-500">· {trap.latest_climate.temperature_c} °C, {trap.latest_climate.humidity_pct}% RH</span>
           )}
           <span className="ml-auto flex flex-wrap gap-1.5">
+            <HealthBadge health={trap.health} />
             {s && <QualityBadge status={s.quality_status} reasons={s.quality_reasons} />}
             {s?.corrected && <Tag tone="green">✎ {t("edit.corrected")}</Tag>}
             {s?.source === "replay" && <ReplayTag />}

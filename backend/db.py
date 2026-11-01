@@ -49,6 +49,8 @@ NEW_COLUMNS = {
     "alertlog": {
         "acknowledged_at": "DATETIME",        # F4 action logging
         "ack_action": "VARCHAR",
+        "held_until": "DATETIME",             # F6 alert hygiene
+        "realerted_at": "DATETIME",
     },
 }
 

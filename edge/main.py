@@ -8,6 +8,7 @@ One cycle:
   5. read temperature / humidity (DHT22)
   6. save everything to the local SQLite queue (and record it for replay)
   7. send the queue to the backend; if offline, keep it and retry with backoff
+  8. send a heartbeat: queue depth, tape used, motor fault (trap health, F6)
 
 Run (from the project root):
     python -m edge.main --demo          # one cycle every 20 s (for judges)
@@ -76,11 +77,57 @@ class EdgeService:
         self.source = "replay" if self.replay else ("mock" if cfg.mock_hardware else "live")
         self._last_climate: tuple[float, float] | None = None
         self._last_image = None
+        # trap health (F6): tape usage survives restarts in a small state file
+        self.tape_state_file = cfg.data_dir / "tape_state.json"
+        self.tape_steps_used = self._load_tape_steps()
+        self.motor_fault: str | None = None
+        self.capture_interval_s = cfg.cycle_hours * 3600
+        self.cycles_done = 0
         if cfg.inject and not cfg.mock_hardware:
             log.warning("--inject only works with mock hardware - ignored")
             cfg.inject = ""
         if cfg.inject:
             log.warning("FAULT INJECTION (mock demo): %s", cfg.inject)
+        if cfg.inject == "tape":
+            self.tape_steps_used = max(self.tape_steps_used, int(cfg.tape_total_steps * 0.9))
+        if cfg.inject == "motor":
+            self.motor_fault = "MOCK fault: stepper does not turn"
+
+    # --- trap health (F6) ---------------------------------------------------
+    def _load_tape_steps(self) -> int:
+        try:
+            return int(json.loads(self.tape_state_file.read_text())["tape_steps_used"])
+        except (OSError, ValueError, KeyError):
+            return 0
+
+    def _tape_advanced(self) -> None:
+        self.tape_steps_used += self.cfg.steps_per_section
+        try:
+            self.tape_state_file.write_text(json.dumps({"tape_steps_used": self.tape_steps_used}))
+        except OSError:
+            log.exception("Could not save the tape state")
+
+    def offline_injected(self) -> bool:
+        return self.cfg.inject == "offline" and self.cycles_done >= 1      # the first cycle still gets through
+
+    def heartbeat(self) -> bool:
+        """Tell the backend the trap is alive. Not queued: only the latest state matters."""
+        if self.offline_injected():
+            log.warning("[MOCK fault] offline: no heartbeat, no upload (%d item(s) queued)", self.queue.size())
+            return False
+        body = {"queue_depth": self.queue.size(), "tape_steps_used": self.tape_steps_used,
+                "tape_total_steps": self.cfg.tape_total_steps, "motor_fault": self.motor_fault is not None,
+                "motor_fault_detail": self.motor_fault, "capture_interval_s": self.capture_interval_s,
+                "simulated": self.cfg.mock_hardware or self.replay is not None}
+        try:
+            resp = requests.post(f"{self.cfg.backend_url}/api/traps/{self.cfg.trap_id}/heartbeat", json=body,
+                                 timeout=HTTP_TIMEOUT_S)
+        except requests.RequestException as e:
+            log.warning("Heartbeat not delivered (%s)", e.__class__.__name__)
+            return False
+        if not resp.ok:
+            log.warning("Heartbeat rejected (HTTP %s): %s", resp.status_code, resp.text[:200])
+        return resp.ok
 
     def _start(self, name: str, factory):
         try:
@@ -103,7 +150,10 @@ class EdgeService:
     def run_cycle(self) -> dict:
         """Advance, capture, detect, queue, sync. Never raises - errors are logged."""
         if self.replay:
-            return self.run_replay_cycle()
+            summary = self.run_replay_cycle()
+            self.heartbeat()
+            self.cycles_done += 1
+            return summary
         summary = {"captured": False, "queued": 0, "sent": 0}
         path, payload = None, None
         try:
@@ -113,7 +163,15 @@ class EdgeService:
             if stuck:
                 log.warning("[MOCK fault] tape NOT advanced (%s)", self.cfg.inject)
             elif self.stepper is not None:
-                self.stepper.advance_section()
+                try:
+                    if self.cfg.inject == "motor":
+                        raise RuntimeError("MOCK fault: stepper does not turn")
+                    self.stepper.advance_section()
+                    self._tape_advanced()
+                    self.motor_fault = None
+                except Exception as e:                  # photograph anyway; the backend flags "tape did not advance"
+                    self.motor_fault = f"{e.__class__.__name__}: {e}"
+                    log.exception("Motor fault - the tape did not advance")
             else:
                 log.error("Stepper not available - photographing the same tape section again")
             time.sleep(self.cfg.settle_seconds if not self.cfg.mock_hardware else 0.2)
@@ -147,6 +205,8 @@ class EdgeService:
             except Exception:
                 log.exception("Could not record this cycle for replay")
         summary["sent"] = self.sync()
+        self.heartbeat()
+        self.cycles_done += 1
         log.info("Cycle done: %s, %d item(s) still waiting in the offline queue", summary, self.queue.size())
         return summary
 
@@ -215,6 +275,8 @@ class EdgeService:
     def sync(self) -> int:
         """Send due queue items to the backend. Returns how many were sent."""
         sent = 0
+        if self.offline_injected():
+            return 0
         for item in self.queue.due():
             try:
                 resp = self._send(item)
@@ -258,6 +320,7 @@ class EdgeService:
     # --- main loop ----------------------------------------------------------
     def run_forever(self, demo: bool, max_cycles: int | None = None) -> None:
         cycle_s = self.cfg.demo_cycle_seconds if demo else self.cfg.cycle_hours * 3600
+        self.capture_interval_s = cycle_s
         climate_s = cycle_s if demo else self.cfg.climate_minutes * 60
         log.info("Edge service started: trap=%s source=%s demo=%s cycle=%.0fs backend=%s",
                  self.cfg.trap_id, self.source, demo, cycle_s, self.cfg.backend_url)

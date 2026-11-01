@@ -124,3 +124,21 @@ decision_support:
 # Crops on the What-if page and the pest each one is monitored for.
 crops:
   tomato: whitefly
+
+# ---------------------------------------------------------------------------
+# 7. Trap health + alert hygiene (F6)
+# ---------------------------------------------------------------------------
+health:
+  # A trap is OFFLINE when no heartbeat arrived for this many capture intervals.
+  offline_after_intervals: 2     # Team decision (prep-round brief: more than 2x the capture interval)
+  # Alert when less than this % of the tape roll is left.
+  tape_low_pct: 15               # Team decision (prep-round brief: tape below 15%)
+alert_hygiene:
+  # No alerts are delivered between these hours (24 h clock); they are held and sent at the end.
+  quiet_hours_start: 21          # PLACEHOLDER - confirm with the farmers
+  quiet_hours_end: 6             # PLACEHOLDER - confirm with the farmers
+  # One daily summary per trap at this time.
+  digest_hour: 7                 # PLACEHOLDER - confirm with the farmers
+  digest_minute: 0               # PLACEHOLDER - confirm with the farmers
+  # An action alert that nobody acknowledged (Sprayed / Released / Not yet) is repeated ONCE after this.
+  realert_after_hours: 4         # PLACEHOLDER - confirm with the farmers

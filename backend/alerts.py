@@ -9,7 +9,8 @@ never fails because Telegram is missing.
 from __future__ import annotations
 
 import asyncio
-from datetime import datetime
+import os
+from datetime import datetime, timedelta
 import logging
 import threading
 from functools import lru_cache
@@ -152,26 +153,66 @@ def _send_in_background(alert_id: int, text: str, chat_ids: list[str],
     threading.Thread(target=worker, daemon=True).start()
 
 
+def hygiene_config() -> dict:
+    return settings.pests_config()["alert_hygiene"]
+
+
+def quiet_until(now: datetime) -> datetime | None:
+    """If `now` is inside quiet hours, the moment they end; else None (F6)."""
+    if os.environ.get("KEETA_QUIET_HOURS", "on").strip().lower() == "off":   # tests / stage demo
+        return None
+    c = hygiene_config()
+    start, end = int(c["quiet_hours_start"]), int(c["quiet_hours_end"])
+    if start == end:
+        return None
+    h = now.hour
+    inside = (start <= h or h < end) if start > end else (start <= h < end)
+    if not inside:
+        return None
+    end_time = now.replace(hour=end, minute=0, second=0, microsecond=0)
+    return end_time if end_time > now else end_time + timedelta(days=1)
+
+
+def deliver(session: Session, row: AlertLog, buttons: bool | None = None) -> AlertLog:
+    """Send a stored alert now (also used for alerts held in quiet hours and for reminders)."""
+    chats = recipients(row.trap_id, row.language)
+    row.status = "pending" if chats else "logged"
+    session.add(row)
+    session.commit()
+    session.refresh(row)
+    if chats:
+        with_buttons = (row.action in ACTIONABLE) if buttons is None else buttons
+        _send_in_background(row.id, row.message, chats,
+                            ack_buttons(row.id, row.trap_id, row.language) if with_buttons else None)
+    else:
+        log.warning("[ALERT - Telegram not configured, logged only] (%s)\n%s", row.language, row.message)
+    return row
+
+
 def send_alert(session: Session, trap_id: str, action: str, previous_action: str | None,
-               lang: str, text: str, buttons: bool = False, suppressed_until: datetime | None = None) -> AlertLog:
+               lang: str, text: str, buttons: bool = False, suppressed_until: datetime | None = None,
+               now: datetime | None = None) -> AlertLog:
     """Store one alert and send it to Telegram (or only log it if nobody can receive it).
 
     buttons: add Sprayed / Released / Not yet buttons (F4).
-    suppressed_until: inside a post-action cooldown - store the alert as "suppressed", do not send it."""
-    chats = recipients(trap_id, lang)
-    status = "suppressed" if suppressed_until else ("pending" if chats else "logged")
+    suppressed_until: inside a post-action cooldown - store the alert as "suppressed", do not send it.
+    Quiet hours (F6): store it as "held"; hygiene.tick() delivers it when the quiet hours end."""
+    now = now or datetime.now()
+    held = None if suppressed_until else quiet_until(now)
     row = AlertLog(trap_id=trap_id, action=action, previous_action=previous_action, language=lang, message=text,
-                   status=status, error=f"cooldown until {suppressed_until:%Y-%m-%d %H:%M}" if suppressed_until else None)
+                   timestamp=now, status="suppressed" if suppressed_until else "held" if held else "new",
+                   held_until=held,
+                   error=f"cooldown until {suppressed_until:%Y-%m-%d %H:%M}" if suppressed_until else None)
     session.add(row)
     session.commit()
     session.refresh(row)
     if suppressed_until:
         log.info("[ALERT suppressed - action cooldown until %s] (%s) %s", suppressed_until, lang, trap_id)
-    elif chats:
-        _send_in_background(row.id, text, chats, ack_buttons(row.id, trap_id, lang) if buttons else None)
-    else:
-        log.warning("[ALERT - Telegram not configured, logged only] (%s)\n%s", lang, text)
-    return row
+        return row
+    if held:
+        log.info("[ALERT held - quiet hours until %s] (%s) %s", held, lang, trap_id)
+        return row
+    return deliver(session, row, buttons)
 
 
 def notify_decision_change(session: Session, trap: Trap, decision: dict, previous_action: str | None,

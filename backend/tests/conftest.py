@@ -13,6 +13,8 @@ os.environ["KEETA_DB_PATH"] = str(_TMP / "unused.db")
 os.environ["KEETA_WEIGHTS"] = str(_TMP / "no_weights.pt")   # force the demo detector
 os.environ["TELEGRAM_BOT_TOKEN"] = ""
 os.environ["TELEGRAM_CHAT_ID"] = ""
+os.environ["KEETA_QUIET_HOURS"] = "off"                     # results must not depend on the clock
+os.environ["KEETA_SCHEDULER"] = "off"                       # tests call hygiene.tick() themselves
 os.environ["KEETA_WEATHER"] = "off"                         # tests never call the internet
 
 import cv2  # noqa: E402

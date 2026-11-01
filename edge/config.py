@@ -35,6 +35,9 @@ class EdgeConfig:
     # the real model is installed (set 1 if you put real tape photos in demo/sample_tape/)
     # MOCK only: inject a fault (blur, dark, glare, stuck, motor) to demo the quality gate / health alerts
     inject: str = field(default_factory=lambda: os.environ.get("MOCK_INJECT", "").strip().lower())
+    # length of a full sticky-tape roll in motor steps (sections per roll x STEPS_PER_SECTION);
+    # PLACEHOLDER 120 sections - measure your roll
+    tape_total_steps: int = field(default_factory=lambda: int(os.environ.get("TAPE_TOTAL_STEPS", 120 * 2048)))
     mock_use_model: bool = field(default_factory=lambda: _bool("MOCK_USE_MODEL", "0"))
     data_dir: Path = field(default_factory=lambda: ROOT / os.environ.get("EDGE_DATA_DIR", "edge/data"))
     sample_dir: Path = field(default_factory=lambda: ROOT / "demo" / "sample_tape")

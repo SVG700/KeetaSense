@@ -6,6 +6,7 @@ import { useT } from "../i18n";
 import { useLiveData } from "../settings";
 import { CountsChart, DegreeDayChart, DegreeDayMeter } from "../components/charts";
 import ActionPanel from "../components/ActionPanel";
+import HealthCard from "../components/HealthCard";
 import TapeEditor from "../components/TapeEditor";
 import {
   ActionStrip, BorderlineTag, DecisionBadge, DetectorTag, EmptyState, ErrorState, QualityBadge, ReplayTag, SimulatedTag, Spinner, StatusDot,
@@ -139,6 +140,8 @@ export default function TrapDetail() {
         </section>
 
         <ActionPanel trapId={trap.id} actions={data.actions} onChanged={reload} />
+
+        <HealthCard health={trap.health} />
 
         <section className="card p-5">
           <h2 className="mb-3 font-semibold">Decision history</h2>

@@ -37,7 +37,9 @@ from backend import (actions, advisory, alerts, corrections, decision_support, i
                      weather)
 from backend.db import get_engine, get_session, init_db
 from backend.decision_engine import DailyCatch, DailyTemperature, decide
-from backend.models import SECTION_SOURCES, AlertLog, ClimateReading, Correction, Decision, TapeSection, Trap
+from backend.models import (SECTION_SOURCES, AlertLog, ClimateReading, Correction, Decision, TapeSection, Trap,
+                            TrapHealth)
+from backend import hygiene
 from ml import infer
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s")
@@ -58,7 +60,11 @@ async def lifespan(app: FastAPI):
     log.info("Detector: %s%s", detector["label"],
              f" ({detector['reason']})" if detector.get("reason") else "")
     log.info("Telegram alerts: %s", "configured" if alerts.telegram_configured() else "log only (no token)")
+    stop = hygiene.start_scheduler(get_engine())     # F6: health alerts, quiet hours, reminders, digest
+    log.info("Alert hygiene scheduler: %s", "running (every 60 s)" if stop else "off (KEETA_SCHEDULER=off)")
     yield
+    if stop:
+        stop.set()
 
 
 app = FastAPI(title="KeetaSense API", version=VERSION, lifespan=lifespan)
@@ -276,7 +282,9 @@ def recent_alerts(limit: int = 20, session: Session = Depends(get_session)):
              "action": a.action, "previous_action": a.previous_action, "language": a.language,
              "message": a.message, "status": a.status, "error": a.error,
              "acknowledged_at": a.acknowledged_at.isoformat(timespec="seconds") if a.acknowledged_at else None,
-             "ack_action": a.ack_action} for a in rows]
+             "ack_action": a.ack_action,
+             "held_until": a.held_until.isoformat(timespec="minutes") if a.held_until else None,
+             "realerted_at": a.realerted_at.isoformat(timespec="minutes") if a.realerted_at else None} for a in rows]
 
 
 @app.get("/api/health")
@@ -418,6 +426,29 @@ def export_corrections(session: Session = Depends(get_session)):
 # ---------------------------------------------------------------------------
 # F4: what the farmer did (Telegram buttons / dashboard)
 # ---------------------------------------------------------------------------
+class HeartbeatIn(BaseModel):
+    queue_depth: int = Field(0, ge=0)
+    tape_steps_used: int = Field(0, ge=0)
+    tape_total_steps: int = Field(0, ge=0)
+    motor_fault: bool = False
+    motor_fault_detail: str | None = None
+    capture_interval_s: float = Field(86400, gt=0)
+    simulated: bool = False
+
+
+@app.post("/api/traps/{trap_id}/heartbeat")
+def post_heartbeat(trap_id: str, body: HeartbeatIn, session: Session = Depends(get_session)):
+    """F6: the trap says it is alive (sent by the edge service after every cycle)."""
+    trap = get_trap_or_404(session, trap_id)
+    return hygiene.record_heartbeat(session, trap, **body.model_dump())
+
+
+@app.get("/api/traps/{trap_id}/health")
+def get_trap_health(trap_id: str, session: Session = Depends(get_session)):
+    trap = get_trap_or_404(session, trap_id)
+    return {"trap_id": trap.id, **hygiene.health_status(session.get(TrapHealth, trap.id), datetime.now())}
+
+
 class ActionIn(BaseModel):
     action: str                          # sprayed | released | not_yet
     quantity: float | None = None

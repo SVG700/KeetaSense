@@ -231,6 +231,28 @@ export interface TrapSummary {
   latest_climate: { timestamp: string; temperature_c: number; humidity_pct: number } | null;
   decision: Decision;
   thresholds: Thresholds;
+  health?: TrapHealth;
+}
+
+export type HealthProblem = "TRAP_OFFLINE" | "TAPE_LOW" | "MOTOR_FAULT";
+
+export interface TrapHealth {     // F6: from the trap's heartbeat
+  known: boolean;
+  online: boolean | null;
+  problems: HealthProblem[];
+  last_seen?: string;
+  offline_minutes?: number | null;
+  offline_limit_minutes?: number;
+  queue_depth?: number;
+  tape_remaining_pct?: number | null;
+  tape_steps_used?: number;
+  tape_total_steps?: number;
+  motor_fault?: boolean;
+  motor_fault_detail?: string | null;
+  capture_interval_s?: number;
+  offline_after_intervals?: number;
+  tape_low_pct?: number;
+  simulated?: boolean;
 }
 
 export interface ClimateDay {

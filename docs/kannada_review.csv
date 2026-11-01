@@ -38,6 +38,33 @@ button_not_yet,⏳ Not yet,⏳ ಇನ್ನೂ ಇಲ್ಲ,,needs review
 borderline,⚖ Borderline: {low} to {high} {pest_name} per day - the photo count is uncertain. Check the field before acting.,⚖ ಗಡಿರೇಖೆಯಲ್ಲಿದೆ: ದಿನಕ್ಕೆ {low} ರಿಂದ {high} {pest_name} - ಚಿತ್ರದ ಎಣಿಕೆ ಖಚಿತವಿಲ್ಲ. ಕ್ರಮ ಕೈಗೊಳ್ಳುವ ಮೊದಲು ಹೊಲವನ್ನು ಪರಿಶೀಲಿಸಿ.,,needs review
 support_harm,"Spraying would also kill about {n} predators in this trap's area (estimate, placeholder rates).","ಸಿಂಪಡಣೆಯು ಈ ಬಲೆಯ ಪ್ರದೇಶದಲ್ಲಿ ಸುಮಾರು {n} ಪರಭಕ್ಷಕ ಕೀಟಗಳನ್ನೂ ಕೊಲ್ಲುತ್ತದೆ (ಅಂದಾಜು, ತಾತ್ಕಾಲಿಕ ದರಗಳು).",,needs review
 support_release,Release about {n} {predator} for ~{area} m²; check the trap again on {date} (placeholder rates).,~{area} ಚ.ಮೀ.ಗೆ ಸುಮಾರು {n} {predator} ಬಿಡುಗಡೆ ಮಾಡಿ; {date} ರಂದು ಬಲೆಯನ್ನು ಮತ್ತೆ ಪರಿಶೀಲಿಸಿ (ತಾತ್ಕಾಲಿಕ ದರಗಳು).,,needs review
+TRAP_OFFLINE,"📡 KeetaSense - {trap_name}
+Trap OFFLINE: no heartbeat for {duration}. Check power and network.
+","📡 ಕೀಟಸೆನ್ಸ್ - {trap_name}
+ಬಲೆ ಸಂಪರ್ಕದಲ್ಲಿಲ್ಲ: {duration} ಯಾವುದೇ ಸಂಕೇತವಿಲ್ಲ. ವಿದ್ಯುತ್ ಮತ್ತು ನೆಟ್‌ವರ್ಕ್ ಪರಿಶೀಲಿಸಿ.
+",,needs review
+TAPE_LOW,"🧻 KeetaSense - {trap_name}
+Sticky tape LOW: {pct}% left. Fit a new roll soon.
+","🧻 ಕೀಟಸೆನ್ಸ್ - {trap_name}
+ಅಂಟು ಟೇಪ್ ಕಡಿಮೆ: {pct}% ಉಳಿದಿದೆ. ಶೀಘ್ರದಲ್ಲೇ ಹೊಸ ರೋಲ್ ಹಾಕಿ.
+",,needs review
+MOTOR_FAULT,"⚙ KeetaSense - {trap_name}
+MOTOR FAULT: the tape is not advancing ({detail}). Check the motor and tape.
+","⚙ ಕೀಟಸೆನ್ಸ್ - {trap_name}
+ಮೋಟಾರ್ ದೋಷ: ಟೇಪ್ ಮುಂದೆ ಸರಿಯುತ್ತಿಲ್ಲ ({detail}). ಮೋಟಾರ್ ಮತ್ತು ಟೇಪ್ ಪರಿಶೀಲಿಸಿ.
+",,needs review
+digest_title,📋 KeetaSense daily summary - {trap_name} - {date},📋 ಕೀಟಸೆನ್ಸ್ ದೈನಂದಿನ ಸಾರಾಂಶ - {trap_name} - {date},,needs review
+digest_action,"Advice: {action}. {pest_name}: {pests} per day, predators: {predators} per day.","ಸಲಹೆ: {action}. {pest_name}: ದಿನಕ್ಕೆ {pests}, ಪರಭಕ್ಷಕಗಳು: ದಿನಕ್ಕೆ {predators}.",,needs review
+digest_health,"Trap: {state}, tape left {pct}%, photos waiting to upload: {queue}.","ಬಲೆ: {state}, ಉಳಿದ ಟೇಪ್ {pct}%, ಅಪ್‌ಲೋಡ್‌ಗೆ ಕಾಯುತ್ತಿರುವ ಚಿತ್ರಗಳು: {queue}.",,needs review
+word_SPRAY,SPRAY,ಸಿಂಪಡಿಸಿ,,needs review
+word_RELEASE_BIOCONTROL,RELEASE BIOCONTROL,ಜೈವಿಕ ನಿಯಂತ್ರಣ ಬಿಡುಗಡೆ,,needs review
+word_WAIT,WAIT,ಕಾಯಿರಿ,,needs review
+word_CHECK_TRAP,CHECK TRAP,ಬಲೆ ಪರಿಶೀಲಿಸಿ,,needs review
+word_online,online,ಸಂಪರ್ಕದಲ್ಲಿದೆ,,needs review
+word_offline,OFFLINE,ಸಂಪರ್ಕದಲ್ಲಿಲ್ಲ,,needs review
+reminder_prefix,🔁 Reminder - no answer yet to this alert:,🔁 ನೆನಪಿಸುವಿಕೆ - ಈ ಎಚ್ಚರಿಕೆಗೆ ಇನ್ನೂ ಉತ್ತರವಿಲ್ಲ:,,needs review
+unit_hours,hours,ಗಂಟೆಗಳಿಂದ,,needs review
+unit_minutes,minutes,ನಿಮಿಷಗಳಿಂದ,,needs review
 advisory.title,KeetaSense - {trap_name},ಕೀಟಸೆನ್ಸ್ - {trap_name},,needs review
 advisory.action_SPRAY,Action: SPRAY,ಕ್ರಮ: ಕೀಟನಾಶಕ ಸಿಂಪಡಿಸಿ,,needs review
 advisory.action_RELEASE_BIOCONTROL,Action: RELEASE BIOCONTROL (do not spray),ಕ್ರಮ: ಜೈವಿಕ ನಿಯಂತ್ರಣ ಕೀಟಗಳನ್ನು ಬಿಡುಗಡೆ ಮಾಡಿ (ಸಿಂಪಡಿಸಬೇಡಿ),,needs review
@@ -146,6 +173,21 @@ ui.whatif.next_gen,Days to next generation,ಮುಂದಿನ ಪೀಳಿಗೆ
 ui.whatif.harm,Cost of spraying: about {n} predators in this trap's area would also be killed.,ಸಿಂಪಡಣೆಯ ಬೆಲೆ: ಈ ಬಲೆಯ ಪ್ರದೇಶದಲ್ಲಿ ಸುಮಾರು {n} ಪರಭಕ್ಷಕ ಕೀಟಗಳೂ ಸಾಯುತ್ತವೆ.,,needs review
 ui.whatif.release,Release about {n} {predator}; check the trap again on {date}.,ಸುಮಾರು {n} {predator} ಬಿಡುಗಡೆ ಮಾಡಿ; {date} ರಂದು ಬಲೆಯನ್ನು ಮತ್ತೆ ಪರಿಶೀಲಿಸಿ.,,needs review
 ui.whatif.placeholder_note,Thresholds and rates are PLACEHOLDERS until confirmed by the IIHR mentor.,IIHR ಮಾರ್ಗದರ್ಶಕರು ದೃಢೀಕರಿಸುವವರೆಗೆ ಮಿತಿಗಳು ಮತ್ತು ದರಗಳು ತಾತ್ಕಾಲಿಕ.,,needs review
+ui.health.title,Trap health,ಬಲೆಯ ಆರೋಗ್ಯ,,needs review
+ui.health.none,No heartbeat received from this trap yet.,ಈ ಬಲೆಯಿಂದ ಇನ್ನೂ ಯಾವುದೇ ಸಂಕೇತ ಬಂದಿಲ್ಲ.,,needs review
+ui.health.state,Connection,ಸಂಪರ್ಕ,,needs review
+ui.health.online,Online,ಸಂಪರ್ಕದಲ್ಲಿದೆ,,needs review
+ui.health.offline,OFFLINE for {min} min,{min} ನಿಮಿಷಗಳಿಂದ ಸಂಪರ್ಕದಲ್ಲಿಲ್ಲ,,needs review
+ui.health.last_seen,Last heartbeat,ಕೊನೆಯ ಸಂಕೇತ,,needs review
+ui.health.tape,Sticky tape left,ಉಳಿದ ಅಂಟು ಟೇಪ್,,needs review
+ui.health.queue,Waiting to upload,ಅಪ್‌ಲೋಡ್‌ಗೆ ಕಾಯುತ್ತಿವೆ,,needs review
+ui.health.motor,Tape motor,ಟೇಪ್ ಮೋಟಾರ್,,needs review
+ui.health.ok,OK,ಸರಿಯಾಗಿದೆ,,needs review
+ui.health.fault,FAULT,ದೋಷ,,needs review
+ui.health.note,"Offline = no heartbeat for {min} min ({n} capture intervals). Alerts: offline, tape below {pct}%, motor fault.","ಸಂಪರ್ಕದಲ್ಲಿಲ್ಲ = {min} ನಿಮಿಷ ({n} ಚಿತ್ರ ಅಂತರಗಳು) ಸಂಕೇತವಿಲ್ಲ. ಎಚ್ಚರಿಕೆಗಳು: ಸಂಪರ್ಕವಿಲ್ಲ, ಟೇಪ್ {pct}% ಕ್ಕಿಂತ ಕಡಿಮೆ, ಮೋಟಾರ್ ದೋಷ.",,needs review
+ui.health.problem.TRAP_OFFLINE,Offline,ಸಂಪರ್ಕವಿಲ್ಲ,,needs review
+ui.health.problem.TAPE_LOW,Tape low,ಟೇಪ್ ಕಡಿಮೆ,,needs review
+ui.health.problem.MOTOR_FAULT,Motor fault,ಮೋಟಾರ್ ದೋಷ,,needs review
 pest_name.whitefly,Whitefly,ಬಿಳಿ ನೊಣ,,machine-drafted
 pest_name.macrolophus,Macrolophus (predator bug),ಮ್ಯಾಕ್ರೊಲೋಫಸ್ (ಪರಭಕ್ಷಕ ತಿಗಣೆ),,machine-drafted
 pest_name.nesidiocoris,Nesidiocoris (predator bug),ನೆಸಿಡಿಯೊಕೊರಿಸ್ (ಪರಭಕ್ಷಕ ತಿಗಣೆ),,machine-drafted

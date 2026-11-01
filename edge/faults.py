@@ -9,6 +9,9 @@
   stuck  the motor did not advance the tape   -> the same section is photographed again
          ("tape did not advance")
   motor  the motor reports a fault            -> trap health alert (also implies "stuck")
+  tape   the tape roll is almost used up       -> "tape low" health alert
+  offline  the trap stops talking to the backend after the first cycle (no heartbeat,
+         no upload; the offline queue grows)    -> "trap offline" alert after 2 missed cycles
 Only used in mock mode; every injected photo is still a SIMULATED image.
 """
 from __future__ import annotations
@@ -16,7 +19,7 @@ from __future__ import annotations
 import cv2
 import numpy as np
 
-FAULTS = ("blur", "dark", "glare", "stuck", "motor")
+FAULTS = ("blur", "dark", "glare", "stuck", "motor", "tape", "offline")
 
 
 def degrade(img: np.ndarray, kind: str) -> np.ndarray:

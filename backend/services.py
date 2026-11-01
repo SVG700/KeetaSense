@@ -15,9 +15,9 @@ import cv2
 import numpy as np
 from sqlmodel import Session, select
 
-from backend import actions, alerts, decision_support, image_quality, settings
+from backend import actions, alerts, decision_support, hygiene, image_quality, settings
 from backend.decision_engine import (DailyCatch, DailyTemperature, Thresholds, daily_degree_days, decide)
-from backend.models import ClimateReading, Decision, TapeSection, Trap
+from backend.models import ClimateReading, Decision, TapeSection, Trap, TrapHealth
 from ml import infer
 from ml.common import category_of
 
@@ -291,4 +291,5 @@ def trap_summary(session: Session, trap: Trap) -> dict:
                            "humidity_pct": climate.humidity_pct} if climate else None,
         "decision": compute_decision(session, trap),
         "thresholds": asdict(thresholds_for(trap.target_pest)),
+        "health": hygiene.health_status(session.get(TrapHealth, trap.id), datetime.now()),   # F6 heartbeat
     }

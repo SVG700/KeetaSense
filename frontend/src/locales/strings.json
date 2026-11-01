@@ -294,5 +294,65 @@
   "whatif.placeholder_note": {
     "en": "Thresholds and rates are PLACEHOLDERS until confirmed by the IIHR mentor.",
     "kn": "IIHR ಮಾರ್ಗದರ್ಶಕರು ದೃಢೀಕರಿಸುವವರೆಗೆ ಮಿತಿಗಳು ಮತ್ತು ದರಗಳು ತಾತ್ಕಾಲಿಕ."
+  },
+  "health.title": {
+    "en": "Trap health",
+    "kn": "ಬಲೆಯ ಆರೋಗ್ಯ"
+  },
+  "health.none": {
+    "en": "No heartbeat received from this trap yet.",
+    "kn": "ಈ ಬಲೆಯಿಂದ ಇನ್ನೂ ಯಾವುದೇ ಸಂಕೇತ ಬಂದಿಲ್ಲ."
+  },
+  "health.state": {
+    "en": "Connection",
+    "kn": "ಸಂಪರ್ಕ"
+  },
+  "health.online": {
+    "en": "Online",
+    "kn": "ಸಂಪರ್ಕದಲ್ಲಿದೆ"
+  },
+  "health.offline": {
+    "en": "OFFLINE for {min} min",
+    "kn": "{min} ನಿಮಿಷಗಳಿಂದ ಸಂಪರ್ಕದಲ್ಲಿಲ್ಲ"
+  },
+  "health.last_seen": {
+    "en": "Last heartbeat",
+    "kn": "ಕೊನೆಯ ಸಂಕೇತ"
+  },
+  "health.tape": {
+    "en": "Sticky tape left",
+    "kn": "ಉಳಿದ ಅಂಟು ಟೇಪ್"
+  },
+  "health.queue": {
+    "en": "Waiting to upload",
+    "kn": "ಅಪ್‌ಲೋಡ್‌ಗೆ ಕಾಯುತ್ತಿವೆ"
+  },
+  "health.motor": {
+    "en": "Tape motor",
+    "kn": "ಟೇಪ್ ಮೋಟಾರ್"
+  },
+  "health.ok": {
+    "en": "OK",
+    "kn": "ಸರಿಯಾಗಿದೆ"
+  },
+  "health.fault": {
+    "en": "FAULT",
+    "kn": "ದೋಷ"
+  },
+  "health.note": {
+    "en": "Offline = no heartbeat for {min} min ({n} capture intervals). Alerts: offline, tape below {pct}%, motor fault.",
+    "kn": "ಸಂಪರ್ಕದಲ್ಲಿಲ್ಲ = {min} ನಿಮಿಷ ({n} ಚಿತ್ರ ಅಂತರಗಳು) ಸಂಕೇತವಿಲ್ಲ. ಎಚ್ಚರಿಕೆಗಳು: ಸಂಪರ್ಕವಿಲ್ಲ, ಟೇಪ್ {pct}% ಕ್ಕಿಂತ ಕಡಿಮೆ, ಮೋಟಾರ್ ದೋಷ."
+  },
+  "health.problem.TRAP_OFFLINE": {
+    "en": "Offline",
+    "kn": "ಸಂಪರ್ಕವಿಲ್ಲ"
+  },
+  "health.problem.TAPE_LOW": {
+    "en": "Tape low",
+    "kn": "ಟೇಪ್ ಕಡಿಮೆ"
+  },
+  "health.problem.MOTOR_FAULT": {
+    "en": "Motor fault",
+    "kn": "ಮೋಟಾರ್ ದೋಷ"
   }
 }

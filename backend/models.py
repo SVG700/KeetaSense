@@ -108,6 +108,22 @@ class AlertLog(SQLModel, table=True):
     error: str | None = None
     acknowledged_at: NaiveDatetime | None = None   # F4: a farmer answered (Sprayed / Released / Not yet)
     ack_action: str | None = None
+    held_until: NaiveDatetime | None = None        # F6: created in quiet hours -> delivered at this time
+    realerted_at: NaiveDatetime | None = None      # F6: the one reminder for an unacknowledged alert
+
+
+class TrapHealth(SQLModel, table=True):
+    """F6: latest heartbeat of a trap (one row per trap, updated in place)."""
+    trap_id: str = Field(foreign_key="trap.id", primary_key=True)
+    last_seen: NaiveDatetime
+    queue_depth: int = 0                           # items waiting in the trap's offline queue
+    tape_steps_used: int = 0
+    tape_total_steps: int = 0
+    motor_fault: bool = False
+    motor_fault_detail: str | None = None
+    capture_interval_s: float = 86400              # expected time between captures
+    simulated: bool = False                        # mock hardware / seeded demo values
+    active_problems: list = Field(default_factory=list, sa_column=Column(JSON))   # already alerted
 
 
 class ActionLog(SQLModel, table=True):

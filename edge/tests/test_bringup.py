@@ -191,3 +191,49 @@ def test_injected_stuck_tape_photographs_the_same_section(tmp_path, monkeypatch)
     svc.close()
     a, b = cv2.imread(str(images[-2])), cv2.imread(str(images[-1]))
     assert iq.check(b, a)[0] == iq.BAD
+
+
+# --- trap health heartbeat (F6) -------------------------------------------------------
+def _collect_heartbeats(monkeypatch):
+    beats = []
+
+    def post(url, **k):
+        if url.endswith("/heartbeat"):
+            beats.append(k["json"])
+            return Resp(200, {})
+        raise requests.ConnectionError()             # sections / climate stay in the offline queue
+    monkeypatch.setattr(requests, "post", post)
+    return beats
+
+
+def test_heartbeat_reports_queue_tape_and_survives_restart(tmp_path, monkeypatch):
+    beats = _collect_heartbeats(monkeypatch)
+    cfg = mock_cfg(tmp_path)
+    svc = EdgeService(cfg, record=False)
+    svc.run_cycle()
+    svc.run_cycle()
+    svc.close()
+    assert len(beats) == 2 and beats[-1]["simulated"] is True and beats[-1]["motor_fault"] is False
+    assert beats[-1]["tape_steps_used"] == 2 * cfg.steps_per_section
+    assert beats[-1]["tape_total_steps"] == cfg.tape_total_steps
+    assert beats[-1]["queue_depth"] >= 2 > beats[0]["queue_depth"] - 10    # nothing uploaded: the queue grows
+    again = EdgeService(cfg, record=False)                                   # tape usage is kept on disk
+    assert again.tape_steps_used == 2 * cfg.steps_per_section
+    again.close()
+
+
+@pytest.mark.parametrize("fault", ["motor", "tape", "offline"])
+def test_injected_health_faults(tmp_path, monkeypatch, fault):
+    beats = _collect_heartbeats(monkeypatch)
+    cfg = mock_cfg(tmp_path)
+    cfg.inject = fault
+    svc = EdgeService(cfg, record=False)
+    for _ in range(3):
+        svc.run_cycle()
+    svc.close()
+    if fault == "motor":
+        assert all(b["motor_fault"] and b["motor_fault_detail"] for b in beats)
+    elif fault == "tape":
+        assert beats[0]["tape_steps_used"] >= 0.9 * cfg.tape_total_steps
+    else:
+        assert len(beats) == 1                       # silent after the first cycle

@@ -34,6 +34,28 @@ en:
   borderline: "⚖ Borderline: {low} to {high} {pest_name} per day - the photo count is uncertain. Check the field before acting."
   support_harm: "Spraying would also kill about {n} predators in this trap's area (estimate, placeholder rates)."
   support_release: "Release about {n} {predator} for ~{area} m²; check the trap again on {date} (placeholder rates)."
+  # F6 trap health, daily digest, reminder
+  TRAP_OFFLINE: |
+    📡 KeetaSense - {trap_name}
+    Trap OFFLINE: no heartbeat for {duration}. Check power and network.
+  TAPE_LOW: |
+    🧻 KeetaSense - {trap_name}
+    Sticky tape LOW: {pct}% left. Fit a new roll soon.
+  MOTOR_FAULT: |
+    ⚙ KeetaSense - {trap_name}
+    MOTOR FAULT: the tape is not advancing ({detail}). Check the motor and tape.
+  digest_title: "📋 KeetaSense daily summary - {trap_name} - {date}"
+  digest_action: "Advice: {action}. {pest_name}: {pests} per day, predators: {predators} per day."
+  digest_health: "Trap: {state}, tape left {pct}%, photos waiting to upload: {queue}."
+  word_SPRAY: "SPRAY"
+  word_RELEASE_BIOCONTROL: "RELEASE BIOCONTROL"
+  word_WAIT: "WAIT"
+  word_CHECK_TRAP: "CHECK TRAP"
+  word_online: "online"
+  word_offline: "OFFLINE"
+  reminder_prefix: "🔁 Reminder - no answer yet to this alert:"
+  unit_hours: "hours"
+  unit_minutes: "minutes"
 
 kn:
   days_known: "ಸುಮಾರು {days} ದಿನಗಳಲ್ಲಿ"
@@ -63,6 +85,28 @@ kn:
   borderline: "⚖ ಗಡಿರೇಖೆಯಲ್ಲಿದೆ: ದಿನಕ್ಕೆ {low} ರಿಂದ {high} {pest_name} - ಚಿತ್ರದ ಎಣಿಕೆ ಖಚಿತವಿಲ್ಲ. ಕ್ರಮ ಕೈಗೊಳ್ಳುವ ಮೊದಲು ಹೊಲವನ್ನು ಪರಿಶೀಲಿಸಿ."
   support_harm: "ಸಿಂಪಡಣೆಯು ಈ ಬಲೆಯ ಪ್ರದೇಶದಲ್ಲಿ ಸುಮಾರು {n} ಪರಭಕ್ಷಕ ಕೀಟಗಳನ್ನೂ ಕೊಲ್ಲುತ್ತದೆ (ಅಂದಾಜು, ತಾತ್ಕಾಲಿಕ ದರಗಳು)."
   support_release: "~{area} ಚ.ಮೀ.ಗೆ ಸುಮಾರು {n} {predator} ಬಿಡುಗಡೆ ಮಾಡಿ; {date} ರಂದು ಬಲೆಯನ್ನು ಮತ್ತೆ ಪರಿಶೀಲಿಸಿ (ತಾತ್ಕಾಲಿಕ ದರಗಳು)."
+  # F6 trap health, daily digest, reminder
+  TRAP_OFFLINE: |
+    📡 ಕೀಟಸೆನ್ಸ್ - {trap_name}
+    ಬಲೆ ಸಂಪರ್ಕದಲ್ಲಿಲ್ಲ: {duration} ಯಾವುದೇ ಸಂಕೇತವಿಲ್ಲ. ವಿದ್ಯುತ್ ಮತ್ತು ನೆಟ್‌ವರ್ಕ್ ಪರಿಶೀಲಿಸಿ.
+  TAPE_LOW: |
+    🧻 ಕೀಟಸೆನ್ಸ್ - {trap_name}
+    ಅಂಟು ಟೇಪ್ ಕಡಿಮೆ: {pct}% ಉಳಿದಿದೆ. ಶೀಘ್ರದಲ್ಲೇ ಹೊಸ ರೋಲ್ ಹಾಕಿ.
+  MOTOR_FAULT: |
+    ⚙ ಕೀಟಸೆನ್ಸ್ - {trap_name}
+    ಮೋಟಾರ್ ದೋಷ: ಟೇಪ್ ಮುಂದೆ ಸರಿಯುತ್ತಿಲ್ಲ ({detail}). ಮೋಟಾರ್ ಮತ್ತು ಟೇಪ್ ಪರಿಶೀಲಿಸಿ.
+  digest_title: "📋 ಕೀಟಸೆನ್ಸ್ ದೈನಂದಿನ ಸಾರಾಂಶ - {trap_name} - {date}"
+  digest_action: "ಸಲಹೆ: {action}. {pest_name}: ದಿನಕ್ಕೆ {pests}, ಪರಭಕ್ಷಕಗಳು: ದಿನಕ್ಕೆ {predators}."
+  digest_health: "ಬಲೆ: {state}, ಉಳಿದ ಟೇಪ್ {pct}%, ಅಪ್‌ಲೋಡ್‌ಗೆ ಕಾಯುತ್ತಿರುವ ಚಿತ್ರಗಳು: {queue}."
+  word_SPRAY: "ಸಿಂಪಡಿಸಿ"
+  word_RELEASE_BIOCONTROL: "ಜೈವಿಕ ನಿಯಂತ್ರಣ ಬಿಡುಗಡೆ"
+  word_WAIT: "ಕಾಯಿರಿ"
+  word_CHECK_TRAP: "ಬಲೆ ಪರಿಶೀಲಿಸಿ"
+  word_online: "ಸಂಪರ್ಕದಲ್ಲಿದೆ"
+  word_offline: "ಸಂಪರ್ಕದಲ್ಲಿಲ್ಲ"
+  reminder_prefix: "🔁 ನೆನಪಿಸುವಿಕೆ - ಈ ಎಚ್ಚರಿಕೆಗೆ ಇನ್ನೂ ಉತ್ತರವಿಲ್ಲ:"
+  unit_hours: "ಗಂಟೆಗಳಿಂದ"
+  unit_minutes: "ನಿಮಿಷಗಳಿಂದ"
 
 hi:
   days_known: "लगभग {days} दिनों में"
@@ -92,6 +136,28 @@ hi:
   borderline: "⚖ सीमा पर: प्रतिदिन {low} से {high} {pest_name} - फ़ोटो की गिनती अनिश्चित है। कार्रवाई से पहले खेत जाँचें।"
   support_harm: "छिड़काव से इस ट्रैप के क्षेत्र में लगभग {n} शिकारी कीट भी मर जाएँगे (अनुमान, अस्थायी दरें)।"
   support_release: "~{area} वर्ग मीटर के लिए लगभग {n} {predator} छोड़ें; {date} को ट्रैप फिर जाँचें (अस्थायी दरें)।"
+  # F6 trap health, daily digest, reminder
+  TRAP_OFFLINE: |
+    📡 कीटसेंस - {trap_name}
+    ट्रैप ऑफ़लाइन: {duration} कोई संकेत नहीं। बिजली और नेटवर्क जाँचें।
+  TAPE_LOW: |
+    🧻 कीटसेंस - {trap_name}
+    चिपचिपा टेप कम: {pct}% बचा है। जल्द नया रोल लगाएँ।
+  MOTOR_FAULT: |
+    ⚙ कीटसेंस - {trap_name}
+    मोटर खराबी: टेप आगे नहीं बढ़ रहा ({detail})। मोटर और टेप जाँचें।
+  digest_title: "📋 कीटसेंस दैनिक सारांश - {trap_name} - {date}"
+  digest_action: "सलाह: {action}। {pest_name}: प्रतिदिन {pests}, शिकारी कीट: प्रतिदिन {predators}।"
+  digest_health: "ट्रैप: {state}, बचा टेप {pct}%, अपलोड के लिए प्रतीक्षारत फ़ोटो: {queue}।"
+  word_SPRAY: "छिड़काव करें"
+  word_RELEASE_BIOCONTROL: "जैविक नियंत्रण छोड़ें"
+  word_WAIT: "इंतज़ार करें"
+  word_CHECK_TRAP: "ट्रैप जाँचें"
+  word_online: "ऑनलाइन"
+  word_offline: "ऑफ़लाइन"
+  reminder_prefix: "🔁 याद दिलाना - इस अलर्ट का अभी तक जवाब नहीं:"
+  unit_hours: "घंटे से"
+  unit_minutes: "मिनट से"
 
 ta:
   days_known: "சுமார் {days} நாட்களில்"
@@ -121,3 +187,25 @@ ta:
   borderline: "⚖ எல்லையில்: நாளொன்றுக்கு {low} முதல் {high} {pest_name} - படத்தின் எண்ணிக்கை உறுதியாக இல்லை. நடவடிக்கைக்கு முன் வயலைச் சரிபாருங்கள்."
   support_harm: "தெளிப்பு இந்தப் பொறியின் பகுதியில் சுமார் {n} இரைகொல்லி பூச்சிகளையும் கொல்லும் (மதிப்பீடு, தற்காலிக விகிதங்கள்)."
   support_release: "~{area} ச.மீ.க்கு சுமார் {n} {predator} விடுவிக்கவும்; {date} அன்று பொறியை மீண்டும் சரிபார்க்கவும் (தற்காலிக விகிதங்கள்)."
+  # F6 trap health, daily digest, reminder
+  TRAP_OFFLINE: |
+    📡 கீடசென்ஸ் - {trap_name}
+    பொறி இணைப்பில் இல்லை: {duration} சமிக்ஞை இல்லை. மின்சாரம் மற்றும் நெட்வொர்க்கைச் சரிபார்க்கவும்.
+  TAPE_LOW: |
+    🧻 கீடசென்ஸ் - {trap_name}
+    ஒட்டும் டேப் குறைவு: {pct}% மீதம். விரைவில் புதிய ரோலைப் பொருத்தவும்.
+  MOTOR_FAULT: |
+    ⚙ கீடசென்ஸ் - {trap_name}
+    மோட்டார் கோளாறு: டேப் நகரவில்லை ({detail}). மோட்டார் மற்றும் டேப்பைச் சரிபார்க்கவும்.
+  digest_title: "📋 கீடசென்ஸ் தினசரி சுருக்கம் - {trap_name} - {date}"
+  digest_action: "ஆலோசனை: {action}. {pest_name}: நாளொன்றுக்கு {pests}, இரைகொல்லிகள்: நாளொன்றுக்கு {predators}."
+  digest_health: "பொறி: {state}, மீதமுள்ள டேப் {pct}%, பதிவேற்றக் காத்திருக்கும் படங்கள்: {queue}."
+  word_SPRAY: "தெளிக்கவும்"
+  word_RELEASE_BIOCONTROL: "உயிரியல் கட்டுப்பாடு விடுவிக்கவும்"
+  word_WAIT: "காத்திருக்கவும்"
+  word_CHECK_TRAP: "பொறியைச் சரிபார்க்கவும்"
+  word_online: "இணைப்பில்"
+  word_offline: "இணைப்பில் இல்லை"
+  reminder_prefix: "🔁 நினைவூட்டல் - இந்த எச்சரிக்கைக்கு இன்னும் பதில் இல்லை:"
+  unit_hours: "மணி நேரமாக"
+  unit_minutes: "நிமிடங்களாக"
