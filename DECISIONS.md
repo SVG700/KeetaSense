@@ -149,3 +149,36 @@ Each line: **decision** - reason.
 - **Kannada, Hindi and Tamil texts are machine-drafted** and flagged for native review.
 - **3 extra SIMULATED stations (T3-T5) with an outbreak spreading from T2; early warning within 10 km, sent once per neighbouring outbreak**.
 - **Impact numbers are estimates from labelled example assumptions (`config/impact.yaml`) plus the system's own SPRAY history - never presented as measurements.**
+
+
+# Prep round (F1-F6, branch `feature/prep-round`)
+
+## F1 - image quality gate
+- **Blur = variance of the Laplacian, brightness = mean grey, glare = % of near-white pixels, tape-advance = similarity (ZNCC of the Laplacian at 320 px) to the previous photo of the same trap** - cheap OpenCV checks that run on a Pi; all limits PLACEHOLDER in `pests.yaml -> image_quality`.
+- **OK / WARN / BAD: WARN photos still count, BAD photos are stored but left out of the decision; if the latest photo is BAD the trap shows CHECK TRAP and keeps the underlying advice hidden** - no spray advice from an unusable photo, but one dim photo does not wipe the history.
+
+## F3 - scout corrections
+- **Corrections are stored as rows (add / remove / relabel against model box ids), and the corrected count is recomputed from them; undo deletes the row** - the model's output is never overwritten, so the correction rate and count error can be measured.
+- **Corrected boxes count with confidence 1.0** in the F2 range.
+- **Export = YOLO zip (images/, labels/, data.yaml, manifest.json with the simulated flag)** - ready for the next Colab training run; simulated images are marked so they can be filtered.
+
+## F4 - action logging
+- **Telegram callback data `ack|<alert>|<trap>|<action>` (< 64 bytes); the bot posts it to `/api/traps/{id}/actions`** - same endpoint as the dashboard buttons.
+- **Cooldown: after "sprayed" or "released", SPRAY / RELEASE alerts for that trap are stored as "suppressed" for `cooldown_hours` (PLACEHOLDER 48 h)** - no repeated spray alerts while the spray is working.
+- **Effect = mean pests/day in the 3 days before vs the 3 days after (Team decision)**, shown as "waiting for data" until the days exist; never called proof of effect.
+
+## F2 - confidence-aware decisions
+- **Range = count x mean confidence (low) to count / mean confidence (high), with a confidence floor of 0.5** - simple and explainable; the advice is BORDERLINE when the rules give a different action anywhere inside the pest and predator ranges (corners + middle are checked; the rules are monotonic).
+- **The demo detector's confidence is a heuristic from blob darkness and labelled "not calibrated"**.
+
+## F5 - decision intelligence
+- **One pure function `decision_support.evaluate()` for the live engine and the What-if simulator** - tested: simulate == live for the same inputs.
+- **Cost of spraying = predators caught per day x predators in the field per trapped predator; dose = release rate x area per trap; re-check after `recheck_days`** - all PLACEHOLDER rates for the mentor.
+
+## F6 - trap health and alert hygiene
+- **Heartbeat is not queued on the trap: only the latest state matters**; the backend keeps one `trap_health` row per trap.
+- **Offline = no heartbeat for `offline_after_intervals` (2) x the trap's own capture interval** - works for the 20 s demo cycle and the daily real cycle without a second setting.
+- **Each health problem alerts once until it clears (`active_problems`)**; fixing it re-arms the alert.
+- **Quiet hours (21-06, PLACEHOLDER) hold alerts and deliver them at the end; one reminder per unanswered SPRAY / RELEASE / CHECK TRAP / health alert after `realert_after_hours`; a health alert is not repeated once fixed; a reminder is never repeated** - no night-time messages and no alert storm.
+- **Daily digest per trap at `digest_hour:digest_minute`, once per day** (not sent during quiet hours).
+- **`hygiene.tick(session, now)` is a plain function run every minute by a thread in the backend; tests call it with a fake clock; `KEETA_SCHEDULER=off` / `KEETA_QUIET_HOURS=off` turn the parts off** - no new scheduling library; the launcher turns quiet hours off for demos.
