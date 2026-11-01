@@ -171,7 +171,7 @@ class EdgeService:
                     self.motor_fault = None
                 except Exception as e:                  # photograph anyway; the backend flags "tape did not advance"
                     self.motor_fault = f"{e.__class__.__name__}: {e}"
-                    log.exception("Motor fault - the tape did not advance")
+                    log.error("Motor fault - the tape did not advance: %s", self.motor_fault)
             else:
                 log.error("Stepper not available - photographing the same tape section again")
             time.sleep(self.cfg.settle_seconds if not self.cfg.mock_hardware else 0.2)
