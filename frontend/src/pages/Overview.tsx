@@ -1,6 +1,7 @@
 // Overview: summary numbers, one traffic-light card per trap, recent alerts.
 import { Link } from "react-router-dom";
 import { api, mediaUrl, type AlertItem, type Summary, type TrapSummary } from "../api";
+import { useT } from "../i18n";
 import { useLiveData } from "../settings";
 import {
   ActionStrip, DecisionBadge, DetectorTag, EmptyState, ErrorState, QualityBadge, ReplayTag, SimulatedTag, Spinner, StatusDot,
@@ -29,6 +30,7 @@ function Stat({ label, value, note }: { label: string; value: string | number; n
 }
 
 function TrapCard({ trap }: { trap: TrapSummary }) {
+  const t = useT();
   const s = trap.latest_section;
   const d = trap.decision;
   const pest = prettyPest(trap.target_pest);
@@ -51,14 +53,14 @@ function TrapCard({ trap }: { trap: TrapSummary }) {
               <span className="h-2.5 w-2.5 rounded-full" style={{ background: "var(--series-pest)" }} aria-hidden />
               Pests ({pest}) latest
             </div>
-            <div className="text-2xl font-bold tabular-nums">{s ? s.pest_total : "–"}</div>
+            <div className="text-2xl font-bold tabular-nums">{s ? s.effective_pest_total : "–"}</div>
           </div>
           <div className="rounded-xl bg-stone-100 p-3 dark:bg-stone-800">
             <div className="flex items-center gap-1.5 text-xs text-stone-600 dark:text-stone-300">
               <span className="h-2.5 w-2.5 rounded-full" style={{ background: "var(--series-predator)" }} aria-hidden />
               Predators latest
             </div>
-            <div className="text-2xl font-bold tabular-nums">{s ? s.predator_total : "–"}</div>
+            <div className="text-2xl font-bold tabular-nums">{s ? s.effective_predator_total : "–"}</div>
           </div>
         </div>
 
@@ -72,6 +74,7 @@ function TrapCard({ trap }: { trap: TrapSummary }) {
           )}
           <span className="ml-auto flex flex-wrap gap-1.5">
             {s && <QualityBadge status={s.quality_status} reasons={s.quality_reasons} />}
+            {s?.corrected && <Tag tone="green">✎ {t("edit.corrected")}</Tag>}
             {s?.source === "replay" && <ReplayTag />}
             {(trap.simulated || s?.simulated) && <SimulatedTag />}
             {s && <DetectorTag mode={s.detector_mode} />}

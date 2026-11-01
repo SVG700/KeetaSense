@@ -1,16 +1,146 @@
 {
-  "_note": {"en": "Dashboard texts added in the prep round. Kannada is machine-drafted - export with python -m backend.kannada_review export and have a native speaker check it.", "kn": ""},
-  "lang.toggle": {"en": "ಕನ್ನಡ", "kn": "English"},
-  "action.CHECK_TRAP": {"en": "Check trap", "kn": "ಬಲೆ ಪರಿಶೀಲಿಸಿ"},
-  "action.CHECK_TRAP.hint": {"en": "The latest photo is not usable - no spray or release advice", "kn": "ಇತ್ತೀಚಿನ ಚಿತ್ರ ಬಳಸಲು ಯೋಗ್ಯವಾಗಿಲ್ಲ - ಸಿಂಪಡಣೆ ಅಥವಾ ಬಿಡುಗಡೆ ಸಲಹೆ ಇಲ್ಲ"},
-  "quality.OK": {"en": "Photo OK", "kn": "ಚಿತ್ರ ಸರಿಯಾಗಿದೆ"},
-  "quality.WARN": {"en": "Photo: check", "kn": "ಚಿತ್ರ: ಪರಿಶೀಲಿಸಿ"},
-  "quality.BAD": {"en": "Photo not usable", "kn": "ಚಿತ್ರ ಬಳಸಲು ಯೋಗ್ಯವಲ್ಲ"},
-  "quality.blurred": {"en": "image blurred", "kn": "ಚಿತ್ರ ಮಸುಕಾಗಿದೆ"},
-  "quality.too_dark": {"en": "image too dark", "kn": "ಚಿತ್ರ ತುಂಬಾ ಕತ್ತಲೆ"},
-  "quality.too_bright": {"en": "image too bright", "kn": "ಚಿತ್ರ ತುಂಬಾ ಪ್ರಕಾಶಮಾನ"},
-  "quality.glare": {"en": "glare on the tape", "kn": "ಟೇಪ್ ಮೇಲೆ ಹೊಳಪು"},
-  "quality.tape_not_advanced": {"en": "tape did not advance", "kn": "ಟೇಪ್ ಮುಂದೆ ಸರಿಯಲಿಲ್ಲ"},
-  "quality.title": {"en": "Photo quality", "kn": "ಚಿತ್ರದ ಗುಣಮಟ್ಟ"},
-  "quality.metrics": {"en": "sharpness {blur} · brightness {brightness} · glare {glare}% · similarity to previous photo {sim}", "kn": "ಸ್ಪಷ್ಟತೆ {blur} · ಪ್ರಕಾಶ {brightness} · ಹೊಳಪು {glare}% · ಹಿಂದಿನ ಚಿತ್ರಕ್ಕೆ ಹೋಲಿಕೆ {sim}"}
+  "_note": {
+    "en": "Dashboard texts added in the prep round. Kannada is machine-drafted - export with python -m backend.kannada_review export and have a native speaker check it.",
+    "kn": ""
+  },
+  "lang.toggle": {
+    "en": "ಕನ್ನಡ",
+    "kn": "English"
+  },
+  "action.CHECK_TRAP": {
+    "en": "Check trap",
+    "kn": "ಬಲೆ ಪರಿಶೀಲಿಸಿ"
+  },
+  "action.CHECK_TRAP.hint": {
+    "en": "The latest photo is not usable - no spray or release advice",
+    "kn": "ಇತ್ತೀಚಿನ ಚಿತ್ರ ಬಳಸಲು ಯೋಗ್ಯವಾಗಿಲ್ಲ - ಸಿಂಪಡಣೆ ಅಥವಾ ಬಿಡುಗಡೆ ಸಲಹೆ ಇಲ್ಲ"
+  },
+  "quality.OK": {
+    "en": "Photo OK",
+    "kn": "ಚಿತ್ರ ಸರಿಯಾಗಿದೆ"
+  },
+  "quality.WARN": {
+    "en": "Photo: check",
+    "kn": "ಚಿತ್ರ: ಪರಿಶೀಲಿಸಿ"
+  },
+  "quality.BAD": {
+    "en": "Photo not usable",
+    "kn": "ಚಿತ್ರ ಬಳಸಲು ಯೋಗ್ಯವಲ್ಲ"
+  },
+  "quality.blurred": {
+    "en": "image blurred",
+    "kn": "ಚಿತ್ರ ಮಸುಕಾಗಿದೆ"
+  },
+  "quality.too_dark": {
+    "en": "image too dark",
+    "kn": "ಚಿತ್ರ ತುಂಬಾ ಕತ್ತಲೆ"
+  },
+  "quality.too_bright": {
+    "en": "image too bright",
+    "kn": "ಚಿತ್ರ ತುಂಬಾ ಪ್ರಕಾಶಮಾನ"
+  },
+  "quality.glare": {
+    "en": "glare on the tape",
+    "kn": "ಟೇಪ್ ಮೇಲೆ ಹೊಳಪು"
+  },
+  "quality.tape_not_advanced": {
+    "en": "tape did not advance",
+    "kn": "ಟೇಪ್ ಮುಂದೆ ಸರಿಯಲಿಲ್ಲ"
+  },
+  "quality.title": {
+    "en": "Photo quality",
+    "kn": "ಚಿತ್ರದ ಗುಣಮಟ್ಟ"
+  },
+  "quality.metrics": {
+    "en": "sharpness {blur} · brightness {brightness} · glare {glare}% · similarity to previous photo {sim}",
+    "kn": "ಸ್ಪಷ್ಟತೆ {blur} · ಪ್ರಕಾಶ {brightness} · ಹೊಳಪು {glare}% · ಹಿಂದಿನ ಚಿತ್ರಕ್ಕೆ ಹೋಲಿಕೆ {sim}"
+  },
+  "edit.button": {
+    "en": "Edit counts",
+    "kn": "ಎಣಿಕೆ ತಿದ್ದಿ"
+  },
+  "edit.done": {
+    "en": "Done",
+    "kn": "ಮುಗಿದಿದೆ"
+  },
+  "edit.help": {
+    "en": "Click a box to delete or relabel it. Drag on the photo to add a missed insect.",
+    "kn": "ಅಳಿಸಲು ಅಥವಾ ವರ್ಗ ಬದಲಿಸಲು ಚೌಕದ ಮೇಲೆ ಕ್ಲಿಕ್ ಮಾಡಿ. ತಪ್ಪಿದ ಕೀಟ ಸೇರಿಸಲು ಚಿತ್ರದ ಮೇಲೆ ಎಳೆಯಿರಿ."
+  },
+  "edit.new_class": {
+    "en": "Class for new boxes",
+    "kn": "ಹೊಸ ಚೌಕಗಳ ವರ್ಗ"
+  },
+  "edit.selected": {
+    "en": "Selected box",
+    "kn": "ಆಯ್ಕೆ ಮಾಡಿದ ಚೌಕ"
+  },
+  "edit.relabel": {
+    "en": "Change class to",
+    "kn": "ವರ್ಗವನ್ನು ಬದಲಿಸಿ"
+  },
+  "edit.delete": {
+    "en": "Delete box",
+    "kn": "ಚೌಕ ಅಳಿಸಿ"
+  },
+  "edit.undo": {
+    "en": "Undo",
+    "kn": "ರದ್ದುಮಾಡಿ"
+  },
+  "edit.history": {
+    "en": "Scout edits",
+    "kn": "ಸ್ಕೌಟ್ ತಿದ್ದುಪಡಿಗಳು"
+  },
+  "edit.action.add": {
+    "en": "added",
+    "kn": "ಸೇರಿಸಲಾಗಿದೆ"
+  },
+  "edit.action.remove": {
+    "en": "removed",
+    "kn": "ಅಳಿಸಲಾಗಿದೆ"
+  },
+  "edit.action.relabel": {
+    "en": "relabelled",
+    "kn": "ವರ್ಗ ಬದಲಿಸಲಾಗಿದೆ"
+  },
+  "edit.corrected": {
+    "en": "Corrected by scout",
+    "kn": "ಸ್ಕೌಟ್ ತಿದ್ದಿದ್ದಾರೆ"
+  },
+  "edit.counts": {
+    "en": "Pests {pests} · predators {predators}",
+    "kn": "ಕೀಟಗಳು {pests} · ಪರಭಕ್ಷಕಗಳು {predators}"
+  },
+  "edit.model_counts": {
+    "en": "model counted: pests {pests} · predators {predators}",
+    "kn": "ಮಾದರಿ ಎಣಿಕೆ: ಕೀಟಗಳು {pests} · ಪರಭಕ್ಷಕಗಳು {predators}"
+  },
+  "edit.decision_note": {
+    "en": "The decision uses the corrected counts.",
+    "kn": "ನಿರ್ಧಾರವು ತಿದ್ದಿದ ಎಣಿಕೆಯನ್ನು ಬಳಸುತ್ತದೆ."
+  },
+  "corrections.title": {
+    "en": "Scout corrections",
+    "kn": "ಸ್ಕೌಟ್ ತಿದ್ದುಪಡಿಗಳು"
+  },
+  "corrections.rate": {
+    "en": "Correction rate: {pct}% of captures ({n} of {total})",
+    "kn": "ತಿದ್ದುಪಡಿ ದರ: {pct}% ಚಿತ್ರಗಳು ({total} ರಲ್ಲಿ {n})"
+  },
+  "corrections.mae": {
+    "en": "Count error of the detector on corrected captures: pests {pests} per photo, predators {predators} per photo",
+    "kn": "ತಿದ್ದಿದ ಚಿತ್ರಗಳಲ್ಲಿ ಎಣಿಕೆ ದೋಷ: ಕೀಟಗಳು ಪ್ರತಿ ಚಿತ್ರಕ್ಕೆ {pests}, ಪರಭಕ್ಷಕಗಳು ಪ್ರತಿ ಚಿತ್ರಕ್ಕೆ {predators}"
+  },
+  "corrections.none": {
+    "en": "No corrected captures yet. Use \"Edit counts\" on a trap page.",
+    "kn": "ಇನ್ನೂ ತಿದ್ದಿದ ಚಿತ್ರಗಳಿಲ್ಲ. ಬಲೆ ಪುಟದಲ್ಲಿ \"ಎಣಿಕೆ ತಿದ್ದಿ\" ಬಳಸಿ."
+  },
+  "corrections.export": {
+    "en": "Download corrections for retraining (YOLO zip)",
+    "kn": "ಮರುತರಬೇತಿಗಾಗಿ ತಿದ್ದುಪಡಿಗಳನ್ನು ಡೌನ್‌ಲೋಡ್ ಮಾಡಿ (YOLO zip)"
+  },
+  "corrections.simulated": {
+    "en": "{n} of them are SIMULATED captures (synthetic images).",
+    "kn": "ಅವುಗಳಲ್ಲಿ {n} ಅನುಕರಿಸಿದ (ಕೃತಕ) ಚಿತ್ರಗಳು."
+  }
 }

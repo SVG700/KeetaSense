@@ -77,6 +77,28 @@ ui.quality.glare,glare on the tape,ಟೇಪ್ ಮೇಲೆ ಹೊಳಪು,,ne
 ui.quality.tape_not_advanced,tape did not advance,ಟೇಪ್ ಮುಂದೆ ಸರಿಯಲಿಲ್ಲ,,needs review
 ui.quality.title,Photo quality,ಚಿತ್ರದ ಗುಣಮಟ್ಟ,,needs review
 ui.quality.metrics,sharpness {blur} · brightness {brightness} · glare {glare}% · similarity to previous photo {sim},ಸ್ಪಷ್ಟತೆ {blur} · ಪ್ರಕಾಶ {brightness} · ಹೊಳಪು {glare}% · ಹಿಂದಿನ ಚಿತ್ರಕ್ಕೆ ಹೋಲಿಕೆ {sim},,needs review
+ui.edit.button,Edit counts,ಎಣಿಕೆ ತಿದ್ದಿ,,needs review
+ui.edit.done,Done,ಮುಗಿದಿದೆ,,needs review
+ui.edit.help,Click a box to delete or relabel it. Drag on the photo to add a missed insect.,ಅಳಿಸಲು ಅಥವಾ ವರ್ಗ ಬದಲಿಸಲು ಚೌಕದ ಮೇಲೆ ಕ್ಲಿಕ್ ಮಾಡಿ. ತಪ್ಪಿದ ಕೀಟ ಸೇರಿಸಲು ಚಿತ್ರದ ಮೇಲೆ ಎಳೆಯಿರಿ.,,needs review
+ui.edit.new_class,Class for new boxes,ಹೊಸ ಚೌಕಗಳ ವರ್ಗ,,needs review
+ui.edit.selected,Selected box,ಆಯ್ಕೆ ಮಾಡಿದ ಚೌಕ,,needs review
+ui.edit.relabel,Change class to,ವರ್ಗವನ್ನು ಬದಲಿಸಿ,,needs review
+ui.edit.delete,Delete box,ಚೌಕ ಅಳಿಸಿ,,needs review
+ui.edit.undo,Undo,ರದ್ದುಮಾಡಿ,,needs review
+ui.edit.history,Scout edits,ಸ್ಕೌಟ್ ತಿದ್ದುಪಡಿಗಳು,,needs review
+ui.edit.action.add,added,ಸೇರಿಸಲಾಗಿದೆ,,needs review
+ui.edit.action.remove,removed,ಅಳಿಸಲಾಗಿದೆ,,needs review
+ui.edit.action.relabel,relabelled,ವರ್ಗ ಬದಲಿಸಲಾಗಿದೆ,,needs review
+ui.edit.corrected,Corrected by scout,ಸ್ಕೌಟ್ ತಿದ್ದಿದ್ದಾರೆ,,needs review
+ui.edit.counts,Pests {pests} · predators {predators},ಕೀಟಗಳು {pests} · ಪರಭಕ್ಷಕಗಳು {predators},,needs review
+ui.edit.model_counts,model counted: pests {pests} · predators {predators},ಮಾದರಿ ಎಣಿಕೆ: ಕೀಟಗಳು {pests} · ಪರಭಕ್ಷಕಗಳು {predators},,needs review
+ui.edit.decision_note,The decision uses the corrected counts.,ನಿರ್ಧಾರವು ತಿದ್ದಿದ ಎಣಿಕೆಯನ್ನು ಬಳಸುತ್ತದೆ.,,needs review
+ui.corrections.title,Scout corrections,ಸ್ಕೌಟ್ ತಿದ್ದುಪಡಿಗಳು,,needs review
+ui.corrections.rate,Correction rate: {pct}% of captures ({n} of {total}),ತಿದ್ದುಪಡಿ ದರ: {pct}% ಚಿತ್ರಗಳು ({total} ರಲ್ಲಿ {n}),,needs review
+ui.corrections.mae,"Count error of the detector on corrected captures: pests {pests} per photo, predators {predators} per photo","ತಿದ್ದಿದ ಚಿತ್ರಗಳಲ್ಲಿ ಎಣಿಕೆ ದೋಷ: ಕೀಟಗಳು ಪ್ರತಿ ಚಿತ್ರಕ್ಕೆ {pests}, ಪರಭಕ್ಷಕಗಳು ಪ್ರತಿ ಚಿತ್ರಕ್ಕೆ {predators}",,needs review
+ui.corrections.none,"No corrected captures yet. Use ""Edit counts"" on a trap page.","ಇನ್ನೂ ತಿದ್ದಿದ ಚಿತ್ರಗಳಿಲ್ಲ. ಬಲೆ ಪುಟದಲ್ಲಿ ""ಎಣಿಕೆ ತಿದ್ದಿ"" ಬಳಸಿ.",,needs review
+ui.corrections.export,Download corrections for retraining (YOLO zip),ಮರುತರಬೇತಿಗಾಗಿ ತಿದ್ದುಪಡಿಗಳನ್ನು ಡೌನ್‌ಲೋಡ್ ಮಾಡಿ (YOLO zip),,needs review
+ui.corrections.simulated,{n} of them are SIMULATED captures (synthetic images).,ಅವುಗಳಲ್ಲಿ {n} ಅನುಕರಿಸಿದ (ಕೃತಕ) ಚಿತ್ರಗಳು.,,needs review
 pest_name.whitefly,Whitefly,ಬಿಳಿ ನೊಣ,,machine-drafted
 pest_name.macrolophus,Macrolophus (predator bug),ಮ್ಯಾಕ್ರೊಲೋಫಸ್ (ಪರಭಕ್ಷಕ ತಿಗಣೆ),,machine-drafted
 pest_name.nesidiocoris,Nesidiocoris (predator bug),ನೆಸಿಡಿಯೊಕೊರಿಸ್ (ಪರಭಕ್ಷಕ ತಿಗಣೆ),,machine-drafted

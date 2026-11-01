@@ -5,6 +5,7 @@ import { api, mediaUrl } from "../api";
 import { useT } from "../i18n";
 import { useLiveData } from "../settings";
 import { CountsChart, DegreeDayChart, DegreeDayMeter } from "../components/charts";
+import TapeEditor from "../components/TapeEditor";
 import {
   ActionStrip, DecisionBadge, DetectorTag, EmptyState, ErrorState, QualityBadge, ReplayTag, SimulatedTag, Spinner, StatusDot,
   prettyPest, timeAgo,
@@ -106,12 +107,10 @@ export default function TrapDetail() {
                 {new Date(latest.timestamp).toLocaleString()} ·{" "}
                 {Object.entries(latest.counts).map(([k, v]) => `${prettyPest(k)}: ${v}`).join(" · ")}
               </p>
-              <a href={mediaUrl(latest.annotated_url)} target="_blank" rel="noreferrer">
-                <img src={mediaUrl(latest.annotated_url)} alt="Annotated tape section with detection boxes"
-                     className="w-full rounded-xl border border-stone-200 dark:border-stone-800" />
-              </a>
+              <TapeEditor key={latest.id} sectionId={latest.id} onChanged={reload} />
               <p className="mt-2 text-xs text-stone-500">
-                Boxes: <span className="font-medium">red = pest</span>, <span className="font-medium">green = predator</span>. Click to enlarge.
+                Boxes: <span className="font-medium">red = pest</span>, <span className="font-medium">green = predator</span>, dashed = added by a scout.{" "}
+                <a href={mediaUrl(latest.annotated_url)} target="_blank" rel="noreferrer" className="underline">Open the model's annotated photo</a>
               </p>
               {latest.quality_status && (
                 <p className="mt-1 text-xs text-stone-500 dark:text-stone-400">

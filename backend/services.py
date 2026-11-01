@@ -112,6 +112,7 @@ def process_section(session: Session, trap: Trap, img: np.ndarray, timestamp: da
         counts=result.counts, pest_total=result.pest_total, predator_total=result.predator_total,
         detector_mode=result.mode, simulated=simulated, source=source,
         quality_status=q_status, quality_reasons=q_reasons, quality_metrics=q_metrics,
+        detections=result.detections,
     )
     session.add(section)
     session.commit()
@@ -171,7 +172,8 @@ def compute_decision(session: Session, trap: Trap) -> dict:
     good = (TapeSection.quality_status.is_(None)) | (TapeSection.quality_status != image_quality.BAD)
     recent = session.exec(select(TapeSection).where(TapeSection.trap_id == trap.id, good)
                           .order_by(TapeSection.timestamp.desc()).limit(th.rolling_window_days)).all()
-    catches = [DailyCatch(s.pest_total, s.predator_total) for s in reversed(recent)]
+    # scout-corrected counts replace the model's counts (F3)
+    catches = [DailyCatch(s.effective_pest_total, s.effective_predator_total) for s in reversed(recent)]
     temps = [DailyTemperature(date.fromisoformat(d["date"]), d["tmin"], d["tmax"])
              for d in daily_climate(session, trap)]
     result = decide(catches, temps, th, settings.pest_display_name(trap.target_pest).lower()).to_dict()
@@ -217,6 +219,10 @@ def update_decision(session: Session, trap: Trap, notify: bool = True,
 # ---------------------------------------------------------------------------
 def section_to_dict(s: TapeSection) -> dict:
     return {
+        "corrected": s.corrected_counts is not None,
+        "corrected_counts": s.corrected_counts, "corrected_pest_total": s.corrected_pest_total,
+        "corrected_predator_total": s.corrected_predator_total,
+        "effective_pest_total": s.effective_pest_total, "effective_predator_total": s.effective_predator_total,
         "quality_status": s.quality_status, "quality_reasons": s.quality_reasons or [],
         "quality_metrics": s.quality_metrics or {},
         "id": s.id, "trap_id": s.trap_id, "timestamp": s.timestamp.isoformat(timespec="seconds"),

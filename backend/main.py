@@ -28,15 +28,16 @@ from datetime import date, datetime, timedelta
 
 from fastapi import Depends, FastAPI, File, Form, HTTPException, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse, JSONResponse
+from fastapi.responses import FileResponse, JSONResponse, Response
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 from sqlmodel import Session, func, select
 
-from backend import advisory, alerts, impact, model_reports, services, settings, thresholds_editor, weather
+from backend import (advisory, alerts, corrections, impact, model_reports, services, settings, thresholds_editor,
+                     weather)
 from backend.db import get_engine, get_session, init_db
 from backend.decision_engine import DailyCatch, decide
-from backend.models import SECTION_SOURCES, AlertLog, ClimateReading, Decision, TapeSection, Trap
+from backend.models import SECTION_SOURCES, AlertLog, ClimateReading, Correction, Decision, TapeSection, Trap
 from ml import infer
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s")
@@ -253,8 +254,8 @@ def summary(session: Session = Depends(get_session)):
     return {
         "traps_total": len(traps),
         "actions": actions,
-        "pests_today": sum(s.pest_total for s in today),
-        "predators_today": sum(s.predator_total for s in today),
+        "pests_today": sum(s.effective_pest_total for s in today),
+        "predators_today": sum(s.effective_predator_total for s in today),
         "sections_today": len(today),
         "sections_total": session.exec(select(func.count()).select_from(TapeSection)).one(),
         "last_update": latest.timestamp.isoformat(timespec="seconds") if latest else None,
@@ -354,6 +355,61 @@ def post_impact(body: ImpactIn, session: Session = Depends(get_session)):
         return impact.compute(session, body.values)
     except ValueError as e:
         raise HTTPException(422, e.args[0])
+
+
+# ---------------------------------------------------------------------------
+# F3: scout corrections of the boxes on a tape photo
+# ---------------------------------------------------------------------------
+class CorrectionIn(BaseModel):
+    action: str                         # add | remove | relabel
+    target: str | None = None           # box id for remove / relabel ("m3", "c12")
+    class_name: str | None = None       # for add / relabel
+    bbox: list[float] | None = None     # [x1, y1, x2, y2] in photo pixels, for add
+
+
+def get_section_or_404(session: Session, section_id: int) -> TapeSection:
+    section = session.get(TapeSection, section_id)
+    if section is None:
+        raise HTTPException(404, f"Unknown tape section {section_id}.")
+    return section
+
+
+@app.get("/api/sections/{section_id}")
+def get_section(section_id: int, session: Session = Depends(get_session)):
+    """One tape photo with its current boxes (model + scout edits) and the edit history."""
+    return corrections.section_detail(session, get_section_or_404(session, section_id))
+
+
+@app.post("/api/sections/{section_id}/corrections")
+def post_correction(section_id: int, body: CorrectionIn, session: Session = Depends(get_session)):
+    section = get_section_or_404(session, section_id)
+    try:
+        return corrections.add_correction(session, section, body.action, body.target, body.class_name, body.bbox)
+    except corrections.CorrectionError as e:
+        raise HTTPException(422, str(e))
+
+
+@app.delete("/api/corrections/{correction_id}")
+def delete_correction(correction_id: int, session: Session = Depends(get_session)):
+    row = session.get(Correction, correction_id)
+    if row is None:
+        raise HTTPException(404, f"Unknown correction {correction_id}.")
+    return corrections.undo(session, row)
+
+
+@app.get("/api/corrections/stats")
+def correction_stats(session: Session = Depends(get_session)):
+    """Correction rate and count error, MEASURED on the captures scouts corrected."""
+    return corrections.stats(session)
+
+
+@app.get("/api/corrections/export.zip")
+def export_corrections(session: Session = Depends(get_session)):
+    """YOLO-format images + labels of every corrected capture, for retraining."""
+    data, n = corrections.export_zip(session)
+    name = f"keetasense_corrections_{datetime.now():%Y%m%d_%H%M}.zip"
+    return Response(content=data, media_type="application/zip",
+                    headers={"Content-Disposition": f'attachment; filename="{name}"', "X-Captures": str(n)})
 
 
 @app.get("/api/weather/{trap_id}")

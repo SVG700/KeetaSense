@@ -45,9 +45,37 @@ class TapeSection(SQLModel, table=True):
     quality_status: str | None = None
     quality_reasons: list = Field(default_factory=list, sa_column=Column(JSON))
     quality_metrics: dict = Field(default_factory=dict, sa_column=Column(JSON))
+    # F3 scout corrections: the model's boxes are kept; corrected counts (if any) are used for decisions
+    detections: list = Field(default_factory=list, sa_column=Column(JSON))
+    corrected_counts: dict | None = Field(default=None, sa_column=Column(JSON))
+    corrected_pest_total: int | None = None
+    corrected_predator_total: int | None = None
+
+    @property
+    def effective_pest_total(self) -> int:
+        return self.corrected_pest_total if self.corrected_pest_total is not None else self.pest_total
+
+    @property
+    def effective_predator_total(self) -> int:
+        return self.corrected_predator_total if self.corrected_predator_total is not None else self.predator_total
 
 
 SECTION_SOURCES = {"live", "mock", "replay", "seed", "upload"}
+
+
+class Correction(SQLModel, table=True):
+    """One scout edit on a tape section's boxes (F3 human-in-the-loop).
+
+    action: add (new box), remove (a box was wrong), relabel (right box, wrong class).
+    target: id of the box it changes - "m3" = model detection no. 3, "c12" = box added by correction 12."""
+    id: int | None = Field(default=None, primary_key=True)
+    section_id: int = Field(foreign_key="tapesection.id", index=True)
+    action: str                                    # add | remove | relabel
+    class_name: str | None = None                  # new class (add / relabel)
+    bbox: list | None = Field(default=None, sa_column=Column(JSON))   # [x1, y1, x2, y2] pixels
+    target: str | None = None                      # box id for remove / relabel
+    author: str = "scout"
+    created_at: NaiveDatetime = Field(default_factory=datetime.now)
 
 
 class ClimateReading(SQLModel, table=True):

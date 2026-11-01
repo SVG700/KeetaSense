@@ -145,6 +145,50 @@ export interface Section {
   quality_status: QualityStatus | null;
   quality_reasons: QualityReason[];
   quality_metrics: QualityMetrics;
+  corrected: boolean;                      // F3: a scout corrected the boxes
+  corrected_counts: Record<string, number> | null;
+  corrected_pest_total: number | null;
+  corrected_predator_total: number | null;
+  effective_pest_total: number;            // corrected if corrected, else the model's count
+  effective_predator_total: number;
+}
+
+export interface Box {
+  id: string;                              // "m3" model box, "c12" added by correction 12
+  class_name: string;
+  category: "pest" | "predator" | "unknown";
+  confidence: number | null;
+  bbox: [number, number, number, number];
+  source: "model" | "scout";
+  relabelled_from?: string;
+}
+
+export interface CorrectionRow {
+  id: number;
+  action: "add" | "remove" | "relabel";
+  class_name: string | null;
+  bbox: number[] | null;
+  target: string | null;
+  author: string;
+  created_at: string;
+}
+
+export interface SectionDetail extends Section {
+  image_width: number;
+  image_height: number;
+  boxes: Box[];
+  corrections: CorrectionRow[];
+}
+
+export interface CorrectionStats {
+  captures: number;
+  corrected_captures: number;
+  correction_rate: number;
+  pest_mae: number | null;
+  predator_mae: number | null;
+  per_class_mae: Record<string, number>;
+  simulated_captures?: number;
+  label: string;
 }
 
 export interface Thresholds {
@@ -235,6 +279,8 @@ export class ApiError extends Error {
   }
 }
 
+export const correctionsExportUrl = () => `${API_BASE}/api/corrections/export.zip`;
+
 /** Full URL for an image path returned by the backend, e.g. "/media/annotated/x.jpg". */
 export const mediaUrl = (path: string | null | undefined) => (path ? `${API_BASE}${path}` : "");
 
@@ -282,6 +328,14 @@ export const api = {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ values, confirm_unchanged: confirmUnchanged }),
     }),
+  section: (id: number) => request<SectionDetail>(`/api/sections/${id}`),
+  addCorrection: (id: number, body: { action: "add" | "remove" | "relabel"; target?: string; class_name?: string; bbox?: number[] }) =>
+    request<{ section: SectionDetail; decision: Decision }>(`/api/sections/${id}/corrections`, {
+      method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body),
+    }),
+  undoCorrection: (id: number) =>
+    request<{ section: SectionDetail; decision: Decision }>(`/api/corrections/${id}`, { method: "DELETE" }),
+  correctionStats: () => request<CorrectionStats>("/api/corrections/stats"),
   resetDemo: () =>
     request<{ removed: Record<string, number>; sections_created: number; seconds: number }>(
       "/api/reset-demo", { method: "POST" }, 120000),

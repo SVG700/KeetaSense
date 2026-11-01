@@ -41,6 +41,10 @@ NEW_COLUMNS = {
         "quality_status": "VARCHAR",          # F1 image quality gate
         "quality_reasons": "JSON",
         "quality_metrics": "JSON",
+        "detections": "JSON",                 # F3 scout corrections
+        "corrected_counts": "JSON",
+        "corrected_pest_total": "INTEGER",
+        "corrected_predator_total": "INTEGER",
     },
 }
 

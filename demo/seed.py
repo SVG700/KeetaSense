@@ -32,7 +32,7 @@ from sqlmodel import Session, select
 
 from backend import services, settings
 from backend.db import get_engine, init_db
-from backend.models import AlertLog, ClimateReading, Decision, TapeSection, Trap
+from backend.models import AlertLog, ClimateReading, Correction, Decision, TapeSection, Trap
 from ml import infer
 from ml.synthetic import render_tape
 
@@ -104,7 +104,7 @@ def clear_all(session: Session) -> dict:
     Works while the backend is running (deletes rows instead of the database file,
     which Windows would refuse to delete while it is open)."""
     removed = {}
-    for model in (AlertLog, Decision, ClimateReading, TapeSection):
+    for model in (Correction, AlertLog, Decision, ClimateReading, TapeSection):
         rows = session.exec(select(model)).all()
         removed[model.__name__] = len(rows)
         for row in rows:

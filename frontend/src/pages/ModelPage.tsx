@@ -1,7 +1,8 @@
 // Model page: which detector is running, and how well it MEASURED on its test set.
 // Every number here comes from ml/evaluate.py reports - nothing is estimated in the UI.
 import { useState } from "react";
-import { api, type EvalReport } from "../api";
+import { api, correctionsExportUrl, type EvalReport } from "../api";
+import { useT } from "../i18n";
 import { useLiveData } from "../settings";
 import { EmptyState, ErrorState, Spinner, Tag, prettyPest } from "../components/ui";
 
@@ -66,6 +67,31 @@ function ReportView({ r }: { r: EvalReport }) {
   );
 }
 
+/** F3: correction rate and count error - MEASURED on the captures scouts corrected. */
+function CorrectionsCard() {
+  const t = useT();
+  const { data } = useLiveData(api.correctionStats);
+  if (!data) return null;
+  return (
+    <section className="card p-5">
+      <h2 className="font-semibold">{t("corrections.title")}</h2>
+      {data.corrected_captures === 0 ? (
+        <p className="mt-2 text-sm text-stone-500">{t("corrections.none")}</p>
+      ) : (
+        <div className="mt-2 space-y-1 text-sm">
+          <p className="text-xs font-medium uppercase tracking-wide text-stone-500">{data.label}</p>
+          <p>{t("corrections.rate", { pct: (data.correction_rate * 100).toFixed(1), n: data.corrected_captures, total: data.captures })}</p>
+          <p>{t("corrections.mae", { pests: data.pest_mae ?? "–", predators: data.predator_mae ?? "–" })}</p>
+          {!!data.simulated_captures && <p className="text-amber-800 dark:text-amber-300">⚗ {t("corrections.simulated", { n: data.simulated_captures })}</p>}
+        </div>
+      )}
+      <a href={correctionsExportUrl()} className="mt-3 inline-block text-sm font-medium text-leaf-700 underline dark:text-leaf-500">
+        ⬇ {t("corrections.export")}
+      </a>
+    </section>
+  );
+}
+
 export default function ModelPage() {
   const { data, error, loading, reload } = useLiveData(api.model);
   const [selected, setSelected] = useState<string | null>(null);
@@ -97,6 +123,8 @@ export default function ModelPage() {
         )}
         {d.synthetic_data && <p className="mt-3 font-semibold text-amber-800 dark:text-amber-300">⚠ This model was trained on synthetic data only.</p>}
       </section>
+
+      <CorrectionsCard />
 
       {warning && (
         <div className="rounded-xl border border-amber-300 bg-amber-50 p-4 text-sm text-amber-900 dark:border-amber-700 dark:bg-amber-950 dark:text-amber-200" role="alert">

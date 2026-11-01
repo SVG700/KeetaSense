@@ -77,7 +77,7 @@ def forecast_for(session: Session, trap: Trap, fc: dict | None) -> dict:
                   if d["date"] > today and d["tmin"] is not None and d["tmax"] is not None]
         source = "simulated weather forecast" if fc.get("simulated") else "Open-Meteo weather forecast"
     return pest_forecast.forecast(
-        [s.pest_total for s in sections], section_dd, future, threshold=th.action_threshold_per_day,
+        [s.effective_pest_total for s in sections], section_dd, future, threshold=th.action_threshold_per_day,
         days_ahead=int(cfg["days_ahead"]), min_sections=int(cfg["min_sections"]),
         pest_name=settings.pest_display_name(trap.target_pest).lower(), weather_source=source)
 
