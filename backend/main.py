@@ -28,15 +28,18 @@ from datetime import date, datetime, timedelta
 
 from fastapi import Depends, FastAPI, File, Form, HTTPException, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse, JSONResponse
+from fastapi.responses import FileResponse, JSONResponse, Response
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 from sqlmodel import Session, func, select
 
-from backend import advisory, alerts, impact, model_reports, services, settings, thresholds_editor, weather
+from backend import (actions, advisory, alerts, corrections, decision_support, impact, model_reports, services, settings, thresholds_editor,
+                     weather)
 from backend.db import get_engine, get_session, init_db
-from backend.decision_engine import DailyCatch, decide
-from backend.models import SECTION_SOURCES, AlertLog, ClimateReading, Decision, TapeSection, Trap
+from backend.decision_engine import DailyCatch, DailyTemperature, decide
+from backend.models import (SECTION_SOURCES, AlertLog, ClimateReading, Correction, Decision, TapeSection, Trap,
+                            TrapHealth)
+from backend import hygiene
 from ml import infer
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s")
@@ -57,7 +60,11 @@ async def lifespan(app: FastAPI):
     log.info("Detector: %s%s", detector["label"],
              f" ({detector['reason']})" if detector.get("reason") else "")
     log.info("Telegram alerts: %s", "configured" if alerts.telegram_configured() else "log only (no token)")
+    stop = hygiene.start_scheduler(get_engine())     # F6: health alerts, quiet hours, reminders, digest
+    log.info("Alert hygiene scheduler: %s", "running (every 60 s)" if stop else "off (KEETA_SCHEDULER=off)")
     yield
+    if stop:
+        stop.set()
 
 
 app = FastAPI(title="KeetaSense API", version=VERSION, lifespan=lifespan)
@@ -232,6 +239,7 @@ def trap_history(trap_id: str, days: int = 30, session: Session = Depends(get_se
         "climate_daily": services.daily_climate(session, trap, since.date()),
         "decisions": [{"timestamp": d.timestamp.isoformat(timespec="seconds"), "action": d.action,
                        "reason": d.reason} for d in decisions],
+        "actions": actions.history(session, trap.id, since),
     }
 
 
@@ -244,7 +252,7 @@ def trap_decision(trap_id: str, session: Session = Depends(get_session)):
 @app.get("/api/summary")
 def summary(session: Session = Depends(get_session)):
     traps = session.exec(select(Trap)).all()
-    actions = {"SPRAY": 0, "RELEASE_BIOCONTROL": 0, "WAIT": 0}
+    actions = {"SPRAY": 0, "RELEASE_BIOCONTROL": 0, "WAIT": 0, "CHECK_TRAP": 0}
     for t in traps:
         actions[services.compute_decision(session, t)["action"]] += 1
     today_start = datetime.combine(date.today(), datetime.min.time())
@@ -253,8 +261,8 @@ def summary(session: Session = Depends(get_session)):
     return {
         "traps_total": len(traps),
         "actions": actions,
-        "pests_today": sum(s.pest_total for s in today),
-        "predators_today": sum(s.predator_total for s in today),
+        "pests_today": sum(s.effective_pest_total for s in today),
+        "predators_today": sum(s.effective_predator_total for s in today),
         "sections_today": len(today),
         "sections_total": session.exec(select(func.count()).select_from(TapeSection)).one(),
         "last_update": latest.timestamp.isoformat(timespec="seconds") if latest else None,
@@ -272,7 +280,11 @@ def recent_alerts(limit: int = 20, session: Session = Depends(get_session)):
     rows = session.exec(select(AlertLog).order_by(AlertLog.timestamp.desc()).limit(max(1, min(limit, 100)))).all()
     return [{"id": a.id, "trap_id": a.trap_id, "timestamp": a.timestamp.isoformat(timespec="seconds"),
              "action": a.action, "previous_action": a.previous_action, "language": a.language,
-             "message": a.message, "status": a.status} for a in rows]
+             "message": a.message, "status": a.status, "error": a.error,
+             "acknowledged_at": a.acknowledged_at.isoformat(timespec="seconds") if a.acknowledged_at else None,
+             "ack_action": a.ack_action,
+             "held_until": a.held_until.isoformat(timespec="minutes") if a.held_until else None,
+             "realerted_at": a.realerted_at.isoformat(timespec="minutes") if a.realerted_at else None} for a in rows]
 
 
 @app.get("/api/health")
@@ -354,6 +366,175 @@ def post_impact(body: ImpactIn, session: Session = Depends(get_session)):
         return impact.compute(session, body.values)
     except ValueError as e:
         raise HTTPException(422, e.args[0])
+
+
+# ---------------------------------------------------------------------------
+# F3: scout corrections of the boxes on a tape photo
+# ---------------------------------------------------------------------------
+class CorrectionIn(BaseModel):
+    action: str                         # add | remove | relabel
+    target: str | None = None           # box id for remove / relabel ("m3", "c12")
+    class_name: str | None = None       # for add / relabel
+    bbox: list[float] | None = None     # [x1, y1, x2, y2] in photo pixels, for add
+
+
+def get_section_or_404(session: Session, section_id: int) -> TapeSection:
+    section = session.get(TapeSection, section_id)
+    if section is None:
+        raise HTTPException(404, f"Unknown tape section {section_id}.")
+    return section
+
+
+@app.get("/api/sections/{section_id}")
+def get_section(section_id: int, session: Session = Depends(get_session)):
+    """One tape photo with its current boxes (model + scout edits) and the edit history."""
+    return corrections.section_detail(session, get_section_or_404(session, section_id))
+
+
+@app.post("/api/sections/{section_id}/corrections")
+def post_correction(section_id: int, body: CorrectionIn, session: Session = Depends(get_session)):
+    section = get_section_or_404(session, section_id)
+    try:
+        return corrections.add_correction(session, section, body.action, body.target, body.class_name, body.bbox)
+    except corrections.CorrectionError as e:
+        raise HTTPException(422, str(e))
+
+
+@app.delete("/api/corrections/{correction_id}")
+def delete_correction(correction_id: int, session: Session = Depends(get_session)):
+    row = session.get(Correction, correction_id)
+    if row is None:
+        raise HTTPException(404, f"Unknown correction {correction_id}.")
+    return corrections.undo(session, row)
+
+
+@app.get("/api/corrections/stats")
+def correction_stats(session: Session = Depends(get_session)):
+    """Correction rate and count error, MEASURED on the captures scouts corrected."""
+    return corrections.stats(session)
+
+
+@app.get("/api/corrections/export.zip")
+def export_corrections(session: Session = Depends(get_session)):
+    """YOLO-format images + labels of every corrected capture, for retraining."""
+    data, n = corrections.export_zip(session)
+    name = f"keetasense_corrections_{datetime.now():%Y%m%d_%H%M}.zip"
+    return Response(content=data, media_type="application/zip",
+                    headers={"Content-Disposition": f'attachment; filename="{name}"', "X-Captures": str(n)})
+
+
+# ---------------------------------------------------------------------------
+# F4: what the farmer did (Telegram buttons / dashboard)
+# ---------------------------------------------------------------------------
+class HeartbeatIn(BaseModel):
+    queue_depth: int = Field(0, ge=0)
+    tape_steps_used: int = Field(0, ge=0)
+    tape_total_steps: int = Field(0, ge=0)
+    motor_fault: bool = False
+    motor_fault_detail: str | None = None
+    capture_interval_s: float = Field(86400, gt=0)
+    simulated: bool = False
+
+
+@app.post("/api/traps/{trap_id}/heartbeat")
+def post_heartbeat(trap_id: str, body: HeartbeatIn, session: Session = Depends(get_session)):
+    """F6: the trap says it is alive (sent by the edge service after every cycle)."""
+    trap = get_trap_or_404(session, trap_id)
+    return hygiene.record_heartbeat(session, trap, **body.model_dump())
+
+
+@app.get("/api/traps/{trap_id}/health")
+def get_trap_health(trap_id: str, session: Session = Depends(get_session)):
+    trap = get_trap_or_404(session, trap_id)
+    return {"trap_id": trap.id, **hygiene.health_status(session.get(TrapHealth, trap.id), datetime.now())}
+
+
+class ActionIn(BaseModel):
+    action: str                          # sprayed | released | not_yet
+    quantity: float | None = None
+    note: str = ""
+    source: str = "dashboard"            # dashboard | telegram
+    alert_id: int | None = None
+
+
+@app.post("/api/traps/{trap_id}/actions")
+def post_action(trap_id: str, body: ActionIn, session: Session = Depends(get_session)):
+    trap = get_trap_or_404(session, trap_id)
+    if body.source == "seed":
+        raise HTTPException(422, "source 'seed' is reserved for the simulated demo history")
+    try:
+        row = actions.record(session, trap.id, body.action, body.quantity, body.note, body.source, body.alert_id)
+    except actions.ActionError as e:
+        raise HTTPException(422, str(e))
+    until = actions.cooldown_until(session, trap.id)
+    return {"action": actions.to_dict(row), "cooldown_until": until.isoformat(timespec="minutes") if until else None}
+
+
+@app.get("/api/traps/{trap_id}/actions")
+def list_actions(trap_id: str, session: Session = Depends(get_session)):
+    trap = get_trap_or_404(session, trap_id)
+    until = actions.cooldown_until(session, trap.id)
+    return {"actions": actions.history(session, trap.id),
+            "cooldown_until": until.isoformat(timespec="minutes") if until else None}
+
+
+# ---------------------------------------------------------------------------
+# F5: What-if simulator - the live decision function on made-up inputs (writes nothing)
+# ---------------------------------------------------------------------------
+class CatchIn(BaseModel):
+    pests: float = Field(ge=0, le=100000)
+    predators: float = Field(ge=0, le=100000)
+
+
+class TempIn(BaseModel):
+    date: date
+    tmin: float = Field(ge=-20, le=60)
+    tmax: float = Field(ge=-20, le=60)
+
+
+class SimulateIn(BaseModel):
+    crop: str | None = None                   # e.g. "tomato" (pests.yaml -> crops)
+    target_pest: str | None = None            # or the pest directly
+    pests_per_day: float | None = Field(None, ge=0, le=100000)
+    predators_per_day: float | None = Field(None, ge=0, le=100000)
+    temperature_c: float = Field(25, ge=-10, le=50)     # daily mean; min/max = mean -/+ 5
+    days: int = Field(14, ge=1, le=120)                 # days of that temperature (degree-day history)
+    pest_confidence: float | None = Field(None, gt=0, le=1)
+    predator_confidence: float | None = Field(None, gt=0, le=1)
+    catches: list[CatchIn] | None = None      # advanced: exact tape sections (oldest first)
+    temps: list[TempIn] | None = None         # advanced: exact daily min/max
+
+
+@app.post("/api/decision/simulate")
+def simulate(body: SimulateIn):
+    """SIMULATION: what would KeetaSense advise for these numbers? Pure - nothing is stored or sent."""
+    crops = settings.pests_config().get("crops") or {}
+    pest = body.target_pest or (crops.get(body.crop) if body.crop else None)
+    if pest is None:
+        raise HTTPException(422, f"Choose a crop ({sorted(crops)}) or a target_pest.")
+    try:
+        th = services.thresholds_for(pest)
+    except ValueError as e:
+        raise HTTPException(422, str(e))
+    if body.catches is not None:
+        catches = [DailyCatch(c.pests, c.predators) for c in body.catches]
+    elif body.pests_per_day is not None and body.predators_per_day is not None:
+        catches = [DailyCatch(body.pests_per_day, body.predators_per_day)] * th.rolling_window_days
+    else:
+        raise HTTPException(422, "Give pests_per_day and predators_per_day (or a list of catches).")
+    if body.temps is not None:
+        temps = [DailyTemperature(t.date, t.tmin, t.tmax) for t in body.temps]
+    else:
+        today = date.today()
+        temps = [DailyTemperature(today - timedelta(days=i), body.temperature_c - 5, body.temperature_c + 5)
+                 for i in range(body.days)][::-1]
+    decision = decision_support.evaluate(
+        catches, temps, th, pest_name=settings.pest_display_name(pest).lower(),
+        pest_conf=body.pest_confidence, predator_conf=body.predator_confidence,
+        min_confidence=services.min_confidence(), support_cfg=services.support_config(pest), today=date.today())
+    return {"simulation": True, "target_pest": pest, "crops": crops, "decision": decision,
+            "thresholds": {"action_threshold_per_day": th.action_threshold_per_day, "spray_ratio": th.spray_ratio,
+                           "degree_days_per_generation": th.degree_days_per_generation}}
 
 
 @app.get("/api/weather/{trap_id}")

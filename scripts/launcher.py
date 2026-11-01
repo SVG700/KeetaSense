@@ -234,6 +234,8 @@ def main() -> int:
     ap.add_argument("--sim-weather", action="store_true",
                     help="use SIMULATED weather (labelled; rain in ~4 h) - for a demo without internet")
     ap.add_argument("--no-bot", action="store_true", help="do not start the Telegram bot")
+    ap.add_argument("--inject", choices=["blur", "dark", "glare", "stuck", "motor", "tape", "offline"],
+                    help="(demo) the MOCK trap simulates this fault - demo the quality gate / health alerts")
     args = ap.parse_args()
 
     os.chdir(ROOT)
@@ -253,6 +255,9 @@ def main() -> int:
             say("launcher", "ERROR: seeding failed (see above)")
             return 1
 
+    if args.mode in ("demo", "replay") and "KEETA_QUIET_HOURS" not in os.environ:
+        env = dict(env, KEETA_QUIET_HOURS="off")      # an evening stage demo must still show its alerts
+        say("launcher", "demo: quiet hours OFF (alerts are not held overnight)")
     host = "0.0.0.0" if args.lan else "127.0.0.1"
     services = [Service("backend", [PY, "-m", "uvicorn", "backend.main:app", "--host", host, "--port", str(PORT)],
                         env, restart=True)]
@@ -271,6 +276,9 @@ def main() -> int:
             say("launcher", f"REPLAY mode: {folder}")
         if args.cycles:
             edge_cmd += ["--cycles", str(args.cycles)]
+        if args.inject:
+            edge_cmd += ["--inject", args.inject]
+            say("launcher", f"MOCK fault injection: {args.inject}")
         edge = Service("trap", edge_cmd, edge_env, restart=not args.cycles)
 
     stop_event = threading.Event()

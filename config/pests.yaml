@@ -69,3 +69,76 @@ thresholds:
     spray_ratio: 10.0  # PLACEHOLDER - confirm with IIHR mentor
     # How many of the most recent tape sections (days) to average over.
     rolling_window_days: 3  # PLACEHOLDER - confirm with IIHR mentor
+
+# ---------------------------------------------------------------------------
+# 3. Image quality gate (every new tape photo, backend/image_quality.py)
+# ---------------------------------------------------------------------------
+# Measured on our synthetic demo images: sharp ~16, 9 px blur ~2; normal brightness ~189;
+# different tape sections similarity ~0.0, the same section re-photographed ~0.96.
+# Re-check every value on the real Pi camera before the event.
+image_quality:
+  blur_bad: 3              # PLACEHOLDER - confirm on the real Pi camera (Laplacian variance below = BAD)
+  blur_warn: 8             # PLACEHOLDER - confirm on the real Pi camera
+  dark_bad: 50             # PLACEHOLDER - confirm on the real Pi camera (mean grey 0-255)
+  dark_warn: 90            # PLACEHOLDER - confirm on the real Pi camera
+  bright_bad: 245          # PLACEHOLDER - confirm on the real Pi camera
+  glare_bad_pct: 10        # PLACEHOLDER - confirm on the real Pi camera (% saturated pixels)
+  glare_warn_pct: 3        # PLACEHOLDER - confirm on the real Pi camera
+  duplicate_bad: 0.8       # PLACEHOLDER - confirm on the real Pi camera (similarity to previous capture)
+  duplicate_warn: 0.6      # PLACEHOLDER - confirm on the real Pi camera
+
+# ---------------------------------------------------------------------------
+# 4. Farmer actions (F4): logging, cooldown, before/after effect
+# ---------------------------------------------------------------------------
+actions:
+  # After "sprayed" or "released", repeat SPRAY / BIOCONTROL alerts for that trap are held back
+  # for this long (the action needs time to work; CHECK TRAP alerts are never held back).
+  cooldown_hours: 48             # PLACEHOLDER - confirm with IIHR mentor
+  # Effect card: average whitefly per tape section this many days before vs after an action.
+  effect_window_days: 3          # Team decision (prep-round brief: 3 days before vs after)
+
+# ---------------------------------------------------------------------------
+# 5. Confidence-aware decisions (F2)
+# ---------------------------------------------------------------------------
+# Count range = [count x mean confidence, count / mean confidence]. If the advice could differ
+# anywhere in that range, it is shown as BORDERLINE with the range.
+confidence:
+  min_confidence: 0.5            # PLACEHOLDER - confirm with the trained model's evaluation (confidence floor)
+
+# ---------------------------------------------------------------------------
+# 6. Decision intelligence (F5): cost of spraying + biocontrol dosing, per target pest
+# ---------------------------------------------------------------------------
+# Every rate below is unknown to the team - replace with IIHR mentor values.
+decision_support:
+  whitefly:
+    # Area of crop one trap represents (the "area per trap" setting).
+    area_per_trap_m2: 1000             # PLACEHOLDER - confirm with IIHR mentor
+    # Predators living in the trap's area for every predator the trap catches per day.
+    predators_in_field_per_trapped: 40 # PLACEHOLDER - confirm with IIHR mentor
+    # Biocontrol release rate (predators per square metre) and which predator to release.
+    release_rate_per_m2: 2             # PLACEHOLDER - confirm with IIHR mentor
+    release_class: macrolophus
+    # Days after a release to check the trap again.
+    recheck_days: 7                    # PLACEHOLDER - confirm with IIHR mentor
+
+# Crops on the What-if page and the pest each one is monitored for.
+crops:
+  tomato: whitefly
+
+# ---------------------------------------------------------------------------
+# 7. Trap health + alert hygiene (F6)
+# ---------------------------------------------------------------------------
+health:
+  # A trap is OFFLINE when no heartbeat arrived for this many capture intervals.
+  offline_after_intervals: 2     # Team decision (prep-round brief: more than 2x the capture interval)
+  # Alert when less than this % of the tape roll is left.
+  tape_low_pct: 15               # Team decision (prep-round brief: tape below 15%)
+alert_hygiene:
+  # No alerts are delivered between these hours (24 h clock); they are held and sent at the end.
+  quiet_hours_start: 21          # PLACEHOLDER - confirm with the farmers
+  quiet_hours_end: 6             # PLACEHOLDER - confirm with the farmers
+  # One daily summary per trap at this time.
+  digest_hour: 7                 # PLACEHOLDER - confirm with the farmers
+  digest_minute: 0               # PLACEHOLDER - confirm with the farmers
+  # An action alert that nobody acknowledged (Sprayed / Released / Not yet) is repeated ONCE after this.
+  realert_after_hours: 4         # PLACEHOLDER - confirm with the farmers

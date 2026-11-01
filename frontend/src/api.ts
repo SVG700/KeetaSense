@@ -7,7 +7,24 @@ export const API_BASE: string =
   (import.meta.env.VITE_API_BASE as string | undefined)?.replace(/\/$/, "") ||
   `${window.location.protocol}//${window.location.hostname === "localhost" ? "127.0.0.1" : window.location.hostname}:8000`;
 
-export type Action = "SPRAY" | "RELEASE_BIOCONTROL" | "WAIT";
+export type Action = "SPRAY" | "RELEASE_BIOCONTROL" | "WAIT" | "CHECK_TRAP";
+export type QualityStatus = "OK" | "WARN" | "BAD";
+
+export interface QualityReason {
+  code: "blurred" | "too_dark" | "too_bright" | "glare" | "tape_not_advanced";
+  level: QualityStatus;
+  value: number;
+  limit: number;
+}
+
+export interface QualityMetrics {
+  width?: number;
+  height?: number;
+  blur?: number;
+  brightness?: number;
+  glare_pct?: number;
+  similarity_to_previous?: number | null;
+}
 export type DetectorMode = "yolo_sahi" | "demo_detector";
 
 export interface DetectorInfo {
@@ -103,6 +120,27 @@ export interface DegreeDays {
 
 export interface Decision {
   action: Action;
+  underlying_action?: Action; // what the counts say when the action is CHECK_TRAP
+  borderline?: boolean;        // F2: the advice could differ inside the detector's count range
+  support?: {                  // F5: cost of spraying / biocontrol dose (placeholder rates)
+    predators_at_risk: number | null;
+    release_count: number | null;
+    release_class: string | null;
+    recheck_date: string | null;
+    area_m2: number;
+    text: string;
+  } | null;
+  uncertainty?: {
+    borderline: boolean;
+    possible_actions: Action[];
+    pests_low: number;
+    pests_high: number;
+    predators_low: number;
+    predators_high: number;
+    pest_confidence: number | null;
+    predator_confidence: number | null;
+  };
+  quality?: { status: QualityStatus; reasons: QualityReason[]; section_id: number } | null;
   reason: string;
   pests_per_day: number;
   predators_per_day: number;
@@ -123,6 +161,53 @@ export interface Section {
   detector_mode: DetectorMode;
   simulated: boolean;
   source: "live" | "mock" | "replay" | "seed" | "upload";
+  quality_status: QualityStatus | null;
+  quality_reasons: QualityReason[];
+  quality_metrics: QualityMetrics;
+  corrected: boolean;                      // F3: a scout corrected the boxes
+  corrected_counts: Record<string, number> | null;
+  corrected_pest_total: number | null;
+  corrected_predator_total: number | null;
+  effective_pest_total: number;            // corrected if corrected, else the model's count
+  effective_predator_total: number;
+}
+
+export interface Box {
+  id: string;                              // "m3" model box, "c12" added by correction 12
+  class_name: string;
+  category: "pest" | "predator" | "unknown";
+  confidence: number | null;
+  bbox: [number, number, number, number];
+  source: "model" | "scout";
+  relabelled_from?: string;
+}
+
+export interface CorrectionRow {
+  id: number;
+  action: "add" | "remove" | "relabel";
+  class_name: string | null;
+  bbox: number[] | null;
+  target: string | null;
+  author: string;
+  created_at: string;
+}
+
+export interface SectionDetail extends Section {
+  image_width: number;
+  image_height: number;
+  boxes: Box[];
+  corrections: CorrectionRow[];
+}
+
+export interface CorrectionStats {
+  captures: number;
+  corrected_captures: number;
+  correction_rate: number;
+  pest_mae: number | null;
+  predator_mae: number | null;
+  per_class_mae: Record<string, number>;
+  simulated_captures?: number;
+  label: string;
 }
 
 export interface Thresholds {
@@ -146,6 +231,28 @@ export interface TrapSummary {
   latest_climate: { timestamp: string; temperature_c: number; humidity_pct: number } | null;
   decision: Decision;
   thresholds: Thresholds;
+  health?: TrapHealth;
+}
+
+export type HealthProblem = "TRAP_OFFLINE" | "TAPE_LOW" | "MOTOR_FAULT";
+
+export interface TrapHealth {     // F6: from the trap's heartbeat
+  known: boolean;
+  online: boolean | null;
+  problems: HealthProblem[];
+  last_seen?: string;
+  offline_minutes?: number | null;
+  offline_limit_minutes?: number;
+  queue_depth?: number;
+  tape_remaining_pct?: number | null;
+  tape_steps_used?: number;
+  tape_total_steps?: number;
+  motor_fault?: boolean;
+  motor_fault_detail?: string | null;
+  capture_interval_s?: number;
+  offline_after_intervals?: number;
+  tape_low_pct?: number;
+  simulated?: boolean;
 }
 
 export interface ClimateDay {
@@ -158,11 +265,37 @@ export interface ClimateDay {
   simulated: boolean;
 }
 
+export type FarmerAction = "sprayed" | "released" | "not_yet";
+
+export interface ActionEffect {
+  before_avg: number | null;
+  after_avg: number | null;
+  change_pct: number | null;
+  n_before: number;
+  n_after: number;
+  days: number;
+  status: "ok" | "waiting_for_data" | "no_data_before";
+}
+
+export interface ActionRow {
+  id: number;
+  trap_id: string;
+  action: FarmerAction;
+  quantity: number | null;
+  note: string;
+  timestamp: string;
+  source: "dashboard" | "telegram" | "seed";
+  alert_id: number | null;
+  simulated: boolean;
+  effect: ActionEffect | null;
+}
+
 export interface TrapHistory {
   trap: TrapSummary;
   sections: Section[];
   climate_daily: ClimateDay[];
   decisions: { timestamp: string; action: Action; reason: string }[];
+  actions: ActionRow[];
 }
 
 export interface Summary {
@@ -213,6 +346,8 @@ export class ApiError extends Error {
   }
 }
 
+export const correctionsExportUrl = () => `${API_BASE}/api/corrections/export.zip`;
+
 /** Full URL for an image path returned by the backend, e.g. "/media/annotated/x.jpg". */
 export const mediaUrl = (path: string | null | undefined) => (path ? `${API_BASE}${path}` : "");
 
@@ -260,6 +395,27 @@ export const api = {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ values, confirm_unchanged: confirmUnchanged }),
     }),
+  section: (id: number) => request<SectionDetail>(`/api/sections/${id}`),
+  addCorrection: (id: number, body: { action: "add" | "remove" | "relabel"; target?: string; class_name?: string; bbox?: number[] }) =>
+    request<{ section: SectionDetail; decision: Decision }>(`/api/sections/${id}/corrections`, {
+      method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body),
+    }),
+  undoCorrection: (id: number) =>
+    request<{ section: SectionDetail; decision: Decision }>(`/api/corrections/${id}`, { method: "DELETE" }),
+  correctionStats: () => request<CorrectionStats>("/api/corrections/stats"),
+  actions: (trapId: string) =>
+    request<{ actions: ActionRow[]; cooldown_until: string | null }>(`/api/traps/${encodeURIComponent(trapId)}/actions`),
+  postAction: (trapId: string, body: { action: FarmerAction; quantity?: number; note?: string }) =>
+    request<{ action: ActionRow; cooldown_until: string | null }>(`/api/traps/${encodeURIComponent(trapId)}/actions`, {
+      method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ ...body, source: "dashboard" }),
+    }),
+  simulate: (body: {
+    crop?: string; target_pest?: string; pests_per_day?: number; predators_per_day?: number;
+    temperature_c?: number; days?: number; pest_confidence?: number; predator_confidence?: number;
+  }) => request<{
+    simulation: true; target_pest: string; crops: Record<string, string>; decision: Decision;
+    thresholds: { action_threshold_per_day: number; spray_ratio: number; degree_days_per_generation: number };
+  }>("/api/decision/simulate", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) }),
   resetDemo: () =>
     request<{ removed: Record<string, number>; sections_created: number; seconds: number }>(
       "/api/reset-demo", { method: "POST" }, 120000),

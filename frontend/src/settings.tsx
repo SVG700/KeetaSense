@@ -9,6 +9,8 @@ interface Settings {
   setLive: (v: boolean) => void;
   theme: Theme;
   toggleTheme: () => void;
+  uiLang: "en" | "kn"; // dashboard language for the texts in locales/strings.json
+  toggleUiLang: () => void;
 }
 
 const SettingsContext = createContext<Settings | null>(null);
@@ -37,9 +39,22 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
     return window.matchMedia?.("(prefers-color-scheme: dark)").matches ? "dark" : "light";
   });
 
+  const [uiLang, setUiLang] = useState<"en" | "kn">(() => (readStored("ks-lang") === "kn" ? "kn" : "en"));
+
   useEffect(() => {
     document.documentElement.classList.toggle("dark", theme === "dark");
   }, [theme]);
+
+  useEffect(() => {
+    document.documentElement.lang = uiLang;
+  }, [uiLang]);
+
+  const toggleUiLang = () =>
+    setUiLang((l) => {
+      const next = l === "kn" ? "en" : "kn";
+      store("ks-lang", next);
+      return next;
+    });
 
   const setLive = (v: boolean) => {
     setLiveState(v);
@@ -52,7 +67,7 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
       return next;
     });
 
-  return <SettingsContext.Provider value={{ live, setLive, theme, toggleTheme }}>{children}</SettingsContext.Provider>;
+  return <SettingsContext.Provider value={{ live, setLive, theme, toggleTheme, uiLang, toggleUiLang }}>{children}</SettingsContext.Provider>;
 }
 
 export function useSettings(): Settings {

@@ -125,7 +125,7 @@ def test_every_threshold_in_pests_yaml_is_placeholder_or_confirmed():
                    if re.match(r"^\s+\w+:\s*[\d.]+", l)]
     assert value_lines, "no threshold values found"
     for line in value_lines:   # the Settings page turns PLACEHOLDER into "Confirmed ... on <date>"
-        assert ("PLACEHOLDER - confirm with IIHR mentor" in line
+        assert ("PLACEHOLDER - confirm" in line or "Team decision" in line
                 or "Confirmed with IIHR mentor on" in line), line
 
 

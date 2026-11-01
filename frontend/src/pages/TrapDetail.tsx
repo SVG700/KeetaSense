@@ -2,10 +2,14 @@
 import { useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { api, mediaUrl } from "../api";
+import { useT } from "../i18n";
 import { useLiveData } from "../settings";
 import { CountsChart, DegreeDayChart, DegreeDayMeter } from "../components/charts";
+import ActionPanel from "../components/ActionPanel";
+import HealthCard from "../components/HealthCard";
+import TapeEditor from "../components/TapeEditor";
 import {
-  ActionStrip, DecisionBadge, DetectorTag, EmptyState, ErrorState, ReplayTag, SimulatedTag, Spinner, StatusDot,
+  ActionStrip, BorderlineTag, DecisionBadge, DetectorTag, EmptyState, ErrorState, QualityBadge, ReplayTag, SimulatedTag, Spinner, StatusDot,
   prettyPest, timeAgo,
 } from "../components/ui";
 
@@ -15,6 +19,7 @@ export default function TrapDetail() {
   const { id = "" } = useParams();
   const [days, setDays] = useState(14);
   const { data, error, loading, reload } = useLiveData(() => api.history(id, days), [id, days]);
+  const t = useT();
 
   if (loading && !data) return <Spinner label="Loading trap history…" />;
   if (error && !data) return <ErrorState error={error} onRetry={reload} />;
@@ -42,14 +47,25 @@ export default function TrapDetail() {
               <div className="mt-2 flex flex-wrap items-center gap-2">
                 <StatusDot status={trap.status} />
                 <span className="text-xs text-stone-500">updated {timeAgo(trap.last_seen)}</span>
+                {latest && <QualityBadge status={latest.quality_status} reasons={latest.quality_reasons} showOk />}
                 {latest?.source === "replay" && <ReplayTag />}
                 {simulated && <SimulatedTag />}
                 {latest && <DetectorTag mode={latest.detector_mode} />}
               </div>
             </div>
-            <DecisionBadge action={d.action} size="lg" />
+            <span className="flex flex-col items-end gap-1">
+              <DecisionBadge action={d.action} size="lg" />
+              <BorderlineTag decision={d} pest={pest} />
+            </span>
           </div>
           <p className="mt-4 max-w-3xl leading-relaxed text-stone-700 dark:text-stone-300">{d.reason}</p>
+          {d.support?.release_count != null && (
+            <p className="mt-2 text-sm font-medium">🐞 {t("whatif.release", { n: d.support.release_count, predator: prettyPest(d.support.release_class ?? ""),
+              date: d.support.recheck_date ? new Date(d.support.recheck_date).toLocaleDateString() : "–" })}</p>
+          )}
+          {d.support?.predators_at_risk != null && d.support.predators_at_risk > 0 && (
+            <p className="mt-2 text-sm font-medium">⚠ {t("whatif.harm", { n: d.support.predators_at_risk })}</p>
+          )}
           <dl className="mt-4 grid grid-cols-2 gap-3 text-sm sm:grid-cols-4">
             <div><dt className="text-stone-500">Pests / day</dt><dd className="text-lg font-semibold tabular-nums">{d.pests_per_day.toFixed(1)}</dd></div>
             <div><dt className="text-stone-500">Predators / day</dt><dd className="text-lg font-semibold tabular-nums">{d.predators_per_day.toFixed(1)}</dd></div>
@@ -74,7 +90,8 @@ export default function TrapDetail() {
           </div>
           <p className="mb-2 text-xs text-stone-500 dark:text-stone-400">Each point is one tape section (one day of exposure).</p>
           {sections.length ? (
-            <CountsChart sections={sections} threshold={trap.thresholds.action_threshold_per_day} pestName={pest} />
+            <CountsChart sections={sections} threshold={trap.thresholds.action_threshold_per_day} pestName={pest}
+                         actions={data.actions} />
           ) : (
             <EmptyState title="No tape sections in this period" />
           )}
@@ -103,18 +120,28 @@ export default function TrapDetail() {
                 {new Date(latest.timestamp).toLocaleString()} ·{" "}
                 {Object.entries(latest.counts).map(([k, v]) => `${prettyPest(k)}: ${v}`).join(" · ")}
               </p>
-              <a href={mediaUrl(latest.annotated_url)} target="_blank" rel="noreferrer">
-                <img src={mediaUrl(latest.annotated_url)} alt="Annotated tape section with detection boxes"
-                     className="w-full rounded-xl border border-stone-200 dark:border-stone-800" />
-              </a>
+              <TapeEditor key={latest.id} sectionId={latest.id} onChanged={reload} />
               <p className="mt-2 text-xs text-stone-500">
-                Boxes: <span className="font-medium">red = pest</span>, <span className="font-medium">green = predator</span>. Click to enlarge.
+                Boxes: <span className="font-medium">red = pest</span>, <span className="font-medium">green = predator</span>, dashed = added by a scout.{" "}
+                <a href={mediaUrl(latest.annotated_url)} target="_blank" rel="noreferrer" className="underline">Open the model's annotated photo</a>
               </p>
+              {latest.quality_status && (
+                <p className="mt-1 text-xs text-stone-500 dark:text-stone-400">
+                  {t("quality.title")}: {t(`quality.${latest.quality_status}`)} · {t("quality.metrics", {
+                    blur: latest.quality_metrics.blur ?? "–", brightness: latest.quality_metrics.brightness ?? "–",
+                    glare: latest.quality_metrics.glare_pct ?? "–",
+                    sim: latest.quality_metrics.similarity_to_previous ?? "–" })}
+                </p>
+              )}
             </>
           ) : (
             <EmptyState title="No image yet" />
           )}
         </section>
+
+        <ActionPanel trapId={trap.id} actions={data.actions} onChanged={reload} />
+
+        <HealthCard health={trap.health} />
 
         <section className="card p-5">
           <h2 className="mb-3 font-semibold">Decision history</h2>

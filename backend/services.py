@@ -15,16 +15,16 @@ import cv2
 import numpy as np
 from sqlmodel import Session, select
 
-from backend import alerts, settings
-from backend.decision_engine import (DailyCatch, DailyTemperature, Thresholds, daily_degree_days,
-                                     decide)
-from backend.models import ClimateReading, Decision, TapeSection, Trap
+from backend import actions, alerts, decision_support, hygiene, image_quality, settings
+from backend.decision_engine import (DailyCatch, DailyTemperature, Thresholds, daily_degree_days, decide)
+from backend.models import ClimateReading, Decision, TapeSection, Trap, TrapHealth
 from ml import infer
 from ml.common import category_of
 
 log = logging.getLogger("keetasense.services")
 
-ONLINE_WITHIN = timedelta(hours=26)  # a trap reports at least daily; allow some slack
+ONLINE_WITHIN = timedelta(hours=26)
+CHECK_TRAP = "CHECK_TRAP"   # decision state when the latest photo is unusable (image quality gate)  # a trap reports at least daily; allow some slack
 
 
 # ---------------------------------------------------------------------------
@@ -100,6 +100,9 @@ def process_section(session: Session, trap: Trap, img: np.ndarray, timestamp: da
                     ) -> tuple[TapeSection, infer.DetectionResult, dict]:
     """Detect insects on one tape section, store it, and update the decision."""
     result = run_detection(img, detections, detector_mode)
+    q_status, q_reasons, q_metrics = image_quality.check(img, previous_image(session, trap))
+    if q_status != image_quality.OK:
+        log.warning("Image quality %s for %s: %s", q_status, trap.id, image_quality.reasons_text(q_reasons))
     stem = f"{trap.id}/{timestamp:%Y%m%d_%H%M%S}_{uuid.uuid4().hex[:6]}"
     section = TapeSection(
         trap_id=trap.id, timestamp=timestamp,
@@ -107,12 +110,23 @@ def process_section(session: Session, trap: Trap, img: np.ndarray, timestamp: da
         annotated_path=save_image(result.annotated_image, "annotated", stem),
         counts=result.counts, pest_total=result.pest_total, predator_total=result.predator_total,
         detector_mode=result.mode, simulated=simulated, source=source,
+        quality_status=q_status, quality_reasons=q_reasons, quality_metrics=q_metrics,
+        detections=result.detections,
     )
     session.add(section)
     session.commit()
     session.refresh(section)
     decision = update_decision(session, trap, notify=notify, now=timestamp)
     return section, result, decision
+
+
+def previous_image(session: Session, trap: Trap) -> np.ndarray | None:
+    """The trap's latest stored photo (to check that the tape really advanced)."""
+    prev = session.exec(select(TapeSection).where(TapeSection.trap_id == trap.id)
+                        .order_by(TapeSection.timestamp.desc(), TapeSection.id.desc())).first()
+    if prev is None:
+        return None
+    return cv2.imread(str(settings.media_dir() / prev.image_path))
 
 
 def add_climate(session: Session, trap: Trap, timestamp: datetime, temperature_c: float,
@@ -153,13 +167,63 @@ def daily_climate(session: Session, trap: Trap, since: date | None = None) -> li
 # ---------------------------------------------------------------------------
 def compute_decision(session: Session, trap: Trap) -> dict:
     th = thresholds_for(trap.target_pest)
-    recent = session.exec(select(TapeSection).where(TapeSection.trap_id == trap.id)
+    # BAD photos (blurred, dark, glare, tape not advanced) are never counted
+    good = (TapeSection.quality_status.is_(None)) | (TapeSection.quality_status != image_quality.BAD)
+    recent = session.exec(select(TapeSection).where(TapeSection.trap_id == trap.id, good)
                           .order_by(TapeSection.timestamp.desc()).limit(th.rolling_window_days)).all()
-    catches = [DailyCatch(s.pest_total, s.predator_total) for s in reversed(recent)]
+    # scout-corrected counts replace the model's counts (F3)
+    catches = [DailyCatch(s.effective_pest_total, s.effective_predator_total) for s in reversed(recent)]
     temps = [DailyTemperature(date.fromisoformat(d["date"]), d["tmin"], d["tmax"])
              for d in daily_climate(session, trap)]
-    result = decide(catches, temps, th, settings.pest_display_name(trap.target_pest).lower())
-    return result.to_dict()
+    # F2: how sure is the detector? -> count range -> BORDERLINE if the advice could differ inside it
+    pest_conf, predator_conf = window_confidence(session, recent)
+    # one pure function for the live engine AND the What-if simulator (F5)
+    result = decision_support.evaluate(
+        catches, temps, th, pest_name=settings.pest_display_name(trap.target_pest).lower(),
+        pest_conf=pest_conf, predator_conf=predator_conf, min_confidence=min_confidence(),
+        support_cfg=support_config(trap.target_pest), today=date.today())
+    latest = session.exec(select(TapeSection).where(TapeSection.trap_id == trap.id)
+                          .order_by(TapeSection.timestamp.desc(), TapeSection.id.desc())).first()
+    result["quality"] = None
+    if latest is not None and latest.quality_status:
+        result["quality"] = {"status": latest.quality_status, "reasons": latest.quality_reasons,
+                             "section_id": latest.id}
+    if latest is not None and latest.quality_status == image_quality.BAD:
+        # CHECK TRAP: no spray / release advice until a usable photo arrives
+        result["underlying_action"] = result["action"]
+        result["action"] = CHECK_TRAP
+        result["reason"] = image_quality.check_trap_reason(latest.quality_reasons, "en")
+    return result
+
+
+def min_confidence() -> float:
+    return float(settings.pests_config()["confidence"]["min_confidence"])
+
+
+def support_config(pest: str) -> dict | None:
+    """F5 rates (pests.yaml -> decision_support) for this pest, or None."""
+    return (settings.pests_config().get("decision_support") or {}).get(pest)
+
+
+def window_confidence(session: Session, sections: list[TapeSection]) -> tuple[float | None, float | None]:
+    """Mean detection confidence of pest boxes and of predator boxes over these sections.
+
+    Scout-corrected boxes count as 1.0 (checked by a person). None when no boxes are stored
+    (old data, or nothing detected) - then no range is computed."""
+    from backend.corrections import apply_corrections, corrections_for   # lazy: corrections imports services
+    pest, pred = [], []
+    for s in sections:
+        if not s.detections and s.corrected_pest_total is None:
+            continue
+        boxes = apply_corrections(s.detections, corrections_for(session, s.id)) if s.corrected_pest_total is not None \
+            else [dict(d, category=d.get("category")) for d in s.detections]
+        for b in boxes:
+            conf = b.get("confidence")
+            if conf is None:
+                continue
+            (pest if b.get("category") == "pest" else pred if b.get("category") == "predator" else []).append(float(conf))
+    mean = lambda xs: sum(xs) / len(xs) if xs else None
+    return mean(pest), mean(pred)
 
 
 def latest_decision(session: Session, trap_id: str) -> Decision | None:
@@ -179,7 +243,8 @@ def update_decision(session: Session, trap: Trap, notify: bool = True,
     changed = previous_action != decision["action"]
     first_and_actionable = previous_action is None and decision["action"] != "WAIT"
     if notify and ((previous_action is not None and changed) or first_and_actionable):
-        alerts.notify_decision_change(session, trap, decision, previous_action)
+        alerts.notify_decision_change(session, trap, decision, previous_action,
+                                      cooldown_until=actions.cooldown_until(session, trap.id, now))
     decision["changed"] = changed
     decision["previous_action"] = previous_action
     return decision
@@ -190,6 +255,12 @@ def update_decision(session: Session, trap: Trap, notify: bool = True,
 # ---------------------------------------------------------------------------
 def section_to_dict(s: TapeSection) -> dict:
     return {
+        "corrected": s.corrected_counts is not None,
+        "corrected_counts": s.corrected_counts, "corrected_pest_total": s.corrected_pest_total,
+        "corrected_predator_total": s.corrected_predator_total,
+        "effective_pest_total": s.effective_pest_total, "effective_predator_total": s.effective_predator_total,
+        "quality_status": s.quality_status, "quality_reasons": s.quality_reasons or [],
+        "quality_metrics": s.quality_metrics or {},
         "id": s.id, "trap_id": s.trap_id, "timestamp": s.timestamp.isoformat(timespec="seconds"),
         "counts": s.counts, "pest_total": s.pest_total, "predator_total": s.predator_total,
         "image_url": media_url(s.image_path), "annotated_url": media_url(s.annotated_path),
@@ -220,4 +291,5 @@ def trap_summary(session: Session, trap: Trap) -> dict:
                            "humidity_pct": climate.humidity_pct} if climate else None,
         "decision": compute_decision(session, trap),
         "thresholds": asdict(thresholds_for(trap.target_pest)),
+        "health": hygiene.health_status(session.get(TrapHealth, trap.id), datetime.now()),   # F6 heartbeat
     }

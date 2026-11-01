@@ -30,9 +30,9 @@ from datetime import datetime, timedelta
 
 from sqlmodel import Session, select
 
-from backend import services, settings
+from backend import actions, services, settings
 from backend.db import get_engine, init_db
-from backend.models import AlertLog, ClimateReading, Decision, TapeSection, Trap
+from backend.models import ActionLog, AlertLog, ClimateReading, Correction, Decision, TapeSection, Trap, TrapHealth
 from ml import infer
 from ml.synthetic import render_tape
 
@@ -104,7 +104,7 @@ def clear_all(session: Session) -> dict:
     Works while the backend is running (deletes rows instead of the database file,
     which Windows would refuse to delete while it is open)."""
     removed = {}
-    for model in (AlertLog, Decision, ClimateReading, TapeSection):
+    for model in (TrapHealth, ActionLog, Correction, AlertLog, Decision, ClimateReading, TapeSection):
         rows = session.exec(select(model)).all()
         removed[model.__name__] = len(rows)
         for row in rows:
@@ -146,6 +146,25 @@ def seed_history(session: Session, seed: int = 7, log=print) -> int:
             created += 1
             log(f"[seed] {trap_id} {shot:%Y-%m-%d}: drawn {counts} -> counted pests={result.pest_total} "
                 f"predators={result.predator_total} -> {decision['action']}")
+    # SIMULATED farmer actions (F4): chart markers + before/after effect card in the demo
+    for trap_id, action, days_ago, qty, note in (
+            ("T1-polyhouse", "released", 7, 500, "SIMULATED demo action: Macrolophus released"),
+            ("T5-chikkajala", "sprayed", 9, 1.0, "SIMULATED demo action")):
+        if session.get(Trap, trap_id) is not None:
+            when = (now - timedelta(days=days_ago)).replace(hour=9, minute=30, second=0)
+            actions.record(session, trap_id, action, quantity=qty, note=note, source="seed", now=when,
+                           simulated=True)
+    # SIMULATED trap health (F6): one heartbeat per trap; T4's tape is nearly used up.
+    # active_problems is pre-filled so the seed itself sends no alert.
+    total = 120 * 2048                                         # SIMULATED roll of 120 sections
+    for i, trap_id in enumerate(TRAPS):
+        if session.get(Trap, trap_id) is None:
+            continue
+        used = int(total * (0.9 if trap_id.startswith("T4") else 0.25 + 0.1 * i))
+        session.add(TrapHealth(trap_id=trap_id, last_seen=now - timedelta(minutes=10 + 7 * i), queue_depth=i % 2,
+                               tape_steps_used=used, tape_total_steps=total, simulated=True,
+                               active_problems=["TAPE_LOW"] if used / total > 0.85 else []))
+    session.commit()
     return created
 
 

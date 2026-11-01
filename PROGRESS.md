@@ -67,6 +67,22 @@ Done (backend + bot, 172 tests pass):
 NOT done yet (dashboard side): advisory + forecast + weather panel and voice readout on the trap page,
 outbreak map page, impact calculator page, PWA install/offline cache. README not yet updated.
 
+## Prep round (1 Nov) - 6 features, branch `feature/prep-round` (one commit each)
+
+Done, 228 tests pass, `npm run build` passes, each feature checked in the browser / with the mock trap:
+- **F1** image quality gate + CHECK TRAP state + alert (`--inject blur|dark|glare|stuck`)
+- **F3** scout corrections (add/remove/relabel), corrected counts drive the decision, Model page stats, YOLO zip export
+- **F4** action logging from Telegram buttons and the dashboard, chart markers, 3-day effect card, cooldown
+- **F2** count range + BORDERLINE from detection confidence (Telegram + dashboard)
+- **F5** cost of spraying, release dose + re-check date, What-if page (`/api/decision/simulate` == live engine)
+- **F6** heartbeat + Health card, offline / tape-low / motor-fault alerts, quiet hours, one reminder,
+  daily digest (`--inject offline|motor|tape`)
+
+Still to confirm: every limit added this round is a PLACEHOLDER in `config/pests.yaml` (image quality
+on the real Pi camera; release rate, predators per trapped predator and area per trap with the IIHR
+mentor; cooldown, quiet hours, digest time and reminder delay with the team). New Kannada strings
+are in `docs/kannada_review.csv` as "needs review". Not merged into `main`, not pushed.
+
 ## What you must still do manually
 
 1. **Dataset:** download `data.zip` from https://data.4tu.nl/articles/_/12707066/1 into `ml/data/raw/`,

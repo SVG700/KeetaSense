@@ -9,6 +9,8 @@ never fails because Telegram is missing.
 from __future__ import annotations
 
 import asyncio
+import os
+from datetime import datetime, timedelta
 import logging
 import threading
 from functools import lru_cache
@@ -17,7 +19,7 @@ from pathlib import Path
 import yaml
 from sqlmodel import Session, select
 
-from backend import bot_store, settings
+from backend import bot_store, image_quality, settings
 from backend.db import get_engine
 from backend.models import AlertLog, Trap
 
@@ -51,7 +53,36 @@ def render_message(lang: str, trap: Trap, decision: dict) -> str:
         ratio=_fmt(decision["ratio"]),
         days_text=days_text,
         reason=decision["reason"],
-    ).strip()
+        quality_text=image_quality.reasons_text((decision.get("quality") or {}).get("reasons", []), lang,
+                                                only_bad=True),
+    ).strip() + borderline_line(lang, trap, decision) + \
+        ("\n" + line if (line := support_line(templates().get(lang) or templates()["en"], decision, lang)) else "")
+
+
+def support_line(t: dict, decision: dict, lang: str) -> str | None:
+    """F5: cost of spraying / release dose, localised (None if nothing to add)."""
+    s = decision.get("support")
+    if not s or decision.get("action") == "CHECK_TRAP":
+        return None
+    if s.get("predators_at_risk"):
+        return t["support_harm"].format(n=s["predators_at_risk"])
+    if s.get("release_count"):
+        from datetime import date as _date
+        return t["support_release"].format(
+            n=s["release_count"], area=f"{s['area_m2']:g}",
+            predator=settings.pest_display_name(s["release_class"], lang),
+            date=_date.fromisoformat(s["recheck_date"]).strftime("%d-%m-%Y"))
+    return None
+
+
+def borderline_line(lang: str, trap: Trap, decision: dict) -> str:
+    """F2: extra line when the advice could change inside the detector's count range."""
+    if not decision.get("borderline") or decision.get("action") == "CHECK_TRAP":
+        return ""
+    u = decision["uncertainty"]
+    t = templates().get(lang) or templates()["en"]
+    return "\n" + t["borderline"].format(low=f"{u['pests_low']:.0f}", high=f"{u['pests_high']:.0f}",
+                                         pest_name=settings.pest_display_name(trap.target_pest, lang))
 
 
 def telegram_configured() -> bool:
@@ -80,22 +111,35 @@ def languages_for(trap_id: str) -> list[str]:
     return langs
 
 
-async def _send_telegram(text: str, chat_ids: list[str]) -> None:
-    from telegram import Bot  # lazy import
+ACK_ACTIONS = ("sprayed", "released", "not_yet")
+ACTIONABLE = ("SPRAY", "RELEASE_BIOCONTROL")   # alerts that get Sprayed / Released / Not yet buttons
+
+
+def ack_buttons(alert_id: int, trap_id: str, lang: str) -> list[tuple[str, str]]:
+    """(label, callback data) for the alert's buttons. Data: ack|<alert id>|<trap id>|<action> (< 64 bytes)."""
+    t = templates().get(lang) or templates()["en"]
+    return [(t[f"button_{a}"], f"ack|{alert_id}|{trap_id}|{a}") for a in ACK_ACTIONS]
+
+
+async def _send_telegram(text: str, chat_ids: list[str], buttons: list[tuple[str, str]] | None = None) -> None:
+    from telegram import Bot, InlineKeyboardButton, InlineKeyboardMarkup  # lazy import
     from telegram.request import HTTPXRequest
     # short timeouts: with Wi-Fi off the attempt fails fast instead of hanging
     request = HTTPXRequest(connect_timeout=5, read_timeout=10, write_timeout=10, pool_timeout=5)
+    markup = InlineKeyboardMarkup([[InlineKeyboardButton(label, callback_data=data) for label, data in buttons]]) \
+        if buttons else None
     async with Bot(settings.telegram_token(), request=request) as bot:
         for chat_id in chat_ids:
-            await bot.send_message(chat_id=chat_id, text=text)
+            await bot.send_message(chat_id=chat_id, text=text, reply_markup=markup)
 
 
-def _send_in_background(alert_id: int, text: str, chat_ids: list[str]) -> None:
+def _send_in_background(alert_id: int, text: str, chat_ids: list[str],
+                        buttons: list[tuple[str, str]] | None = None) -> None:
     """Send on a separate thread so a slow network never blocks the API."""
     def worker():
         status, error = "sent", None
         try:
-            asyncio.run(_send_telegram(text, chat_ids))
+            asyncio.run(_send_telegram(text, chat_ids, buttons))
             log.info("Telegram alert %s sent to %d chat(s)", alert_id, len(chat_ids))
         except Exception as e:  # network down, wrong token, ...
             status, error = "failed", str(e)[:500]
@@ -109,31 +153,82 @@ def _send_in_background(alert_id: int, text: str, chat_ids: list[str]) -> None:
     threading.Thread(target=worker, daemon=True).start()
 
 
-def send_alert(session: Session, trap_id: str, action: str, previous_action: str | None,
-               lang: str, text: str) -> AlertLog:
-    """Store one alert and send it to Telegram (or only log it if nobody can receive it)."""
-    chats = recipients(trap_id, lang)
-    row = AlertLog(trap_id=trap_id, action=action, previous_action=previous_action, language=lang, message=text,
-                   status="pending" if chats else "logged")
+def hygiene_config() -> dict:
+    return settings.pests_config()["alert_hygiene"]
+
+
+def quiet_until(now: datetime) -> datetime | None:
+    """If `now` is inside quiet hours, the moment they end; else None (F6)."""
+    if os.environ.get("KEETA_QUIET_HOURS", "on").strip().lower() == "off":   # tests / stage demo
+        return None
+    c = hygiene_config()
+    start, end = int(c["quiet_hours_start"]), int(c["quiet_hours_end"])
+    if start == end:
+        return None
+    h = now.hour
+    inside = (start <= h or h < end) if start > end else (start <= h < end)
+    if not inside:
+        return None
+    end_time = now.replace(hour=end, minute=0, second=0, microsecond=0)
+    return end_time if end_time > now else end_time + timedelta(days=1)
+
+
+def deliver(session: Session, row: AlertLog, buttons: bool | None = None) -> AlertLog:
+    """Send a stored alert now (also used for alerts held in quiet hours and for reminders)."""
+    chats = recipients(row.trap_id, row.language)
+    row.status = "pending" if chats else "logged"
     session.add(row)
     session.commit()
     session.refresh(row)
     if chats:
-        _send_in_background(row.id, text, chats)
+        with_buttons = (row.action in ACTIONABLE) if buttons is None else buttons
+        _send_in_background(row.id, row.message, chats,
+                            ack_buttons(row.id, row.trap_id, row.language) if with_buttons else None)
     else:
-        log.warning("[ALERT - Telegram not configured, logged only] (%s)\n%s", lang, text)
+        log.warning("[ALERT - Telegram not configured, logged only] (%s)\n%s", row.language, row.message)
     return row
 
 
-def notify_decision_change(session: Session, trap: Trap, decision: dict,
-                           previous_action: str | None) -> list[AlertLog]:
-    """Create (and send, if configured) one alert per language."""
+def send_alert(session: Session, trap_id: str, action: str, previous_action: str | None,
+               lang: str, text: str, buttons: bool = False, suppressed_until: datetime | None = None,
+               now: datetime | None = None) -> AlertLog:
+    """Store one alert and send it to Telegram (or only log it if nobody can receive it).
+
+    buttons: add Sprayed / Released / Not yet buttons (F4).
+    suppressed_until: inside a post-action cooldown - store the alert as "suppressed", do not send it.
+    Quiet hours (F6): store it as "held"; hygiene.tick() delivers it when the quiet hours end."""
+    now = now or datetime.now()
+    held = None if suppressed_until else quiet_until(now)
+    row = AlertLog(trap_id=trap_id, action=action, previous_action=previous_action, language=lang, message=text,
+                   timestamp=now, status="suppressed" if suppressed_until else "held" if held else "new",
+                   held_until=held,
+                   error=f"cooldown until {suppressed_until:%Y-%m-%d %H:%M}" if suppressed_until else None)
+    session.add(row)
+    session.commit()
+    session.refresh(row)
+    if suppressed_until:
+        log.info("[ALERT suppressed - action cooldown until %s] (%s) %s", suppressed_until, lang, trap_id)
+        return row
+    if held:
+        log.info("[ALERT held - quiet hours until %s] (%s) %s", held, lang, trap_id)
+        return row
+    return deliver(session, row, buttons)
+
+
+def notify_decision_change(session: Session, trap: Trap, decision: dict, previous_action: str | None,
+                           cooldown_until: datetime | None = None) -> list[AlertLog]:
+    """Create (and send, if configured) one alert per language.
+
+    SPRAY / BIOCONTROL alerts get action buttons and are held back during a post-action cooldown;
+    CHECK TRAP and WAIT alerts are always sent."""
+    actionable = decision["action"] in ACTIONABLE
     rows = []
     for lang in languages_for(trap.id):
         if lang not in templates():
             continue
         rows.append(send_alert(session, trap.id, decision["action"], previous_action, lang,
-                               render_message(lang, trap, decision)))
+                               render_message(lang, trap, decision), buttons=actionable,
+                               suppressed_until=cooldown_until if actionable else None))
     return rows
 
 

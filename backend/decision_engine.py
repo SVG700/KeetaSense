@@ -160,6 +160,52 @@ def forecast_sentence(dd: DegreeDayStatus, pest_name: str) -> str:
 # ---------------------------------------------------------------------------
 # The decision
 # ---------------------------------------------------------------------------
+def classify(pests_per_day: float, predators_per_day: float, th: Thresholds) -> str:
+    """The three rules on their own (used by decide() and by the uncertainty check)."""
+    if pests_per_day < th.action_threshold_per_day:
+        return WAIT
+    if pest_predator_ratio(pests_per_day, predators_per_day) >= th.spray_ratio:
+        return SPRAY
+    return RELEASE_BIOCONTROL
+
+
+# ---------------------------------------------------------------------------
+# F2: confidence-aware decisions
+# ---------------------------------------------------------------------------
+def count_range(value: float, mean_confidence: float | None, floor: float = 0.5) -> tuple[float, float]:
+    """Plausible range of the true count when the detector is `mean_confidence` sure on average.
+
+    Simple and symmetric: some detections may be wrong (true count about value x confidence) and
+    about as many insects may have been missed (true count about value / confidence).
+    Confidence below `floor` is treated as `floor` so one weak photo cannot explode the range."""
+    if mean_confidence is None or value <= 0:
+        return value, value
+    c = min(1.0, max(floor, mean_confidence))
+    return value * c, value / c
+
+
+def uncertainty(pests: float, predators: float, pest_conf: float | None, predator_conf: float | None,
+                th: Thresholds, floor: float = 0.5) -> dict:
+    """BORDERLINE if the action could be different anywhere inside the count ranges.
+
+    The rules only get stricter with more pests or fewer predators, so checking the corners of the
+    ranges (plus the middle) is enough to know every possible action."""
+    p_lo, p_hi = count_range(pests, pest_conf, floor)
+    q_lo, q_hi = count_range(predators, predator_conf, floor)
+    possible = {classify(p, q, th) for p in (p_lo, pests, p_hi) for q in (q_lo, predators, q_hi)}
+    order = [WAIT, RELEASE_BIOCONTROL, SPRAY]
+    return {"borderline": len(possible) > 1, "possible_actions": [a for a in order if a in possible],
+            "pests_low": round(p_lo, 1), "pests_high": round(p_hi, 1),
+            "predators_low": round(q_lo, 1), "predators_high": round(q_hi, 1),
+            "pest_confidence": None if pest_conf is None else round(pest_conf, 3),
+            "predator_confidence": None if predator_conf is None else round(predator_conf, 3)}
+
+
+def borderline_text(u: dict, pest_name: str) -> str:
+    """'(borderline: 38 to 52 whitefly per day)' - added to the reason when the advice is uncertain."""
+    return f"(borderline: {u['pests_low']:.0f} to {u['pests_high']:.0f} {pest_name} per day)"
+
+
 def decide(catches: list[DailyCatch], temps: list[DailyTemperature], th: Thresholds,
            pest_name: str = "pest") -> DecisionResult:
     """Combine recent catches and temperatures into one recommendation.
@@ -181,11 +227,10 @@ def decide(catches: list[DailyCatch], temps: list[DailyTemperature], th: Thresho
     catch_text = (f"{_fmt(pests)} {pest_name} per day {window_text} "
                   f"(action threshold {_fmt(threshold)})")
 
-    if pests < threshold:
-        action = WAIT
+    action = classify(pests, predators, th)
+    if action == WAIT:
         reason = f"{pest_name.capitalize()} catch is below the action threshold: {catch_text}. Keep monitoring."
-    elif ratio >= th.spray_ratio:
-        action = SPRAY
+    elif action == SPRAY:
         reason = (f"{pest_name.capitalize()} catch is high: {catch_text}. Predators are not keeping pace: "
                   f"{_fmt(ratio)} pests per predator (spray at {_fmt(th.spray_ratio)} or more).")
     else:

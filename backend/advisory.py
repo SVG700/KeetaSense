@@ -17,7 +17,7 @@ from pathlib import Path
 import yaml
 from sqlmodel import Session, select
 
-from backend import network, pest_forecast, services, settings, spray_window, weather
+from backend import alerts, network, pest_forecast, services, settings, spray_window, weather
 from backend.models import TapeSection, Trap
 
 log = logging.getLogger("keetasense.advisory")
@@ -77,7 +77,7 @@ def forecast_for(session: Session, trap: Trap, fc: dict | None) -> dict:
                   if d["date"] > today and d["tmin"] is not None and d["tmax"] is not None]
         source = "simulated weather forecast" if fc.get("simulated") else "Open-Meteo weather forecast"
     return pest_forecast.forecast(
-        [s.pest_total for s in sections], section_dd, future, threshold=th.action_threshold_per_day,
+        [s.effective_pest_total for s in sections], section_dd, future, threshold=th.action_threshold_per_day,
         days_ahead=int(cfg["days_ahead"]), min_sections=int(cfg["min_sections"]),
         pest_name=settings.pest_display_name(trap.target_pest).lower(), weather_source=source)
 
@@ -148,6 +148,11 @@ def render(adv: dict, lang: str = "en", now: datetime | None = None) -> dict:
     pest = settings.pest_display_name(adv["target_pest"], lang)
     lines = [t[f"action_{d['action']}"],
              t["counts"].format(pest_name=pest, pests=_fmt(d["pests_per_day"]), predators=_fmt(d["predators_per_day"]))]
+    if (line := alerts.support_line(t, d, lang)) is not None:
+        lines.append(line)
+    if d.get("borderline") and d["action"] != "CHECK_TRAP":
+        u = d["uncertainty"]
+        lines.append(t["borderline"].format(low=f"{u['pests_low']:.0f}", high=f"{u['pests_high']:.0f}", pest_name=pest))
     f = adv["forecast"]
     if f.get("status") == "ok":
         lines.append(t[f"trend_{f['trend']}"].format(pct=_fmt(abs(f["daily_change_pct"]))))
@@ -168,7 +173,9 @@ def answer_spray_question(adv: dict, lang: str = "en", now: datetime | None = No
     now = now or datetime.fromisoformat(adv["generated_at"])
     d = adv["decision"]
     pest = settings.pest_display_name(adv["target_pest"], lang)
-    if d["action"] == "WAIT":
+    if d["action"] == "CHECK_TRAP":
+        lines = [t["answer_check_trap"]]
+    elif d["action"] == "WAIT":
         lines = [t["answer_no_need"].format(pest_name=pest, pests=_fmt(d["pests_per_day"]))]
     elif d["action"] == "RELEASE_BIOCONTROL":
         lines = [t["answer_biocontrol"]]

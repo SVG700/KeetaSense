@@ -7,7 +7,7 @@ import {
   Bar, BarChart, CartesianGrid, Legend, Line, LineChart, ReferenceLine,
   ResponsiveContainer, Tooltip, XAxis, YAxis,
 } from "recharts";
-import type { ClimateDay, DegreeDays, Section } from "../api";
+import type { ActionRow, ClimateDay, DegreeDays, Section } from "../api";
 
 const axisProps = {
   stroke: "var(--chart-axis)",
@@ -53,10 +53,19 @@ function ChartTooltip({ active, payload, label, unit = "" }: TipProps) {
   );
 }
 
-export function CountsChart({ sections, threshold, pestName }: { sections: Section[]; threshold: number; pestName: string }) {
+const ACTION_MARK: Record<string, string> = { sprayed: "Sprayed", released: "Released", not_yet: "Not yet" };
+
+export function CountsChart({ sections, threshold, pestName, actions = [] }: {
+  sections: Section[]; threshold: number; pestName: string; actions?: ActionRow[];
+}) {
   const [asTable, setAsTable] = useState(false);
   const labels = sectionLabels(sections);
-  const data = sections.map((s, i) => ({ label: labels[i], pests: s.pest_total, predators: s.predator_total }));
+  // F4: a vertical marker at the first tape section after each action ("not yet" is not drawn)
+  const markers = actions.filter((a) => a.action !== "not_yet").map((a) => {
+    const i = sections.findIndex((s) => s.timestamp >= a.timestamp);
+    return i < 0 ? null : { x: labels[i], text: ACTION_MARK[a.action] + (a.simulated ? " (sim.)" : ""), id: a.id };
+  }).filter((m): m is { x: string; text: string; id: number } => m !== null);
+  const data = sections.map((s, i) => ({ label: labels[i], pests: s.effective_pest_total, predators: s.effective_predator_total }));
 
   return (
     <div>
@@ -89,6 +98,10 @@ export function CountsChart({ sections, threshold, pestName }: { sections: Secti
               <YAxis {...axisProps} allowDecimals={false} />
               <Tooltip content={<ChartTooltip />} />
               <Legend verticalAlign="top" height={28} iconType="circle" wrapperStyle={{ fontSize: 13 }} />
+              {markers.map((m) => (
+                <ReferenceLine key={m.id} x={m.x} stroke="var(--chart-axis)" strokeDasharray="2 3"
+                               label={{ value: m.text, position: "insideTopRight", fill: "var(--chart-axis)", fontSize: 11 }} />
+              ))}
               <ReferenceLine
                 y={threshold}
                 stroke="var(--chart-threshold)"

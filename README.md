@@ -34,6 +34,22 @@ reason, in English and Kannada.
 5. **Dashboard.** Trends, trap status and annotated tape images; farmers without hardware can
    upload a **phone photo** of their own trap. Every screen shows which detector produced the counts.
 
+## Prep-round features (F1-F6, branch `feature/prep-round`)
+
+| | Feature | Where to see it | Demo without hardware |
+|---|---|---|---|
+| F1 | **Image quality gate** - blur, too dark/bright, glare, tape did not advance. A BAD photo gives **CHECK TRAP** (no spray/release advice) + an alert; WARN photos still count | quality badge on overview + trap page, metrics line under the tape image | `scripts\demo.bat --inject blur` (or `dark`, `glare`, `stuck`) |
+| F2 | **Confidence-aware decisions** - count range from the mean detection confidence; **BORDERLINE** when the advice could flip inside that range | "⚖ Borderline" tag, range in the reason and in the Telegram text | What-if page, "Include detector uncertainty" |
+| F3 | **Scout corrections** - add / remove / relabel boxes on the tape image; corrected counts replace the model's in the decision ("corrected by scout"); Model page shows correction rate and count error "based on N corrected captures"; YOLO zip export | trap page → tape editor; Model page → Corrections | any seeded image |
+| F4 | **Action logging** - Sprayed / Released / Not yet buttons in Telegram and on the dashboard; markers on the chart; 3-day before/after effect card; alert cooldown after an action | trap page → "What did you do?" | seeded SIMULATED actions on T1 and T5 |
+| F5 | **Decision intelligence** - cost of spraying (predators killed), release dose + re-check date (PLACEHOLDER rates); **What-if** page (`POST /api/decision/simulate`, same function as the live engine, nothing stored) | trap page reason; nav → What-if (◇ SIMULATION badge) | always |
+| F6 | **Trap health + alert hygiene** - heartbeat (queue, tape used, motor fault) → online/offline, tape left %; alerts for offline, tape < 15 %, motor fault; quiet hours (held until morning), one reminder if an alert is not answered, daily digest per trap | Health card on the trap page, badge on the overview | `scripts\demo.bat --inject offline` (or `motor`, `tape`); seeded T4 has low tape |
+
+Every threshold and rate is in `config/pests.yaml` (`image_quality`, `confidence`, `actions`,
+`decision_support`, `health`, `alert_hygiene`), marked PLACEHOLDER or "Team decision". Seeded and
+mock values carry the usual **⚗ Simulated data** tag. New UI strings have English and Kannada
+(Kannada marked "needs review" in `docs/kannada_review.csv`).
+
 ## Architecture
 
 ```mermaid
@@ -106,7 +122,9 @@ installs the frontend packages and generates the sample tape images.
 Everything runs in **this one window**, each line prefixed with `[backend]`, `[trap]`, ...
 **Ctrl+C or closing the window stops everything.** A crashed backend or trap service is restarted
 automatically. Options: `--lan` (let the Pi and phones on the same Wi-Fi connect; prints the
-laptop's address), `--no-browser`, `--no-seed`, `--dev` (Vite dev server), `--cycles N`.
+laptop's address), `--no-browser`, `--no-seed`, `--dev` (Vite dev server), `--cycles N`,
+`--inject blur|dark|glare|stuck|motor|tape|offline` (MOCK fault for the quality gate / trap health).
+Demo and replay switch quiet hours off (`KEETA_QUIET_HOURS=off`) so an evening demo still shows alerts.
 
 The dashboard opens at **http://127.0.0.1:8000** (served by the backend, so no internet is needed).
 Switch **Live on** (top right). Open the **Polyhouse trap**: a new point appears every 20 s and the
@@ -136,11 +154,14 @@ python -m edge.main --demo --replay demo/replay    # replay a recording instead
 ```bash
 python -m pytest
 ```
-103 tests: dataset tools (4TU helper, converter, summary, tiling), augmentations, per-class
+228 tests: dataset tools (4TU helper, converter, summary, tiling), augmentations, per-class
 thresholds, model packaging, camera test, demo detector, evaluation maths, every decision rule,
 every API endpoint, model switching and fallback, demo reset, offline flow (all internet lookups
 blocked), Telegram failure, Settings page, Kannada review, and the edge service (queue, backoff,
-self-check, hardware checks with fakes, record + replay).
+self-check, hardware checks with fakes, record + replay), plus the prep-round features: image
+quality on generated images, corrections + YOLO export, action callback / cooldown / before-after,
+stable and flipping confidence cases, simulate == live, and trap health + quiet hours + reminders +
+digest with a fake clock.
 Frontend type-check + build: `npm --prefix frontend run build`.
 
 ---
@@ -212,7 +233,7 @@ The edge service starts with a quick self-check table of all of these.
 | File / page | What to change |
 |---|---|
 | **Settings page** (dashboard) | decision thresholds, base temperature, degree-days per generation - validated, backed up, marked "Confirmed with IIHR mentor on <date>", decisions recalculated at once |
-| `config/pests.yaml` | insect classes, **pest vs predator** mapping, dataset label aliases, per-class confidence, thresholds |
+| `config/pests.yaml` | insect classes, **pest vs predator** mapping, dataset label aliases, per-class confidence, thresholds; prep-round limits: image quality, confidence, action cooldown, decision-support rates, trap health, quiet hours / digest / reminder |
 | `config/traps.yaml` | trap ids, names, locations, target pest, simulated flag |
 | `.env` | paths, detector settings, Telegram token + chat id, edge pins/timings, `MOCK_HARDWARE`, `RECORD`, `KEETA_ALLOW_RESET` |
 | `backend/alert_templates.yaml` | English and Kannada alert text (**a Kannada speaker must verify it** - see below) |
@@ -241,6 +262,13 @@ keeping every `{placeholder}`; then `python -m backend.kannada_review import doc
 | GET/PUT | `/api/settings/thresholds[/{pest}]` | view / save thresholds |
 | POST | `/api/reset-demo` | restore the seeded demo state |
 | GET | `/api/health` | status, detector, Telegram mode |
+| GET | `/api/sections/{id}` | one tape section with model + scout boxes |
+| POST / DELETE | `/api/sections/{id}/corrections`, `/api/corrections/{id}` | add / undo a scout correction |
+| GET | `/api/corrections/stats`, `/api/corrections/export.zip` | correction rate + count error; YOLO dataset zip |
+| GET / POST | `/api/traps/{id}/actions` | farmer actions (sprayed / released / not yet) + effect |
+| POST | `/api/decision/simulate` | What-if: decision for given counts / temperature (nothing stored) |
+| POST | `/api/traps/{id}/heartbeat` | trap health from the edge service |
+| GET | `/api/traps/{id}/health` | online/offline, tape left, queue, motor fault |
 
 Images are served from `/media/...`, the dashboard from `/`. Interactive docs: http://127.0.0.1:8000/docs.
 
@@ -260,6 +288,10 @@ Images are served from `/media/...`, the dashboard from `/`. Interactive docs: h
 | Thresholds | **Placeholders** until confirmed with the IIHR mentor (Settings page) |
 | Kannada alert text | **Machine-drafted** - a native speaker must check it (`docs/kannada_review.csv`) |
 | Telegram sending | Real code; "log only" until a token is added |
+| Image-quality limits, confidence floor, cooldown, decision-support rates, health limits, quiet hours | **Placeholders / team decisions** in `config/pests.yaml` - tune on the real Pi camera and with the mentor |
+| Detection confidence of the demo detector | **Heuristic** (blob darkness), not calibrated - only the real model gives meaningful confidence |
+| Seeded farmer actions (T1 released, T5 sprayed) and seeded trap health (T4 tape low) | **Simulated**, tagged in the UI |
+| Trap health in the demo | From the **mock** trap's heartbeat (tape steps counted, faults injected with `--inject`) |
 
 ### Measured metrics
 
