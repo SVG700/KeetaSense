@@ -1,6 +1,6 @@
 // Small reusable UI pieces: decision badge, labels, error and empty states.
 import type { ReactNode } from "react";
-import { ApiError, type Action, type DetectorMode, type QualityReason, type QualityStatus } from "../api";
+import { ApiError, type Action, type Decision, type DetectorMode, type QualityReason, type QualityStatus } from "../api";
 import { useT } from "../i18n";
 
 /** Traffic light for a decision. Colour is never alone: always icon + words. */
@@ -37,6 +37,23 @@ export function DecisionBadge({ action, size = "md" }: { action: Action | string
 /** Coloured strip down the side of a card: the "traffic light". */
 export function ActionStrip({ action }: { action: Action }) {
   return <div className="absolute inset-y-0 left-0 w-1.5 rounded-l-2xl" style={{ background: (ACTION_INFO[action] ?? OTHER).color }} aria-hidden />;
+}
+
+/** F2: "Borderline: 23-36 whitefly/day" when the advice could change inside the count range. */
+export function BorderlineTag({ decision, pest }: { decision: Decision; pest: string }) {
+  const t = useT();
+  const u = decision.uncertainty;
+  if (!decision.borderline || !u || decision.action === "CHECK_TRAP") return null;
+  const hint = t("decision.borderline.hint", {
+    conf: u.pest_confidence != null ? Math.round(u.pest_confidence * 100) : "–",
+    low: Math.round(u.pests_low), high: Math.round(u.pests_high),
+    actions: u.possible_actions.map((a) => (ACTION_INFO[a] ?? OTHER).label).join(" / "),
+  });
+  return (
+    <span title={hint} className="inline-flex items-center gap-1 rounded-md border border-dashed border-stone-400 px-2 py-0.5 text-xs font-medium text-stone-700 dark:border-stone-500 dark:text-stone-200">
+      ⚖ {t("decision.borderline", { low: Math.round(u.pests_low), high: Math.round(u.pests_high), pest })}
+    </span>
+  );
 }
 
 /** F1: photo quality of a tape section (OK is quiet unless showOk; WARN/BAD say why). */

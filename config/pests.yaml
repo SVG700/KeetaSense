@@ -96,3 +96,11 @@ actions:
   cooldown_hours: 48             # PLACEHOLDER - confirm with IIHR mentor
   # Effect card: average whitefly per tape section this many days before vs after an action.
   effect_window_days: 3          # Team decision (prep-round brief: 3 days before vs after)
+
+# ---------------------------------------------------------------------------
+# 5. Confidence-aware decisions (F2)
+# ---------------------------------------------------------------------------
+# Count range = [count x mean confidence, count / mean confidence]. If the advice could differ
+# anywhere in that range, it is shown as BORDERLINE with the range.
+confidence:
+  min_confidence: 0.5            # PLACEHOLDER - confirm with the trained model's evaluation (confidence floor)

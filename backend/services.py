@@ -16,8 +16,8 @@ import numpy as np
 from sqlmodel import Session, select
 
 from backend import actions, alerts, image_quality, settings
-from backend.decision_engine import (DailyCatch, DailyTemperature, Thresholds, daily_degree_days,
-                                     decide)
+from backend.decision_engine import (DailyCatch, DailyTemperature, Thresholds, borderline_text, daily_degree_days,
+                                     decide, uncertainty)
 from backend.models import ClimateReading, Decision, TapeSection, Trap
 from ml import infer
 from ml.common import category_of
@@ -176,7 +176,16 @@ def compute_decision(session: Session, trap: Trap) -> dict:
     catches = [DailyCatch(s.effective_pest_total, s.effective_predator_total) for s in reversed(recent)]
     temps = [DailyTemperature(date.fromisoformat(d["date"]), d["tmin"], d["tmax"])
              for d in daily_climate(session, trap)]
-    result = decide(catches, temps, th, settings.pest_display_name(trap.target_pest).lower()).to_dict()
+    pest_name = settings.pest_display_name(trap.target_pest).lower()
+    result = decide(catches, temps, th, pest_name).to_dict()
+    # F2: how sure is the detector? -> count range -> BORDERLINE if the advice could differ inside it
+    pest_conf, predator_conf = window_confidence(session, recent)
+    u = uncertainty(result["pests_per_day"], result["predators_per_day"], pest_conf, predator_conf, th,
+                    float(settings.pests_config()["confidence"]["min_confidence"]))
+    result["uncertainty"] = u
+    result["borderline"] = u["borderline"] and result["window_days_used"] > 0
+    if result["borderline"]:
+        result["reason"] += " " + borderline_text(u, pest_name)
     latest = session.exec(select(TapeSection).where(TapeSection.trap_id == trap.id)
                           .order_by(TapeSection.timestamp.desc(), TapeSection.id.desc())).first()
     result["quality"] = None
@@ -189,6 +198,27 @@ def compute_decision(session: Session, trap: Trap) -> dict:
         result["action"] = CHECK_TRAP
         result["reason"] = image_quality.check_trap_reason(latest.quality_reasons, "en")
     return result
+
+
+def window_confidence(session: Session, sections: list[TapeSection]) -> tuple[float | None, float | None]:
+    """Mean detection confidence of pest boxes and of predator boxes over these sections.
+
+    Scout-corrected boxes count as 1.0 (checked by a person). None when no boxes are stored
+    (old data, or nothing detected) - then no range is computed."""
+    from backend.corrections import apply_corrections, corrections_for   # lazy: corrections imports services
+    pest, pred = [], []
+    for s in sections:
+        if not s.detections and s.corrected_pest_total is None:
+            continue
+        boxes = apply_corrections(s.detections, corrections_for(session, s.id)) if s.corrected_pest_total is not None \
+            else [dict(d, category=d.get("category")) for d in s.detections]
+        for b in boxes:
+            conf = b.get("confidence")
+            if conf is None:
+                continue
+            (pest if b.get("category") == "pest" else pred if b.get("category") == "predator" else []).append(float(conf))
+    mean = lambda xs: sum(xs) / len(xs) if xs else None
+    return mean(pest), mean(pred)
 
 
 def latest_decision(session: Session, trap_id: str) -> Decision | None:

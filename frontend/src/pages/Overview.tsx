@@ -4,7 +4,7 @@ import { api, mediaUrl, type AlertItem, type Summary, type TrapSummary } from ".
 import { useT } from "../i18n";
 import { useLiveData } from "../settings";
 import {
-  ActionStrip, DecisionBadge, DetectorTag, EmptyState, ErrorState, QualityBadge, ReplayTag, SimulatedTag, Spinner, StatusDot,
+  ActionStrip, BorderlineTag, DecisionBadge, DetectorTag, EmptyState, ErrorState, QualityBadge, ReplayTag, SimulatedTag, Spinner, StatusDot,
   Tag, prettyPest, timeAgo,
 } from "../components/ui";
 
@@ -44,7 +44,10 @@ function TrapCard({ trap }: { trap: TrapSummary }) {
             <h3 className="text-lg font-semibold">{trap.name}</h3>
             <p className="text-sm text-stone-500 dark:text-stone-400">{trap.location} · {trap.crop}</p>
           </div>
-          <DecisionBadge action={d.action} />
+          <span className="flex flex-col items-end gap-1">
+            <DecisionBadge action={d.action} />
+            <BorderlineTag decision={d} pest={trap.target_pest} />
+          </span>
         </div>
 
         <div className="mt-4 grid grid-cols-2 gap-3">

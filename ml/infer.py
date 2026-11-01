@@ -290,6 +290,15 @@ DEMO_SLIM_MIN_ASPECT = 3.8  # length/width above this is "slim", else "stout"
 DEMO_DARKNESS = 60          # how much darker than the local background a pixel must be
 
 
+def _demo_score(darker: np.ndarray, cnt) -> float:
+    """Demo detector 'confidence': 0.5 for a blob just dark enough, up to 0.95 for a very dark one."""
+    x, y, w, h = cv2.boundingRect(cnt)
+    mask = np.zeros((h, w), np.uint8)
+    cv2.drawContours(mask, [cnt - [x, y]], -1, 255, -1)
+    mean_dark = cv2.mean(darker[y:y + h, x:x + w], mask=mask)[0]
+    return round(0.5 + 0.45 * float(np.clip((mean_dark - DEMO_DARKNESS) / 120, 0, 1)), 3)
+
+
 def demo_detect(img_bgr: np.ndarray) -> list[dict]:
     """Find dark blobs on the yellow tape and label them by shape."""
     shape_to_class = {c.synthetic_shape: c.name for c in get_classes()}
@@ -322,7 +331,8 @@ def demo_detect(img_bgr: np.ndarray) -> list[dict]:
         detections.append({
             "class_name": name,
             "category": category_of(name),
-            "confidence": 0.5,  # fixed: the demo detector has no real confidence
+            # heuristic score (NOT a calibrated probability): how much darker than the tape the blob is
+            "confidence": _demo_score(darker, cnt),
             "bbox": [float(x - 2), float(y - 2), float(x + bw + 2), float(y + bh + 2)],
         })
     return detections

@@ -8,7 +8,7 @@ import { CountsChart, DegreeDayChart, DegreeDayMeter } from "../components/chart
 import ActionPanel from "../components/ActionPanel";
 import TapeEditor from "../components/TapeEditor";
 import {
-  ActionStrip, DecisionBadge, DetectorTag, EmptyState, ErrorState, QualityBadge, ReplayTag, SimulatedTag, Spinner, StatusDot,
+  ActionStrip, BorderlineTag, DecisionBadge, DetectorTag, EmptyState, ErrorState, QualityBadge, ReplayTag, SimulatedTag, Spinner, StatusDot,
   prettyPest, timeAgo,
 } from "../components/ui";
 
@@ -52,7 +52,10 @@ export default function TrapDetail() {
                 {latest && <DetectorTag mode={latest.detector_mode} />}
               </div>
             </div>
-            <DecisionBadge action={d.action} size="lg" />
+            <span className="flex flex-col items-end gap-1">
+              <DecisionBadge action={d.action} size="lg" />
+              <BorderlineTag decision={d} pest={pest} />
+            </span>
           </div>
           <p className="mt-4 max-w-3xl leading-relaxed text-stone-700 dark:text-stone-300">{d.reason}</p>
           <dl className="mt-4 grid grid-cols-2 gap-3 text-sm sm:grid-cols-4">

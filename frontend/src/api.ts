@@ -121,6 +121,17 @@ export interface DegreeDays {
 export interface Decision {
   action: Action;
   underlying_action?: Action; // what the counts say when the action is CHECK_TRAP
+  borderline?: boolean;        // F2: the advice could differ inside the detector's count range
+  uncertainty?: {
+    borderline: boolean;
+    possible_actions: Action[];
+    pests_low: number;
+    pests_high: number;
+    predators_low: number;
+    predators_high: number;
+    pest_confidence: number | null;
+    predator_confidence: number | null;
+  };
   quality?: { status: QualityStatus; reasons: QualityReason[]; section_id: number } | null;
   reason: string;
   pests_per_day: number;

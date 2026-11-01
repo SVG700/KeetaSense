@@ -148,6 +148,9 @@ def render(adv: dict, lang: str = "en", now: datetime | None = None) -> dict:
     pest = settings.pest_display_name(adv["target_pest"], lang)
     lines = [t[f"action_{d['action']}"],
              t["counts"].format(pest_name=pest, pests=_fmt(d["pests_per_day"]), predators=_fmt(d["predators_per_day"]))]
+    if d.get("borderline") and d["action"] != "CHECK_TRAP":
+        u = d["uncertainty"]
+        lines.append(t["borderline"].format(low=f"{u['pests_low']:.0f}", high=f"{u['pests_high']:.0f}", pest_name=pest))
     f = adv["forecast"]
     if f.get("status") == "ok":
         lines.append(t[f"trend_{f['trend']}"].format(pct=_fmt(abs(f["daily_change_pct"]))))

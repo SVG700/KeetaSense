@@ -54,7 +54,17 @@ def render_message(lang: str, trap: Trap, decision: dict) -> str:
         reason=decision["reason"],
         quality_text=image_quality.reasons_text((decision.get("quality") or {}).get("reasons", []), lang,
                                                 only_bad=True),
-    ).strip()
+    ).strip() + borderline_line(lang, trap, decision)
+
+
+def borderline_line(lang: str, trap: Trap, decision: dict) -> str:
+    """F2: extra line when the advice could change inside the detector's count range."""
+    if not decision.get("borderline") or decision.get("action") == "CHECK_TRAP":
+        return ""
+    u = decision["uncertainty"]
+    t = templates().get(lang) or templates()["en"]
+    return "\n" + t["borderline"].format(low=f"{u['pests_low']:.0f}", high=f"{u['pests_high']:.0f}",
+                                         pest_name=settings.pest_display_name(trap.target_pest, lang))
 
 
 def telegram_configured() -> bool:

@@ -41,6 +41,7 @@ en:
   quality_too_bright: "image too bright"
   quality_glare: "glare on the tape"
   quality_tape_not_advanced: "tape did not advance"
+  borderline: "⚖ Borderline: {low} to {high} {pest_name} per day - the photo count is uncertain. Check the field before acting."
 
 kn:
   title: "ಕೀಟಸೆನ್ಸ್ - {trap_name}"
@@ -75,6 +76,7 @@ kn:
   quality_too_bright: "ಚಿತ್ರ ತುಂಬಾ ಪ್ರಕಾಶಮಾನ"
   quality_glare: "ಟೇಪ್ ಮೇಲೆ ಹೊಳಪು"
   quality_tape_not_advanced: "ಟೇಪ್ ಮುಂದೆ ಸರಿಯಲಿಲ್ಲ"
+  borderline: "⚖ ಗಡಿರೇಖೆಯಲ್ಲಿದೆ: ದಿನಕ್ಕೆ {low} ರಿಂದ {high} {pest_name} - ಚಿತ್ರದ ಎಣಿಕೆ ಖಚಿತವಿಲ್ಲ. ಕ್ರಮ ಕೈಗೊಳ್ಳುವ ಮೊದಲು ಹೊಲವನ್ನು ಪರಿಶೀಲಿಸಿ."
 
 hi:
   title: "कीटसेंस - {trap_name}"
@@ -109,6 +111,7 @@ hi:
   quality_too_bright: "फ़ोटो बहुत चमकीली"
   quality_glare: "टेप पर चमक"
   quality_tape_not_advanced: "टेप आगे नहीं बढ़ा"
+  borderline: "⚖ सीमा पर: प्रतिदिन {low} से {high} {pest_name} - फ़ोटो की गिनती अनिश्चित है। कार्रवाई से पहले खेत जाँचें।"
 
 ta:
   title: "கீடசென்ஸ் - {trap_name}"
@@ -143,3 +146,4 @@ ta:
   quality_too_bright: "படம் மிகவும் பிரகாசமாக உள்ளது"
   quality_glare: "டேப்பில் பளபளப்பு"
   quality_tape_not_advanced: "டேப் முன்னேறவில்லை"
+  borderline: "⚖ எல்லையில்: நாளொன்றுக்கு {low} முதல் {high} {pest_name} - படத்தின் எண்ணிக்கை உறுதியாக இல்லை. நடவடிக்கைக்கு முன் வயலைச் சரிபாருங்கள்."

@@ -218,5 +218,13 @@
   "effect.note": {
     "en": "Simple before/after comparison - weather and pest generations also change counts.",
     "kn": "ಸರಳ ಮೊದಲು/ನಂತರ ಹೋಲಿಕೆ - ಹವಾಮಾನ ಮತ್ತು ಕೀಟಗಳ ಪೀಳಿಗೆಯೂ ಎಣಿಕೆಯನ್ನು ಬದಲಾಯಿಸುತ್ತವೆ."
+  },
+  "decision.borderline": {
+    "en": "Borderline: {low}-{high} {pest}/day",
+    "kn": "ಗಡಿರೇಖೆಯಲ್ಲಿದೆ: ದಿನಕ್ಕೆ {low}-{high} {pest}"
+  },
+  "decision.borderline.hint": {
+    "en": "The detector is {conf}% sure on average, so the true count may be {low} to {high} per day. The advice could be: {actions}. Check the field before acting.",
+    "kn": "ಡಿಟೆಕ್ಟರ್ ಸರಾಸರಿ {conf}% ಖಚಿತವಾಗಿದೆ, ಆದ್ದರಿಂದ ನಿಜವಾದ ಎಣಿಕೆ ದಿನಕ್ಕೆ {low} ರಿಂದ {high} ಆಗಿರಬಹುದು. ಸಲಹೆ ಹೀಗಿರಬಹುದು: {actions}. ಕ್ರಮ ಕೈಗೊಳ್ಳುವ ಮೊದಲು ಹೊಲವನ್ನು ಪರಿಶೀಲಿಸಿ."
   }
 }

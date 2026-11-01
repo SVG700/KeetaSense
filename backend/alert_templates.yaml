@@ -31,6 +31,7 @@ en:
   button_sprayed: "✅ Sprayed"
   button_released: "🐞 Released"
   button_not_yet: "⏳ Not yet"
+  borderline: "⚖ Borderline: {low} to {high} {pest_name} per day - the photo count is uncertain. Check the field before acting."
 
 kn:
   days_known: "ಸುಮಾರು {days} ದಿನಗಳಲ್ಲಿ"
@@ -57,6 +58,7 @@ kn:
   button_sprayed: "✅ ಸಿಂಪಡಿಸಿದೆ"
   button_released: "🐞 ಬಿಡುಗಡೆ ಮಾಡಿದೆ"
   button_not_yet: "⏳ ಇನ್ನೂ ಇಲ್ಲ"
+  borderline: "⚖ ಗಡಿರೇಖೆಯಲ್ಲಿದೆ: ದಿನಕ್ಕೆ {low} ರಿಂದ {high} {pest_name} - ಚಿತ್ರದ ಎಣಿಕೆ ಖಚಿತವಿಲ್ಲ. ಕ್ರಮ ಕೈಗೊಳ್ಳುವ ಮೊದಲು ಹೊಲವನ್ನು ಪರಿಶೀಲಿಸಿ."
 
 hi:
   days_known: "लगभग {days} दिनों में"
@@ -83,6 +85,7 @@ hi:
   button_sprayed: "✅ छिड़काव किया"
   button_released: "🐞 छोड़ दिए"
   button_not_yet: "⏳ अभी नहीं"
+  borderline: "⚖ सीमा पर: प्रतिदिन {low} से {high} {pest_name} - फ़ोटो की गिनती अनिश्चित है। कार्रवाई से पहले खेत जाँचें।"
 
 ta:
   days_known: "சுமார் {days} நாட்களில்"
@@ -109,3 +112,4 @@ ta:
   button_sprayed: "✅ தெளித்தேன்"
   button_released: "🐞 விடுவித்தேன்"
   button_not_yet: "⏳ இன்னும் இல்லை"
+  borderline: "⚖ எல்லையில்: நாளொன்றுக்கு {low} முதல் {high} {pest_name} - படத்தின் எண்ணிக்கை உறுதியாக இல்லை. நடவடிக்கைக்கு முன் வயலைச் சரிபாருங்கள்."

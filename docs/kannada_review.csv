@@ -35,6 +35,7 @@ The latest photo is not usable: {quality_text}. No spray or release advice until
 button_sprayed,✅ Sprayed,✅ ಸಿಂಪಡಿಸಿದೆ,,needs review
 button_released,🐞 Released,🐞 ಬಿಡುಗಡೆ ಮಾಡಿದೆ,,needs review
 button_not_yet,⏳ Not yet,⏳ ಇನ್ನೂ ಇಲ್ಲ,,needs review
+borderline,⚖ Borderline: {low} to {high} {pest_name} per day - the photo count is uncertain. Check the field before acting.,⚖ ಗಡಿರೇಖೆಯಲ್ಲಿದೆ: ದಿನಕ್ಕೆ {low} ರಿಂದ {high} {pest_name} - ಚಿತ್ರದ ಎಣಿಕೆ ಖಚಿತವಿಲ್ಲ. ಕ್ರಮ ಕೈಗೊಳ್ಳುವ ಮೊದಲು ಹೊಲವನ್ನು ಪರಿಶೀಲಿಸಿ.,,needs review
 advisory.title,KeetaSense - {trap_name},ಕೀಟಸೆನ್ಸ್ - {trap_name},,needs review
 advisory.action_SPRAY,Action: SPRAY,ಕ್ರಮ: ಕೀಟನಾಶಕ ಸಿಂಪಡಿಸಿ,,needs review
 advisory.action_RELEASE_BIOCONTROL,Action: RELEASE BIOCONTROL (do not spray),ಕ್ರಮ: ಜೈವಿಕ ನಿಯಂತ್ರಣ ಕೀಟಗಳನ್ನು ಬಿಡುಗಡೆ ಮಾಡಿ (ಸಿಂಪಡಿಸಬೇಡಿ),,needs review
@@ -67,6 +68,7 @@ advisory.quality_too_dark,image too dark,ಚಿತ್ರ ತುಂಬಾ ಕತ�
 advisory.quality_too_bright,image too bright,ಚಿತ್ರ ತುಂಬಾ ಪ್ರಕಾಶಮಾನ,,needs review
 advisory.quality_glare,glare on the tape,ಟೇಪ್ ಮೇಲೆ ಹೊಳಪು,,needs review
 advisory.quality_tape_not_advanced,tape did not advance,ಟೇಪ್ ಮುಂದೆ ಸರಿಯಲಿಲ್ಲ,,needs review
+advisory.borderline,⚖ Borderline: {low} to {high} {pest_name} per day - the photo count is uncertain. Check the field before acting.,⚖ ಗಡಿರೇಖೆಯಲ್ಲಿದೆ: ದಿನಕ್ಕೆ {low} ರಿಂದ {high} {pest_name} - ಚಿತ್ರದ ಎಣಿಕೆ ಖಚಿತವಿಲ್ಲ. ಕ್ರಮ ಕೈಗೊಳ್ಳುವ ಮೊದಲು ಹೊಲವನ್ನು ಪರಿಶೀಲಿಸಿ.,,needs review
 ui.lang.toggle,ಕನ್ನಡ,English,,needs review
 ui.action.CHECK_TRAP,Check trap,ಬಲೆ ಪರಿಶೀಲಿಸಿ,,needs review
 ui.action.CHECK_TRAP.hint,The latest photo is not usable - no spray or release advice,ಇತ್ತೀಚಿನ ಚಿತ್ರ ಬಳಸಲು ಯೋಗ್ಯವಾಗಿಲ್ಲ - ಸಿಂಪಡಣೆ ಅಥವಾ ಬಿಡುಗಡೆ ಸಲಹೆ ಇಲ್ಲ,,needs review
@@ -121,6 +123,8 @@ ui.effect.values,Whiteflies per day: {before} in the {days} days before → {aft
 ui.effect.waiting,Waiting for tape sections after the action ({n} of {days} days so far).,ಕ್ರಮದ ನಂತರದ ಟೇಪ್ ವಿಭಾಗಗಳಿಗಾಗಿ ಕಾಯಲಾಗುತ್ತಿದೆ ({days} ರಲ್ಲಿ {n} ದಿನಗಳು).,,needs review
 ui.effect.no_before,No tape sections before the action to compare with.,ಹೋಲಿಸಲು ಕ್ರಮದ ಮೊದಲು ಯಾವುದೇ ಟೇಪ್ ವಿಭಾಗಗಳಿಲ್ಲ.,,needs review
 ui.effect.note,Simple before/after comparison - weather and pest generations also change counts.,ಸರಳ ಮೊದಲು/ನಂತರ ಹೋಲಿಕೆ - ಹವಾಮಾನ ಮತ್ತು ಕೀಟಗಳ ಪೀಳಿಗೆಯೂ ಎಣಿಕೆಯನ್ನು ಬದಲಾಯಿಸುತ್ತವೆ.,,needs review
+ui.decision.borderline,Borderline: {low}-{high} {pest}/day,ಗಡಿರೇಖೆಯಲ್ಲಿದೆ: ದಿನಕ್ಕೆ {low}-{high} {pest},,needs review
+ui.decision.borderline.hint,"The detector is {conf}% sure on average, so the true count may be {low} to {high} per day. The advice could be: {actions}. Check the field before acting.","ಡಿಟೆಕ್ಟರ್ ಸರಾಸರಿ {conf}% ಖಚಿತವಾಗಿದೆ, ಆದ್ದರಿಂದ ನಿಜವಾದ ಎಣಿಕೆ ದಿನಕ್ಕೆ {low} ರಿಂದ {high} ಆಗಿರಬಹುದು. ಸಲಹೆ ಹೀಗಿರಬಹುದು: {actions}. ಕ್ರಮ ಕೈಗೊಳ್ಳುವ ಮೊದಲು ಹೊಲವನ್ನು ಪರಿಶೀಲಿಸಿ.",,needs review
 pest_name.whitefly,Whitefly,ಬಿಳಿ ನೊಣ,,machine-drafted
 pest_name.macrolophus,Macrolophus (predator bug),ಮ್ಯಾಕ್ರೊಲೋಫಸ್ (ಪರಭಕ್ಷಕ ತಿಗಣೆ),,machine-drafted
 pest_name.nesidiocoris,Nesidiocoris (predator bug),ನೆಸಿಡಿಯೊಕೊರಿಸ್ (ಪರಭಕ್ಷಕ ತಿಗಣೆ),,machine-drafted
