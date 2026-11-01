@@ -15,9 +15,8 @@ import cv2
 import numpy as np
 from sqlmodel import Session, select
 
-from backend import actions, alerts, image_quality, settings
-from backend.decision_engine import (DailyCatch, DailyTemperature, Thresholds, borderline_text, daily_degree_days,
-                                     decide, uncertainty)
+from backend import actions, alerts, decision_support, image_quality, settings
+from backend.decision_engine import (DailyCatch, DailyTemperature, Thresholds, daily_degree_days, decide)
 from backend.models import ClimateReading, Decision, TapeSection, Trap
 from ml import infer
 from ml.common import category_of
@@ -176,16 +175,13 @@ def compute_decision(session: Session, trap: Trap) -> dict:
     catches = [DailyCatch(s.effective_pest_total, s.effective_predator_total) for s in reversed(recent)]
     temps = [DailyTemperature(date.fromisoformat(d["date"]), d["tmin"], d["tmax"])
              for d in daily_climate(session, trap)]
-    pest_name = settings.pest_display_name(trap.target_pest).lower()
-    result = decide(catches, temps, th, pest_name).to_dict()
     # F2: how sure is the detector? -> count range -> BORDERLINE if the advice could differ inside it
     pest_conf, predator_conf = window_confidence(session, recent)
-    u = uncertainty(result["pests_per_day"], result["predators_per_day"], pest_conf, predator_conf, th,
-                    float(settings.pests_config()["confidence"]["min_confidence"]))
-    result["uncertainty"] = u
-    result["borderline"] = u["borderline"] and result["window_days_used"] > 0
-    if result["borderline"]:
-        result["reason"] += " " + borderline_text(u, pest_name)
+    # one pure function for the live engine AND the What-if simulator (F5)
+    result = decision_support.evaluate(
+        catches, temps, th, pest_name=settings.pest_display_name(trap.target_pest).lower(),
+        pest_conf=pest_conf, predator_conf=predator_conf, min_confidence=min_confidence(),
+        support_cfg=support_config(trap.target_pest), today=date.today())
     latest = session.exec(select(TapeSection).where(TapeSection.trap_id == trap.id)
                           .order_by(TapeSection.timestamp.desc(), TapeSection.id.desc())).first()
     result["quality"] = None
@@ -198,6 +194,15 @@ def compute_decision(session: Session, trap: Trap) -> dict:
         result["action"] = CHECK_TRAP
         result["reason"] = image_quality.check_trap_reason(latest.quality_reasons, "en")
     return result
+
+
+def min_confidence() -> float:
+    return float(settings.pests_config()["confidence"]["min_confidence"])
+
+
+def support_config(pest: str) -> dict | None:
+    """F5 rates (pests.yaml -> decision_support) for this pest, or None."""
+    return (settings.pests_config().get("decision_support") or {}).get(pest)
 
 
 def window_confidence(session: Session, sections: list[TapeSection]) -> tuple[float | None, float | None]:

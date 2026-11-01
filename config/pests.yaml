@@ -104,3 +104,23 @@ actions:
 # anywhere in that range, it is shown as BORDERLINE with the range.
 confidence:
   min_confidence: 0.5            # PLACEHOLDER - confirm with the trained model's evaluation (confidence floor)
+
+# ---------------------------------------------------------------------------
+# 6. Decision intelligence (F5): cost of spraying + biocontrol dosing, per target pest
+# ---------------------------------------------------------------------------
+# Every rate below is unknown to the team - replace with IIHR mentor values.
+decision_support:
+  whitefly:
+    # Area of crop one trap represents (the "area per trap" setting).
+    area_per_trap_m2: 1000             # PLACEHOLDER - confirm with IIHR mentor
+    # Predators living in the trap's area for every predator the trap catches per day.
+    predators_in_field_per_trapped: 40 # PLACEHOLDER - confirm with IIHR mentor
+    # Biocontrol release rate (predators per square metre) and which predator to release.
+    release_rate_per_m2: 2             # PLACEHOLDER - confirm with IIHR mentor
+    release_class: macrolophus
+    # Days after a release to check the trap again.
+    recheck_days: 7                    # PLACEHOLDER - confirm with IIHR mentor
+
+# Crops on the What-if page and the pest each one is monitored for.
+crops:
+  tomato: whitefly

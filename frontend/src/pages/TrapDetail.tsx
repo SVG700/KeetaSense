@@ -58,6 +58,13 @@ export default function TrapDetail() {
             </span>
           </div>
           <p className="mt-4 max-w-3xl leading-relaxed text-stone-700 dark:text-stone-300">{d.reason}</p>
+          {d.support?.release_count != null && (
+            <p className="mt-2 text-sm font-medium">🐞 {t("whatif.release", { n: d.support.release_count, predator: prettyPest(d.support.release_class ?? ""),
+              date: d.support.recheck_date ? new Date(d.support.recheck_date).toLocaleDateString() : "–" })}</p>
+          )}
+          {d.support?.predators_at_risk != null && d.support.predators_at_risk > 0 && (
+            <p className="mt-2 text-sm font-medium">⚠ {t("whatif.harm", { n: d.support.predators_at_risk })}</p>
+          )}
           <dl className="mt-4 grid grid-cols-2 gap-3 text-sm sm:grid-cols-4">
             <div><dt className="text-stone-500">Pests / day</dt><dd className="text-lg font-semibold tabular-nums">{d.pests_per_day.toFixed(1)}</dd></div>
             <div><dt className="text-stone-500">Predators / day</dt><dd className="text-lg font-semibold tabular-nums">{d.predators_per_day.toFixed(1)}</dd></div>

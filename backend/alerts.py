@@ -54,7 +54,24 @@ def render_message(lang: str, trap: Trap, decision: dict) -> str:
         reason=decision["reason"],
         quality_text=image_quality.reasons_text((decision.get("quality") or {}).get("reasons", []), lang,
                                                 only_bad=True),
-    ).strip() + borderline_line(lang, trap, decision)
+    ).strip() + borderline_line(lang, trap, decision) + \
+        ("\n" + line if (line := support_line(templates().get(lang) or templates()["en"], decision, lang)) else "")
+
+
+def support_line(t: dict, decision: dict, lang: str) -> str | None:
+    """F5: cost of spraying / release dose, localised (None if nothing to add)."""
+    s = decision.get("support")
+    if not s or decision.get("action") == "CHECK_TRAP":
+        return None
+    if s.get("predators_at_risk"):
+        return t["support_harm"].format(n=s["predators_at_risk"])
+    if s.get("release_count"):
+        from datetime import date as _date
+        return t["support_release"].format(
+            n=s["release_count"], area=f"{s['area_m2']:g}",
+            predator=settings.pest_display_name(s["release_class"], lang),
+            date=_date.fromisoformat(s["recheck_date"]).strftime("%d-%m-%Y"))
+    return None
 
 
 def borderline_line(lang: str, trap: Trap, decision: dict) -> str:

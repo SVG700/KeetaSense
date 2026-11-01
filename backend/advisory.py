@@ -17,7 +17,7 @@ from pathlib import Path
 import yaml
 from sqlmodel import Session, select
 
-from backend import network, pest_forecast, services, settings, spray_window, weather
+from backend import alerts, network, pest_forecast, services, settings, spray_window, weather
 from backend.models import TapeSection, Trap
 
 log = logging.getLogger("keetasense.advisory")
@@ -148,6 +148,8 @@ def render(adv: dict, lang: str = "en", now: datetime | None = None) -> dict:
     pest = settings.pest_display_name(adv["target_pest"], lang)
     lines = [t[f"action_{d['action']}"],
              t["counts"].format(pest_name=pest, pests=_fmt(d["pests_per_day"]), predators=_fmt(d["predators_per_day"]))]
+    if (line := alerts.support_line(t, d, lang)) is not None:
+        lines.append(line)
     if d.get("borderline") and d["action"] != "CHECK_TRAP":
         u = d["uncertainty"]
         lines.append(t["borderline"].format(low=f"{u['pests_low']:.0f}", high=f"{u['pests_high']:.0f}", pest_name=pest))

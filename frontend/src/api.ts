@@ -122,6 +122,14 @@ export interface Decision {
   action: Action;
   underlying_action?: Action; // what the counts say when the action is CHECK_TRAP
   borderline?: boolean;        // F2: the advice could differ inside the detector's count range
+  support?: {                  // F5: cost of spraying / biocontrol dose (placeholder rates)
+    predators_at_risk: number | null;
+    release_count: number | null;
+    release_class: string | null;
+    recheck_date: string | null;
+    area_m2: number;
+    text: string;
+  } | null;
   uncertainty?: {
     borderline: boolean;
     possible_actions: Action[];
@@ -379,6 +387,13 @@ export const api = {
     request<{ action: ActionRow; cooldown_until: string | null }>(`/api/traps/${encodeURIComponent(trapId)}/actions`, {
       method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ ...body, source: "dashboard" }),
     }),
+  simulate: (body: {
+    crop?: string; target_pest?: string; pests_per_day?: number; predators_per_day?: number;
+    temperature_c?: number; days?: number; pest_confidence?: number; predator_confidence?: number;
+  }) => request<{
+    simulation: true; target_pest: string; crops: Record<string, string>; decision: Decision;
+    thresholds: { action_threshold_per_day: number; spray_ratio: number; degree_days_per_generation: number };
+  }>("/api/decision/simulate", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) }),
   resetDemo: () =>
     request<{ removed: Record<string, number>; sections_created: number; seconds: number }>(
       "/api/reset-demo", { method: "POST" }, 120000),

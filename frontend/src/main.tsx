@@ -9,6 +9,7 @@ import Overview from "./pages/Overview";
 import PhoneCheck from "./pages/PhoneCheck";
 import SettingsPage from "./pages/SettingsPage";
 import TrapDetail from "./pages/TrapDetail";
+import WhatIfPage from "./pages/WhatIfPage";
 import { SettingsProvider } from "./settings";
 
 createRoot(document.getElementById("root")!).render(
@@ -22,6 +23,7 @@ createRoot(document.getElementById("root")!).render(
             <Route path="/phone-check" element={<PhoneCheck />} />
             <Route path="/model" element={<ModelPage />} />
             <Route path="/settings" element={<SettingsPage />} />
+            <Route path="/what-if" element={<WhatIfPage />} />
             <Route path="*" element={<EmptyState title="Page not found" />} />
           </Route>
         </Routes>

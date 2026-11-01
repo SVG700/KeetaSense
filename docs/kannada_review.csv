@@ -36,6 +36,8 @@ button_sprayed,✅ Sprayed,✅ ಸಿಂಪಡಿಸಿದೆ,,needs review
 button_released,🐞 Released,🐞 ಬಿಡುಗಡೆ ಮಾಡಿದೆ,,needs review
 button_not_yet,⏳ Not yet,⏳ ಇನ್ನೂ ಇಲ್ಲ,,needs review
 borderline,⚖ Borderline: {low} to {high} {pest_name} per day - the photo count is uncertain. Check the field before acting.,⚖ ಗಡಿರೇಖೆಯಲ್ಲಿದೆ: ದಿನಕ್ಕೆ {low} ರಿಂದ {high} {pest_name} - ಚಿತ್ರದ ಎಣಿಕೆ ಖಚಿತವಿಲ್ಲ. ಕ್ರಮ ಕೈಗೊಳ್ಳುವ ಮೊದಲು ಹೊಲವನ್ನು ಪರಿಶೀಲಿಸಿ.,,needs review
+support_harm,"Spraying would also kill about {n} predators in this trap's area (estimate, placeholder rates).","ಸಿಂಪಡಣೆಯು ಈ ಬಲೆಯ ಪ್ರದೇಶದಲ್ಲಿ ಸುಮಾರು {n} ಪರಭಕ್ಷಕ ಕೀಟಗಳನ್ನೂ ಕೊಲ್ಲುತ್ತದೆ (ಅಂದಾಜು, ತಾತ್ಕಾಲಿಕ ದರಗಳು).",,needs review
+support_release,Release about {n} {predator} for ~{area} m²; check the trap again on {date} (placeholder rates).,~{area} ಚ.ಮೀ.ಗೆ ಸುಮಾರು {n} {predator} ಬಿಡುಗಡೆ ಮಾಡಿ; {date} ರಂದು ಬಲೆಯನ್ನು ಮತ್ತೆ ಪರಿಶೀಲಿಸಿ (ತಾತ್ಕಾಲಿಕ ದರಗಳು).,,needs review
 advisory.title,KeetaSense - {trap_name},ಕೀಟಸೆನ್ಸ್ - {trap_name},,needs review
 advisory.action_SPRAY,Action: SPRAY,ಕ್ರಮ: ಕೀಟನಾಶಕ ಸಿಂಪಡಿಸಿ,,needs review
 advisory.action_RELEASE_BIOCONTROL,Action: RELEASE BIOCONTROL (do not spray),ಕ್ರಮ: ಜೈವಿಕ ನಿಯಂತ್ರಣ ಕೀಟಗಳನ್ನು ಬಿಡುಗಡೆ ಮಾಡಿ (ಸಿಂಪಡಿಸಬೇಡಿ),,needs review
@@ -69,6 +71,8 @@ advisory.quality_too_bright,image too bright,ಚಿತ್ರ ತುಂಬಾ ಪ
 advisory.quality_glare,glare on the tape,ಟೇಪ್ ಮೇಲೆ ಹೊಳಪು,,needs review
 advisory.quality_tape_not_advanced,tape did not advance,ಟೇಪ್ ಮುಂದೆ ಸರಿಯಲಿಲ್ಲ,,needs review
 advisory.borderline,⚖ Borderline: {low} to {high} {pest_name} per day - the photo count is uncertain. Check the field before acting.,⚖ ಗಡಿರೇಖೆಯಲ್ಲಿದೆ: ದಿನಕ್ಕೆ {low} ರಿಂದ {high} {pest_name} - ಚಿತ್ರದ ಎಣಿಕೆ ಖಚಿತವಿಲ್ಲ. ಕ್ರಮ ಕೈಗೊಳ್ಳುವ ಮೊದಲು ಹೊಲವನ್ನು ಪರಿಶೀಲಿಸಿ.,,needs review
+advisory.support_harm,"Spraying would also kill about {n} predators in this trap's area (estimate, placeholder rates).","ಸಿಂಪಡಣೆಯು ಈ ಬಲೆಯ ಪ್ರದೇಶದಲ್ಲಿ ಸುಮಾರು {n} ಪರಭಕ್ಷಕ ಕೀಟಗಳನ್ನೂ ಕೊಲ್ಲುತ್ತದೆ (ಅಂದಾಜು, ತಾತ್ಕಾಲಿಕ ದರಗಳು).",,needs review
+advisory.support_release,Release about {n} {predator} for ~{area} m²; check the trap again on {date} (placeholder rates).,~{area} ಚ.ಮೀ.ಗೆ ಸುಮಾರು {n} {predator} ಬಿಡುಗಡೆ ಮಾಡಿ; {date} ರಂದು ಬಲೆಯನ್ನು ಮತ್ತೆ ಪರಿಶೀಲಿಸಿ (ತಾತ್ಕಾಲಿಕ ದರಗಳು).,,needs review
 ui.lang.toggle,ಕನ್ನಡ,English,,needs review
 ui.action.CHECK_TRAP,Check trap,ಬಲೆ ಪರಿಶೀಲಿಸಿ,,needs review
 ui.action.CHECK_TRAP.hint,The latest photo is not usable - no spray or release advice,ಇತ್ತೀಚಿನ ಚಿತ್ರ ಬಳಸಲು ಯೋಗ್ಯವಾಗಿಲ್ಲ - ಸಿಂಪಡಣೆ ಅಥವಾ ಬಿಡುಗಡೆ ಸಲಹೆ ಇಲ್ಲ,,needs review
@@ -125,6 +129,23 @@ ui.effect.no_before,No tape sections before the action to compare with.,ಹೋ�
 ui.effect.note,Simple before/after comparison - weather and pest generations also change counts.,ಸರಳ ಮೊದಲು/ನಂತರ ಹೋಲಿಕೆ - ಹವಾಮಾನ ಮತ್ತು ಕೀಟಗಳ ಪೀಳಿಗೆಯೂ ಎಣಿಕೆಯನ್ನು ಬದಲಾಯಿಸುತ್ತವೆ.,,needs review
 ui.decision.borderline,Borderline: {low}-{high} {pest}/day,ಗಡಿರೇಖೆಯಲ್ಲಿದೆ: ದಿನಕ್ಕೆ {low}-{high} {pest},,needs review
 ui.decision.borderline.hint,"The detector is {conf}% sure on average, so the true count may be {low} to {high} per day. The advice could be: {actions}. Check the field before acting.","ಡಿಟೆಕ್ಟರ್ ಸರಾಸರಿ {conf}% ಖಚಿತವಾಗಿದೆ, ಆದ್ದರಿಂದ ನಿಜವಾದ ಎಣಿಕೆ ದಿನಕ್ಕೆ {low} ರಿಂದ {high} ಆಗಿರಬಹುದು. ಸಲಹೆ ಹೀಗಿರಬಹುದು: {actions}. ಕ್ರಮ ಕೈಗೊಳ್ಳುವ ಮೊದಲು ಹೊಲವನ್ನು ಪರಿಶೀಲಿಸಿ.",,needs review
+ui.whatif.title,What-if simulator,ಹೀಗಾದರೆ? ಅನುಕರಣೆ,,needs review
+ui.whatif.badge,SIMULATION,ಅನುಕರಣೆ,,needs review
+ui.whatif.help,Move the sliders to see what KeetaSense would advise. Same decision engine as the live traps - nothing is saved and no alert is sent.,"ಕೀಟಸೆನ್ಸ್ ಏನು ಸಲಹೆ ನೀಡುತ್ತದೆ ಎಂದು ನೋಡಲು ಸ್ಲೈಡರ್‌ಗಳನ್ನು ಸರಿಸಿ. ನೇರ ಬಲೆಗಳ ಅದೇ ನಿರ್ಧಾರ ಎಂಜಿನ್ - ಏನನ್ನೂ ಉಳಿಸಲಾಗುವುದಿಲ್ಲ, ಎಚ್ಚರಿಕೆ ಕಳುಹಿಸಲಾಗುವುದಿಲ್ಲ.",,needs review
+ui.whatif.crop,Crop,ಬೆಳೆ,,needs review
+ui.whatif.temperature,Average temperature (last 14 days),ಸರಾಸರಿ ತಾಪಮಾನ (ಕಳೆದ 14 ದಿನಗಳು),,needs review
+ui.whatif.pests,Whiteflies caught,ಹಿಡಿದ ಬಿಳಿ ನೊಣಗಳು,,needs review
+ui.whatif.predators,Predators caught,ಹಿಡಿದ ಪರಭಕ್ಷಕ ಕೀಟಗಳು,,needs review
+ui.whatif.use_conf,Include detector uncertainty,ಡಿಟೆಕ್ಟರ್ ಅನಿಶ್ಚಿತತೆಯನ್ನು ಸೇರಿಸಿ,,needs review
+ui.whatif.confidence,Mean detection confidence,ಸರಾಸರಿ ಪತ್ತೆ ವಿಶ್ವಾಸ,,needs review
+ui.whatif.temp_note,Daily min/max are taken as average -5 / +5 °C for the degree-day forecast.,ಡಿಗ್ರಿ-ದಿನ ಮುನ್ಸೂಚನೆಗೆ ದೈನಂದಿನ ಕನಿಷ್ಠ/ಗರಿಷ್ಠವನ್ನು ಸರಾಸರಿ -5 / +5 °C ಎಂದು ತೆಗೆದುಕೊಳ್ಳಲಾಗಿದೆ.,,needs review
+ui.whatif.ratio,Pests per predator,ಪ್ರತಿ ಪರಭಕ್ಷಕಕ್ಕೆ ಕೀಟಗಳು,,needs review
+ui.whatif.threshold,Action threshold,ಕ್ರಮದ ಮಿತಿ,,needs review
+ui.whatif.dd,Degree-days accumulated,ಸಂಗ್ರಹವಾದ ಡಿಗ್ರಿ-ದಿನಗಳು,,needs review
+ui.whatif.next_gen,Days to next generation,ಮುಂದಿನ ಪೀಳಿಗೆಗೆ ದಿನಗಳು,,needs review
+ui.whatif.harm,Cost of spraying: about {n} predators in this trap's area would also be killed.,ಸಿಂಪಡಣೆಯ ಬೆಲೆ: ಈ ಬಲೆಯ ಪ್ರದೇಶದಲ್ಲಿ ಸುಮಾರು {n} ಪರಭಕ್ಷಕ ಕೀಟಗಳೂ ಸಾಯುತ್ತವೆ.,,needs review
+ui.whatif.release,Release about {n} {predator}; check the trap again on {date}.,ಸುಮಾರು {n} {predator} ಬಿಡುಗಡೆ ಮಾಡಿ; {date} ರಂದು ಬಲೆಯನ್ನು ಮತ್ತೆ ಪರಿಶೀಲಿಸಿ.,,needs review
+ui.whatif.placeholder_note,Thresholds and rates are PLACEHOLDERS until confirmed by the IIHR mentor.,IIHR ಮಾರ್ಗದರ್ಶಕರು ದೃಢೀಕರಿಸುವವರೆಗೆ ಮಿತಿಗಳು ಮತ್ತು ದರಗಳು ತಾತ್ಕಾಲಿಕ.,,needs review
 pest_name.whitefly,Whitefly,ಬಿಳಿ ನೊಣ,,machine-drafted
 pest_name.macrolophus,Macrolophus (predator bug),ಮ್ಯಾಕ್ರೊಲೋಫಸ್ (ಪರಭಕ್ಷಕ ತಿಗಣೆ),,machine-drafted
 pest_name.nesidiocoris,Nesidiocoris (predator bug),ನೆಸಿಡಿಯೊಕೊರಿಸ್ (ಪರಭಕ್ಷಕ ತಿಗಣೆ),,machine-drafted

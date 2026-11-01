@@ -65,7 +65,7 @@ def test_borderline_in_reason_alert_and_advisory(client):
     d = client.get(f"/api/traps/{TRAP}/decision").json()
     assert d["action"] == SPRAY and d["borderline"] is True
     assert d["uncertainty"]["pests_low"] == pytest.approx(22.9, abs=0.1)
-    assert d["reason"].endswith("(borderline: 23 to 32 whitefly per day)")
+    assert "(borderline: 23 to 32 whitefly per day)" in d["reason"]
     msgs = {a["language"]: a["message"] for a in client.get("/api/alerts").json() if a["action"] == SPRAY}
     assert "Borderline: 23 to 32 Whitefly per day" in msgs["en"]
     assert "ಗಡಿರೇಖೆಯಲ್ಲಿದೆ" in msgs["kn"]

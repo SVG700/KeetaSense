@@ -33,10 +33,10 @@ from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 from sqlmodel import Session, func, select
 
-from backend import (actions, advisory, alerts, corrections, impact, model_reports, services, settings, thresholds_editor,
+from backend import (actions, advisory, alerts, corrections, decision_support, impact, model_reports, services, settings, thresholds_editor,
                      weather)
 from backend.db import get_engine, get_session, init_db
-from backend.decision_engine import DailyCatch, decide
+from backend.decision_engine import DailyCatch, DailyTemperature, decide
 from backend.models import SECTION_SOURCES, AlertLog, ClimateReading, Correction, Decision, TapeSection, Trap
 from ml import infer
 
@@ -445,6 +445,65 @@ def list_actions(trap_id: str, session: Session = Depends(get_session)):
     until = actions.cooldown_until(session, trap.id)
     return {"actions": actions.history(session, trap.id),
             "cooldown_until": until.isoformat(timespec="minutes") if until else None}
+
+
+# ---------------------------------------------------------------------------
+# F5: What-if simulator - the live decision function on made-up inputs (writes nothing)
+# ---------------------------------------------------------------------------
+class CatchIn(BaseModel):
+    pests: float = Field(ge=0, le=100000)
+    predators: float = Field(ge=0, le=100000)
+
+
+class TempIn(BaseModel):
+    date: date
+    tmin: float = Field(ge=-20, le=60)
+    tmax: float = Field(ge=-20, le=60)
+
+
+class SimulateIn(BaseModel):
+    crop: str | None = None                   # e.g. "tomato" (pests.yaml -> crops)
+    target_pest: str | None = None            # or the pest directly
+    pests_per_day: float | None = Field(None, ge=0, le=100000)
+    predators_per_day: float | None = Field(None, ge=0, le=100000)
+    temperature_c: float = Field(25, ge=-10, le=50)     # daily mean; min/max = mean -/+ 5
+    days: int = Field(14, ge=1, le=120)                 # days of that temperature (degree-day history)
+    pest_confidence: float | None = Field(None, gt=0, le=1)
+    predator_confidence: float | None = Field(None, gt=0, le=1)
+    catches: list[CatchIn] | None = None      # advanced: exact tape sections (oldest first)
+    temps: list[TempIn] | None = None         # advanced: exact daily min/max
+
+
+@app.post("/api/decision/simulate")
+def simulate(body: SimulateIn):
+    """SIMULATION: what would KeetaSense advise for these numbers? Pure - nothing is stored or sent."""
+    crops = settings.pests_config().get("crops") or {}
+    pest = body.target_pest or (crops.get(body.crop) if body.crop else None)
+    if pest is None:
+        raise HTTPException(422, f"Choose a crop ({sorted(crops)}) or a target_pest.")
+    try:
+        th = services.thresholds_for(pest)
+    except ValueError as e:
+        raise HTTPException(422, str(e))
+    if body.catches is not None:
+        catches = [DailyCatch(c.pests, c.predators) for c in body.catches]
+    elif body.pests_per_day is not None and body.predators_per_day is not None:
+        catches = [DailyCatch(body.pests_per_day, body.predators_per_day)] * th.rolling_window_days
+    else:
+        raise HTTPException(422, "Give pests_per_day and predators_per_day (or a list of catches).")
+    if body.temps is not None:
+        temps = [DailyTemperature(t.date, t.tmin, t.tmax) for t in body.temps]
+    else:
+        today = date.today()
+        temps = [DailyTemperature(today - timedelta(days=i), body.temperature_c - 5, body.temperature_c + 5)
+                 for i in range(body.days)][::-1]
+    decision = decision_support.evaluate(
+        catches, temps, th, pest_name=settings.pest_display_name(pest).lower(),
+        pest_conf=body.pest_confidence, predator_conf=body.predator_confidence,
+        min_confidence=services.min_confidence(), support_cfg=services.support_config(pest), today=date.today())
+    return {"simulation": True, "target_pest": pest, "crops": crops, "decision": decision,
+            "thresholds": {"action_threshold_per_day": th.action_threshold_per_day, "spray_ratio": th.spray_ratio,
+                           "degree_days_per_generation": th.degree_days_per_generation}}
 
 
 @app.get("/api/weather/{trap_id}")

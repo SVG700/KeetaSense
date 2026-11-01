@@ -226,5 +226,73 @@
   "decision.borderline.hint": {
     "en": "The detector is {conf}% sure on average, so the true count may be {low} to {high} per day. The advice could be: {actions}. Check the field before acting.",
     "kn": "ಡಿಟೆಕ್ಟರ್ ಸರಾಸರಿ {conf}% ಖಚಿತವಾಗಿದೆ, ಆದ್ದರಿಂದ ನಿಜವಾದ ಎಣಿಕೆ ದಿನಕ್ಕೆ {low} ರಿಂದ {high} ಆಗಿರಬಹುದು. ಸಲಹೆ ಹೀಗಿರಬಹುದು: {actions}. ಕ್ರಮ ಕೈಗೊಳ್ಳುವ ಮೊದಲು ಹೊಲವನ್ನು ಪರಿಶೀಲಿಸಿ."
+  },
+  "whatif.title": {
+    "en": "What-if simulator",
+    "kn": "ಹೀಗಾದರೆ? ಅನುಕರಣೆ"
+  },
+  "whatif.badge": {
+    "en": "SIMULATION",
+    "kn": "ಅನುಕರಣೆ"
+  },
+  "whatif.help": {
+    "en": "Move the sliders to see what KeetaSense would advise. Same decision engine as the live traps - nothing is saved and no alert is sent.",
+    "kn": "ಕೀಟಸೆನ್ಸ್ ಏನು ಸಲಹೆ ನೀಡುತ್ತದೆ ಎಂದು ನೋಡಲು ಸ್ಲೈಡರ್‌ಗಳನ್ನು ಸರಿಸಿ. ನೇರ ಬಲೆಗಳ ಅದೇ ನಿರ್ಧಾರ ಎಂಜಿನ್ - ಏನನ್ನೂ ಉಳಿಸಲಾಗುವುದಿಲ್ಲ, ಎಚ್ಚರಿಕೆ ಕಳುಹಿಸಲಾಗುವುದಿಲ್ಲ."
+  },
+  "whatif.crop": {
+    "en": "Crop",
+    "kn": "ಬೆಳೆ"
+  },
+  "whatif.temperature": {
+    "en": "Average temperature (last 14 days)",
+    "kn": "ಸರಾಸರಿ ತಾಪಮಾನ (ಕಳೆದ 14 ದಿನಗಳು)"
+  },
+  "whatif.pests": {
+    "en": "Whiteflies caught",
+    "kn": "ಹಿಡಿದ ಬಿಳಿ ನೊಣಗಳು"
+  },
+  "whatif.predators": {
+    "en": "Predators caught",
+    "kn": "ಹಿಡಿದ ಪರಭಕ್ಷಕ ಕೀಟಗಳು"
+  },
+  "whatif.use_conf": {
+    "en": "Include detector uncertainty",
+    "kn": "ಡಿಟೆಕ್ಟರ್ ಅನಿಶ್ಚಿತತೆಯನ್ನು ಸೇರಿಸಿ"
+  },
+  "whatif.confidence": {
+    "en": "Mean detection confidence",
+    "kn": "ಸರಾಸರಿ ಪತ್ತೆ ವಿಶ್ವಾಸ"
+  },
+  "whatif.temp_note": {
+    "en": "Daily min/max are taken as average -5 / +5 °C for the degree-day forecast.",
+    "kn": "ಡಿಗ್ರಿ-ದಿನ ಮುನ್ಸೂಚನೆಗೆ ದೈನಂದಿನ ಕನಿಷ್ಠ/ಗರಿಷ್ಠವನ್ನು ಸರಾಸರಿ -5 / +5 °C ಎಂದು ತೆಗೆದುಕೊಳ್ಳಲಾಗಿದೆ."
+  },
+  "whatif.ratio": {
+    "en": "Pests per predator",
+    "kn": "ಪ್ರತಿ ಪರಭಕ್ಷಕಕ್ಕೆ ಕೀಟಗಳು"
+  },
+  "whatif.threshold": {
+    "en": "Action threshold",
+    "kn": "ಕ್ರಮದ ಮಿತಿ"
+  },
+  "whatif.dd": {
+    "en": "Degree-days accumulated",
+    "kn": "ಸಂಗ್ರಹವಾದ ಡಿಗ್ರಿ-ದಿನಗಳು"
+  },
+  "whatif.next_gen": {
+    "en": "Days to next generation",
+    "kn": "ಮುಂದಿನ ಪೀಳಿಗೆಗೆ ದಿನಗಳು"
+  },
+  "whatif.harm": {
+    "en": "Cost of spraying: about {n} predators in this trap's area would also be killed.",
+    "kn": "ಸಿಂಪಡಣೆಯ ಬೆಲೆ: ಈ ಬಲೆಯ ಪ್ರದೇಶದಲ್ಲಿ ಸುಮಾರು {n} ಪರಭಕ್ಷಕ ಕೀಟಗಳೂ ಸಾಯುತ್ತವೆ."
+  },
+  "whatif.release": {
+    "en": "Release about {n} {predator}; check the trap again on {date}.",
+    "kn": "ಸುಮಾರು {n} {predator} ಬಿಡುಗಡೆ ಮಾಡಿ; {date} ರಂದು ಬಲೆಯನ್ನು ಮತ್ತೆ ಪರಿಶೀಲಿಸಿ."
+  },
+  "whatif.placeholder_note": {
+    "en": "Thresholds and rates are PLACEHOLDERS until confirmed by the IIHR mentor.",
+    "kn": "IIHR ಮಾರ್ಗದರ್ಶಕರು ದೃಢೀಕರಿಸುವವರೆಗೆ ಮಿತಿಗಳು ಮತ್ತು ದರಗಳು ತಾತ್ಕಾಲಿಕ."
   }
 }

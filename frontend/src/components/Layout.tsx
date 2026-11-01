@@ -99,6 +99,7 @@ export default function Layout() {
           <nav className="flex flex-wrap gap-1">
             <NavItem to="/">Overview</NavItem>
             <NavItem to="/phone-check">Phone check</NavItem>
+            <NavItem to="/what-if">What-if</NavItem>
             <NavItem to="/model">Model</NavItem>
             <NavItem to="/settings">Settings</NavItem>
           </nav>
