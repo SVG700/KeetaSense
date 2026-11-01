@@ -35,7 +35,14 @@ def init_db() -> None:
 
 # Columns added after the first release. create_all() does not change existing
 # tables, so add them here; old databases keep working without a reset.
-NEW_COLUMNS = {"tapesection": {"source": "VARCHAR NOT NULL DEFAULT 'live'"}}
+NEW_COLUMNS = {
+    "tapesection": {
+        "source": "VARCHAR NOT NULL DEFAULT 'live'",
+        "quality_status": "VARCHAR",          # F1 image quality gate
+        "quality_reasons": "JSON",
+        "quality_metrics": "JSON",
+    },
+}
 
 
 def _add_missing_columns() -> None:

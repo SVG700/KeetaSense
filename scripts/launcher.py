@@ -234,6 +234,8 @@ def main() -> int:
     ap.add_argument("--sim-weather", action="store_true",
                     help="use SIMULATED weather (labelled; rain in ~4 h) - for a demo without internet")
     ap.add_argument("--no-bot", action="store_true", help="do not start the Telegram bot")
+    ap.add_argument("--inject", choices=["blur", "dark", "glare", "stuck", "motor"],
+                    help="(demo) the MOCK trap simulates this fault - demo the quality gate / health alerts")
     args = ap.parse_args()
 
     os.chdir(ROOT)
@@ -271,6 +273,9 @@ def main() -> int:
             say("launcher", f"REPLAY mode: {folder}")
         if args.cycles:
             edge_cmd += ["--cycles", str(args.cycles)]
+        if args.inject:
+            edge_cmd += ["--inject", args.inject]
+            say("launcher", f"MOCK fault injection: {args.inject}")
         edge = Service("trap", edge_cmd, edge_env, restart=not args.cycles)
 
     stop_event = threading.Event()

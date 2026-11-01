@@ -33,6 +33,8 @@ class EdgeConfig:
     local_detection: bool = field(default_factory=lambda: _bool("LOCAL_DETECTION", "1"))
     # mock camera images are SYNTHETIC drawings: count them with the demo detector even when
     # the real model is installed (set 1 if you put real tape photos in demo/sample_tape/)
+    # MOCK only: inject a fault (blur, dark, glare, stuck, motor) to demo the quality gate / health alerts
+    inject: str = field(default_factory=lambda: os.environ.get("MOCK_INJECT", "").strip().lower())
     mock_use_model: bool = field(default_factory=lambda: _bool("MOCK_USE_MODEL", "0"))
     data_dir: Path = field(default_factory=lambda: ROOT / os.environ.get("EDGE_DATA_DIR", "edge/data"))
     sample_dir: Path = field(default_factory=lambda: ROOT / "demo" / "sample_tape")

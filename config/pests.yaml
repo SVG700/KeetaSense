@@ -69,3 +69,20 @@ thresholds:
     spray_ratio: 10.0  # PLACEHOLDER - confirm with IIHR mentor
     # How many of the most recent tape sections (days) to average over.
     rolling_window_days: 3  # PLACEHOLDER - confirm with IIHR mentor
+
+# ---------------------------------------------------------------------------
+# 3. Image quality gate (every new tape photo, backend/image_quality.py)
+# ---------------------------------------------------------------------------
+# Measured on our synthetic demo images: sharp ~16, 9 px blur ~2; normal brightness ~189;
+# different tape sections similarity ~0.0, the same section re-photographed ~0.96.
+# Re-check every value on the real Pi camera before the event.
+image_quality:
+  blur_bad: 3              # PLACEHOLDER - confirm on the real Pi camera (Laplacian variance below = BAD)
+  blur_warn: 8             # PLACEHOLDER - confirm on the real Pi camera
+  dark_bad: 50             # PLACEHOLDER - confirm on the real Pi camera (mean grey 0-255)
+  dark_warn: 90            # PLACEHOLDER - confirm on the real Pi camera
+  bright_bad: 245          # PLACEHOLDER - confirm on the real Pi camera
+  glare_bad_pct: 10        # PLACEHOLDER - confirm on the real Pi camera (% saturated pixels)
+  glare_warn_pct: 3        # PLACEHOLDER - confirm on the real Pi camera
+  duplicate_bad: 0.8       # PLACEHOLDER - confirm on the real Pi camera (similarity to previous capture)
+  duplicate_warn: 0.6      # PLACEHOLDER - confirm on the real Pi camera

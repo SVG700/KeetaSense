@@ -1,0 +1,16 @@
+{
+  "_note": {"en": "Dashboard texts added in the prep round. Kannada is machine-drafted - export with python -m backend.kannada_review export and have a native speaker check it.", "kn": ""},
+  "lang.toggle": {"en": "ಕನ್ನಡ", "kn": "English"},
+  "action.CHECK_TRAP": {"en": "Check trap", "kn": "ಬಲೆ ಪರಿಶೀಲಿಸಿ"},
+  "action.CHECK_TRAP.hint": {"en": "The latest photo is not usable - no spray or release advice", "kn": "ಇತ್ತೀಚಿನ ಚಿತ್ರ ಬಳಸಲು ಯೋಗ್ಯವಾಗಿಲ್ಲ - ಸಿಂಪಡಣೆ ಅಥವಾ ಬಿಡುಗಡೆ ಸಲಹೆ ಇಲ್ಲ"},
+  "quality.OK": {"en": "Photo OK", "kn": "ಚಿತ್ರ ಸರಿಯಾಗಿದೆ"},
+  "quality.WARN": {"en": "Photo: check", "kn": "ಚಿತ್ರ: ಪರಿಶೀಲಿಸಿ"},
+  "quality.BAD": {"en": "Photo not usable", "kn": "ಚಿತ್ರ ಬಳಸಲು ಯೋಗ್ಯವಲ್ಲ"},
+  "quality.blurred": {"en": "image blurred", "kn": "ಚಿತ್ರ ಮಸುಕಾಗಿದೆ"},
+  "quality.too_dark": {"en": "image too dark", "kn": "ಚಿತ್ರ ತುಂಬಾ ಕತ್ತಲೆ"},
+  "quality.too_bright": {"en": "image too bright", "kn": "ಚಿತ್ರ ತುಂಬಾ ಪ್ರಕಾಶಮಾನ"},
+  "quality.glare": {"en": "glare on the tape", "kn": "ಟೇಪ್ ಮೇಲೆ ಹೊಳಪು"},
+  "quality.tape_not_advanced": {"en": "tape did not advance", "kn": "ಟೇಪ್ ಮುಂದೆ ಸರಿಯಲಿಲ್ಲ"},
+  "quality.title": {"en": "Photo quality", "kn": "ಚಿತ್ರದ ಗುಣಮಟ್ಟ"},
+  "quality.metrics": {"en": "sharpness {blur} · brightness {brightness} · glare {glare}% · similarity to previous photo {sim}", "kn": "ಸ್ಪಷ್ಟತೆ {blur} · ಪ್ರಕಾಶ {brightness} · ಹೊಳಪು {glare}% · ಹಿಂದಿನ ಚಿತ್ರಕ್ಕೆ ಹೋಲಿಕೆ {sim}"}
+}

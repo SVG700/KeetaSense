@@ -19,12 +19,19 @@ check them before farmers receive them.
    (and Kannada pest names into config/pests.yaml), and notes the reviewer and
    date at the top of the templates file. Restart the backend afterwards.
 
-Rows with key "pest_name.<class>" are the Kannada names of insects in config/pests.yaml.
+Rows by key prefix:
+  (no prefix)        alert texts       backend/alert_templates.yaml
+  advisory.<key>     advisory texts    backend/advisory_templates.yaml
+  ui.<key>           dashboard texts   frontend/src/locales/strings.json
+  pest_name.<class>  insect names      config/pests.yaml
+The "status" column says "needs review" for every Kannada text that is new or
+changed since the last export (information only; import ignores it).
 """
 from __future__ import annotations
 
 import argparse
 import csv
+import json
 import re
 import shutil
 from datetime import date
@@ -35,9 +42,15 @@ import yaml
 from backend.settings import ROOT, pests_yaml_path
 
 TEMPLATES = Path(__file__).resolve().parent / "alert_templates.yaml"
+ADVISORY = Path(__file__).resolve().parent / "advisory_templates.yaml"
+UI_STRINGS = ROOT / "frontend" / "src" / "locales" / "strings.json"
 DEFAULT_CSV = ROOT / "docs" / "kannada_review.csv"
 COLUMNS = ["key", "English text", "Kannada text", "reviewer correction"]
+STATUS = "status"
 PEST_PREFIX = "pest_name."
+ADVISORY_PREFIX = "advisory."
+UI_PREFIX = "ui."
+NEEDS_REVIEW = "needs review"
 _PLACEHOLDER = re.compile(r"\{(\w+)\}")
 
 
@@ -45,15 +58,40 @@ def placeholders(text: str) -> set[str]:
     return set(_PLACEHOLDER.findall(text or ""))
 
 
-def export_rows(templates_file: Path = TEMPLATES, pests_file: Path | None = None) -> list[dict]:
-    t = yaml.safe_load(templates_file.read_text(encoding="utf-8"))
+def _yaml_rows(path: Path, prefix: str) -> list[dict]:
+    t = yaml.safe_load(path.read_text(encoding="utf-8"))
     en, kn = t.get("en", {}), t.get("kn", {})
-    rows = [{"key": k, "English text": en.get(k, ""), "Kannada text": kn.get(k, ""), "reviewer correction": ""}
+    return [{"key": prefix + k, "English text": en.get(k, ""), "Kannada text": kn.get(k, ""), "reviewer correction": ""}
             for k in list(dict.fromkeys([*en, *kn]))]
+
+
+def _previous_kannada(csv_file: Path | None) -> dict[str, tuple[str, str]]:
+    """{key: (Kannada text, status)} from the last export, to spot new or changed texts."""
+    if not csv_file or not csv_file.exists():
+        return {}
+    with open(csv_file, encoding="utf-8-sig", newline="") as f:
+        return {r["key"]: (r.get("Kannada text", ""), r.get(STATUS) or "machine-drafted") for r in csv.DictReader(f)}
+
+
+def export_rows(templates_file: Path = TEMPLATES, pests_file: Path | None = None,
+                advisory_file: Path | None = ADVISORY, ui_file: Path | None = UI_STRINGS,
+                previous_csv: Path | None = None) -> list[dict]:
+    rows = _yaml_rows(templates_file, "")
+    if advisory_file and advisory_file.exists():
+        rows += _yaml_rows(advisory_file, ADVISORY_PREFIX)
+    if ui_file and ui_file.exists():
+        for k, v in json.loads(ui_file.read_text(encoding="utf-8")).items():
+            if not k.startswith("_"):
+                rows.append({"key": UI_PREFIX + k, "English text": v.get("en", ""), "Kannada text": v.get("kn", ""),
+                             "reviewer correction": ""})
     pests = yaml.safe_load((pests_file or pests_yaml_path()).read_text(encoding="utf-8"))
     for c in pests.get("classes", []):
         rows.append({"key": f"{PEST_PREFIX}{c['name']}", "English text": c.get("display_en", c["name"]),
                      "Kannada text": c.get("display_kn", ""), "reviewer correction": ""})
+    old = _previous_kannada(previous_csv)
+    for r in rows:
+        prev = old.get(r["key"])
+        r[STATUS] = prev[1] if prev and prev[0] == r["Kannada text"] else NEEDS_REVIEW
     return rows
 
 
@@ -61,7 +99,7 @@ def write_csv(rows: list[dict], out: Path) -> None:
     out.parent.mkdir(parents=True, exist_ok=True)
     # utf-8-sig = UTF-8 with a BOM, so Excel shows Kannada correctly
     with open(out, "w", encoding="utf-8-sig", newline="") as f:
-        w = csv.DictWriter(f, fieldnames=COLUMNS)
+        w = csv.DictWriter(f, fieldnames=COLUMNS + [STATUS], extrasaction="ignore")
         w.writeheader()
         w.writerows(rows)
 
@@ -103,8 +141,35 @@ _BlockDumper.add_representer(str, _str)
 
 
 def apply_template_corrections(corrections: dict, templates_file: Path, reviewer: str, today: date) -> int:
+    """Alert texts (keys without a prefix)."""
+    changes = {k: v for k, v in corrections.items()
+               if not k.startswith((PEST_PREFIX, ADVISORY_PREFIX, UI_PREFIX))}
+    return _apply_yaml(changes, templates_file, reviewer, today)
+
+
+def apply_advisory_corrections(corrections: dict, advisory_file: Path, reviewer: str, today: date) -> int:
+    changes = {k[len(ADVISORY_PREFIX):]: v for k, v in corrections.items() if k.startswith(ADVISORY_PREFIX)}
+    return _apply_yaml(changes, advisory_file, reviewer, today)
+
+
+def apply_ui_corrections(corrections: dict, ui_file: Path) -> int:
+    """Dashboard texts in frontend/src/locales/strings.json (rebuild the dashboard afterwards)."""
+    changes = {k[len(UI_PREFIX):]: v for k, v in corrections.items() if k.startswith(UI_PREFIX)}
+    if not changes:
+        return 0
+    data = json.loads(ui_file.read_text(encoding="utf-8"))
+    unknown = [k for k in changes if k not in data]
+    if unknown:
+        raise ValueError(f"unknown dashboard text key(s): {unknown}")
+    for k, v in changes.items():
+        data[k]["kn"] = v
+    shutil.copy2(ui_file, ui_file.with_name(ui_file.name + ".bak"))
+    ui_file.write_text(json.dumps(data, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    return len(changes)
+
+
+def _apply_yaml(changes: dict, templates_file: Path, reviewer: str, today: date) -> int:
     t = yaml.safe_load(templates_file.read_text(encoding="utf-8"))
-    changes = {k: v for k, v in corrections.items() if not k.startswith(PEST_PREFIX)}
     unknown = [k for k in changes if k not in t.get("kn", {})]
     if unknown:
         raise ValueError(f"unknown template key(s): {unknown}")
@@ -167,7 +232,7 @@ def main() -> None:
     args = ap.parse_args()
 
     if args.cmd == "export":
-        rows = export_rows()
+        rows = export_rows(previous_csv=Path(args.out))
         write_csv(rows, Path(args.out))
         print(f"[kannada] exported {len(rows)} texts -> {args.out}")
         print("          Send it to a native Kannada speaker; then: python -m backend.kannada_review import "
@@ -183,9 +248,13 @@ def main() -> None:
     today = date.today()
     try:
         n_templates = apply_template_corrections(corrections, TEMPLATES, args.reviewer, today)
+        n_templates += apply_advisory_corrections(corrections, ADVISORY, args.reviewer, today)
+        n_ui = apply_ui_corrections(corrections, UI_STRINGS)
         n_pests = apply_pest_name_corrections(corrections, pests_yaml_path())
     except ValueError as err:
         raise SystemExit(f"[kannada] NOT imported: {err}")
+    if n_ui:
+        print(f"[kannada] {n_ui} dashboard text(s) updated - rebuild: npm --prefix frontend run build")
     print(f"[kannada] imported {n_templates} template correction(s) and {n_pests} pest name correction(s); "
           f"{ok} text(s) marked OK by {args.reviewer}.")
     if n_templates or n_pests:

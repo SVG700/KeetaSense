@@ -17,7 +17,7 @@ from pathlib import Path
 import yaml
 from sqlmodel import Session, select
 
-from backend import bot_store, settings
+from backend import bot_store, image_quality, settings
 from backend.db import get_engine
 from backend.models import AlertLog, Trap
 
@@ -51,6 +51,8 @@ def render_message(lang: str, trap: Trap, decision: dict) -> str:
         ratio=_fmt(decision["ratio"]),
         days_text=days_text,
         reason=decision["reason"],
+        quality_text=image_quality.reasons_text((decision.get("quality") or {}).get("reasons", []), lang,
+                                                only_bad=True),
     ).strip()
 
 

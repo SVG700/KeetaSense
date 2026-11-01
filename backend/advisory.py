@@ -168,7 +168,9 @@ def answer_spray_question(adv: dict, lang: str = "en", now: datetime | None = No
     now = now or datetime.fromisoformat(adv["generated_at"])
     d = adv["decision"]
     pest = settings.pest_display_name(adv["target_pest"], lang)
-    if d["action"] == "WAIT":
+    if d["action"] == "CHECK_TRAP":
+        lines = [t["answer_check_trap"]]
+    elif d["action"] == "WAIT":
         lines = [t["answer_no_need"].format(pest_name=pest, pests=_fmt(d["pests_per_day"]))]
     elif d["action"] == "RELEASE_BIOCONTROL":
         lines = [t["answer_biocontrol"]]

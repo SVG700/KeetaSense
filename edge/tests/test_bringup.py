@@ -176,3 +176,18 @@ def test_record_then_replay(tmp_path, monkeypatch):
 def test_replay_rejects_folder_without_manifest(tmp_path):
     with pytest.raises(FileNotFoundError):
         ReplaySource(tmp_path)
+
+
+def test_injected_stuck_tape_photographs_the_same_section(tmp_path, monkeypatch):
+    from backend import image_quality as iq
+    import cv2
+    cfg = mock_cfg(tmp_path)
+    cfg.inject = "stuck"
+    monkeypatch.setattr(requests, "post", lambda *a, **k: (_ for _ in ()).throw(requests.ConnectionError()))
+    svc = EdgeService(cfg, record=False)
+    svc.run_cycle()
+    svc.run_cycle()
+    images = sorted((cfg.data_dir / "images").glob("*.jpg"))
+    svc.close()
+    a, b = cv2.imread(str(images[-2])), cv2.imread(str(images[-1]))
+    assert iq.check(b, a)[0] == iq.BAD

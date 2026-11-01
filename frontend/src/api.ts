@@ -7,7 +7,24 @@ export const API_BASE: string =
   (import.meta.env.VITE_API_BASE as string | undefined)?.replace(/\/$/, "") ||
   `${window.location.protocol}//${window.location.hostname === "localhost" ? "127.0.0.1" : window.location.hostname}:8000`;
 
-export type Action = "SPRAY" | "RELEASE_BIOCONTROL" | "WAIT";
+export type Action = "SPRAY" | "RELEASE_BIOCONTROL" | "WAIT" | "CHECK_TRAP";
+export type QualityStatus = "OK" | "WARN" | "BAD";
+
+export interface QualityReason {
+  code: "blurred" | "too_dark" | "too_bright" | "glare" | "tape_not_advanced";
+  level: QualityStatus;
+  value: number;
+  limit: number;
+}
+
+export interface QualityMetrics {
+  width?: number;
+  height?: number;
+  blur?: number;
+  brightness?: number;
+  glare_pct?: number;
+  similarity_to_previous?: number | null;
+}
 export type DetectorMode = "yolo_sahi" | "demo_detector";
 
 export interface DetectorInfo {
@@ -103,6 +120,8 @@ export interface DegreeDays {
 
 export interface Decision {
   action: Action;
+  underlying_action?: Action; // what the counts say when the action is CHECK_TRAP
+  quality?: { status: QualityStatus; reasons: QualityReason[]; section_id: number } | null;
   reason: string;
   pests_per_day: number;
   predators_per_day: number;
@@ -123,6 +142,9 @@ export interface Section {
   detector_mode: DetectorMode;
   simulated: boolean;
   source: "live" | "mock" | "replay" | "seed" | "upload";
+  quality_status: QualityStatus | null;
+  quality_reasons: QualityReason[];
+  quality_metrics: QualityMetrics;
 }
 
 export interface Thresholds {

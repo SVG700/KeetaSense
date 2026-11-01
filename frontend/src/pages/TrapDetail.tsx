@@ -2,10 +2,11 @@
 import { useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { api, mediaUrl } from "../api";
+import { useT } from "../i18n";
 import { useLiveData } from "../settings";
 import { CountsChart, DegreeDayChart, DegreeDayMeter } from "../components/charts";
 import {
-  ActionStrip, DecisionBadge, DetectorTag, EmptyState, ErrorState, ReplayTag, SimulatedTag, Spinner, StatusDot,
+  ActionStrip, DecisionBadge, DetectorTag, EmptyState, ErrorState, QualityBadge, ReplayTag, SimulatedTag, Spinner, StatusDot,
   prettyPest, timeAgo,
 } from "../components/ui";
 
@@ -15,6 +16,7 @@ export default function TrapDetail() {
   const { id = "" } = useParams();
   const [days, setDays] = useState(14);
   const { data, error, loading, reload } = useLiveData(() => api.history(id, days), [id, days]);
+  const t = useT();
 
   if (loading && !data) return <Spinner label="Loading trap history…" />;
   if (error && !data) return <ErrorState error={error} onRetry={reload} />;
@@ -42,6 +44,7 @@ export default function TrapDetail() {
               <div className="mt-2 flex flex-wrap items-center gap-2">
                 <StatusDot status={trap.status} />
                 <span className="text-xs text-stone-500">updated {timeAgo(trap.last_seen)}</span>
+                {latest && <QualityBadge status={latest.quality_status} reasons={latest.quality_reasons} showOk />}
                 {latest?.source === "replay" && <ReplayTag />}
                 {simulated && <SimulatedTag />}
                 {latest && <DetectorTag mode={latest.detector_mode} />}
@@ -110,6 +113,14 @@ export default function TrapDetail() {
               <p className="mt-2 text-xs text-stone-500">
                 Boxes: <span className="font-medium">red = pest</span>, <span className="font-medium">green = predator</span>. Click to enlarge.
               </p>
+              {latest.quality_status && (
+                <p className="mt-1 text-xs text-stone-500 dark:text-stone-400">
+                  {t("quality.title")}: {t(`quality.${latest.quality_status}`)} · {t("quality.metrics", {
+                    blur: latest.quality_metrics.blur ?? "–", brightness: latest.quality_metrics.brightness ?? "–",
+                    glare: latest.quality_metrics.glare_pct ?? "–",
+                    sim: latest.quality_metrics.similarity_to_previous ?? "–" })}
+                </p>
+              )}
             </>
           ) : (
             <EmptyState title="No image yet" />

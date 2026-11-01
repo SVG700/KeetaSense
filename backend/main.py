@@ -244,7 +244,7 @@ def trap_decision(trap_id: str, session: Session = Depends(get_session)):
 @app.get("/api/summary")
 def summary(session: Session = Depends(get_session)):
     traps = session.exec(select(Trap)).all()
-    actions = {"SPRAY": 0, "RELEASE_BIOCONTROL": 0, "WAIT": 0}
+    actions = {"SPRAY": 0, "RELEASE_BIOCONTROL": 0, "WAIT": 0, "CHECK_TRAP": 0}
     for t in traps:
         actions[services.compute_decision(session, t)["action"]] += 1
     today_start = datetime.combine(date.today(), datetime.min.time())

@@ -1,6 +1,6 @@
-﻿key,English text,Kannada text,reviewer correction
-days_known,about {days} days,ಸುಮಾರು {days} ದಿನಗಳಲ್ಲಿ,
-days_unknown,not known yet,ಇನ್ನೂ ತಿಳಿದಿಲ್ಲ,
+﻿key,English text,Kannada text,reviewer correction,status
+days_known,about {days} days,ಸುಮಾರು {days} ದಿನಗಳಲ್ಲಿ,,machine-drafted
+days_unknown,not known yet,ಇನ್ನೂ ತಿಳಿದಿಲ್ಲ,,machine-drafted
 SPRAY,"🔴 KeetaSense - {trap_name}
 Action: SPRAY
 {reason}
@@ -8,7 +8,7 @@ Action: SPRAY
 ಕ್ರಮ: ಕೀಟನಾಶಕ ಸಿಂಪಡಿಸಿ
 {pest_name}: ದಿನಕ್ಕೆ ಸರಾಸರಿ {pests_per_day}. ಪ್ರತಿ ಪರಭಕ್ಷಕ ಕೀಟಕ್ಕೆ {ratio} ಹಾನಿಕಾರಕ ಕೀಟಗಳು - ಪರಭಕ್ಷಕಗಳು ನಿಯಂತ್ರಿಸಲು ಸಾಕಾಗುತ್ತಿಲ್ಲ.
 ಮುಂದಿನ ಪೀಳಿಗೆ: {days_text}.
-",
+",,machine-drafted
 RELEASE_BIOCONTROL,"🟠 KeetaSense - {trap_name}
 Action: RELEASE BIOCONTROL
 {reason}
@@ -16,7 +16,7 @@ Action: RELEASE BIOCONTROL
 ಕ್ರಮ: ಜೈವಿಕ ನಿಯಂತ್ರಣ ಕೀಟಗಳನ್ನು ಬಿಡುಗಡೆ ಮಾಡಿ
 {pest_name}: ದಿನಕ್ಕೆ ಸರಾಸರಿ {pests_per_day}, ಆದರೆ ಪರಭಕ್ಷಕ ಕೀಟಗಳು ಸಮನಾಗಿ ಹೆಚ್ಚುತ್ತಿವೆ. ಸಿಂಪಡಣೆ ಮಾಡಬೇಡಿ - ಅದು ಪರಭಕ್ಷಕಗಳನ್ನೂ ಕೊಲ್ಲುತ್ತದೆ.
 ಮುಂದಿನ ಪೀಳಿಗೆ: {days_text}.
-",
+",,machine-drafted
 WAIT,"🟢 KeetaSense - {trap_name}
 Action: WAIT
 {reason}
@@ -24,7 +24,59 @@ Action: WAIT
 ಕ್ರಮ: ಕಾಯಿರಿ
 {pest_name}: ದಿನಕ್ಕೆ ಸರಾಸರಿ {pests_per_day} - ಮಿತಿಗಿಂತ ಕಡಿಮೆ. ಗಮನಿಸುತ್ತಿರಿ.
 ಮುಂದಿನ ಪೀಳಿಗೆ: {days_text}.
-",
-pest_name.whitefly,Whitefly,ಬಿಳಿ ನೊಣ,
-pest_name.macrolophus,Macrolophus (predator bug),ಮ್ಯಾಕ್ರೊಲೋಫಸ್ (ಪರಭಕ್ಷಕ ತಿಗಣೆ),
-pest_name.nesidiocoris,Nesidiocoris (predator bug),ನೆಸಿಡಿಯೊಕೊರಿಸ್ (ಪರಭಕ್ಷಕ ತಿಗಣೆ),
+",,machine-drafted
+CHECK_TRAP,"⚪ KeetaSense - {trap_name}
+Action: CHECK TRAP
+The latest photo is not usable: {quality_text}. No spray or release advice until a good photo arrives.
+","⚪ ಕೀಟಸೆನ್ಸ್ - {trap_name}
+ಕ್ರಮ: ಬಲೆಯನ್ನು ಪರಿಶೀಲಿಸಿ
+ಇತ್ತೀಚಿನ ಚಿತ್ರ ಬಳಸಲು ಯೋಗ್ಯವಾಗಿಲ್ಲ: {quality_text}. ಉತ್ತಮ ಚಿತ್ರ ಬರುವವರೆಗೆ ಸಿಂಪಡಣೆ ಅಥವಾ ಬಿಡುಗಡೆ ಸಲಹೆ ಇಲ್ಲ.
+",,needs review
+advisory.title,KeetaSense - {trap_name},ಕೀಟಸೆನ್ಸ್ - {trap_name},,needs review
+advisory.action_SPRAY,Action: SPRAY,ಕ್ರಮ: ಕೀಟನಾಶಕ ಸಿಂಪಡಿಸಿ,,needs review
+advisory.action_RELEASE_BIOCONTROL,Action: RELEASE BIOCONTROL (do not spray),ಕ್ರಮ: ಜೈವಿಕ ನಿಯಂತ್ರಣ ಕೀಟಗಳನ್ನು ಬಿಡುಗಡೆ ಮಾಡಿ (ಸಿಂಪಡಿಸಬೇಡಿ),,needs review
+advisory.action_WAIT,Action: WAIT - no spraying needed,ಕ್ರಮ: ಕಾಯಿರಿ - ಸಿಂಪಡಣೆ ಬೇಡ,,needs review
+advisory.counts,"{pest_name}: {pests} per day, predators: {predators} per day.","{pest_name}: ದಿನಕ್ಕೆ {pests}, ಪರಭಕ್ಷಕ ಕೀಟಗಳು: ದಿನಕ್ಕೆ {predators}.",,needs review
+advisory.trend_rising,Pest pressure is rising (about {pct}% per day).,ಕೀಟಗಳ ಒತ್ತಡ ಹೆಚ್ಚುತ್ತಿದೆ (ದಿನಕ್ಕೆ ಸುಮಾರು {pct}%).,,needs review
+advisory.trend_falling,Pest pressure is falling.,ಕೀಟಗಳ ಒತ್ತಡ ಕಡಿಮೆಯಾಗುತ್ತಿದೆ.,,needs review
+advisory.trend_stable,Pest pressure is stable.,ಕೀಟಗಳ ಒತ್ತಡ ಸ್ಥಿರವಾಗಿದೆ.,,needs review
+advisory.crosses,Expected to reach the action level in about {days} days.,ಸುಮಾರು {days} ದಿನಗಳಲ್ಲಿ ಕ್ರಮದ ಮಿತಿ ತಲುಪುವ ನಿರೀಕ್ಷೆ.,,needs review
+advisory.spray_ok,Good time to spray now: no rain expected for the next {dry_hours} hours.,ಈಗ ಸಿಂಪಡಿಸಲು ಸೂಕ್ತ ಸಮಯ: ಮುಂದಿನ {dry_hours} ಗಂಟೆ ಮಳೆ ಇಲ್ಲ.,,needs review
+advisory.spray_rain_soon,Don't spray now: rain expected in about {hours} hours ({prob}% chance).,ಈಗ ಸಿಂಪಡಿಸಬೇಡಿ: ಸುಮಾರು {hours} ಗಂಟೆಗಳಲ್ಲಿ ಮಳೆ ಬರುವ ಸಾಧ್ಯತೆ ({prob}%).,,needs review
+advisory.spray_raining,Don't spray now: it is raining.,ಈಗ ಸಿಂಪಡಿಸಬೇಡಿ: ಮಳೆ ಬರುತ್ತಿದೆ.,,needs review
+advisory.spray_windy,Don't spray now: strong wind ({wind} km/h).,ಈಗ ಸಿಂಪಡಿಸಬೇಡಿ: ಗಾಳಿ ಜೋರಾಗಿದೆ ({wind} ಕಿಮೀ/ಗಂ).,,needs review
+advisory.spray_outside_hours,Not a spraying hour now.,ಈಗ ಸಿಂಪಡಣೆಯ ಸಮಯವಲ್ಲ.,,needs review
+advisory.spray_no_forecast,No weather forecast - look at the sky before spraying.,ಹವಾಮಾನ ಮುನ್ಸೂಚನೆ ಲಭ್ಯವಿಲ್ಲ - ಸಿಂಪಡಿಸುವ ಮೊದಲು ಆಕಾಶ ನೋಡಿ.,,needs review
+advisory.spray_next,Next good time to spray: {when}.,ಸಿಂಪಡಿಸಲು ಮುಂದಿನ ಸೂಕ್ತ ಸಮಯ: {when}.,,needs review
+advisory.when_today,today {time},ಇಂದು {time},,needs review
+advisory.when_tomorrow,tomorrow {time},ನಾಳೆ {time},,needs review
+advisory.when_date,{date} {time},{date} {time},,needs review
+advisory.warning,"Warning: pest outbreak at {neighbour}, {km} km away. Check your crop.",ಎಚ್ಚರಿಕೆ: {km} ಕಿಮೀ ದೂರದ {neighbour} ನಲ್ಲಿ ಕೀಟ ಹರಡುವಿಕೆ. ನಿಮ್ಮ ಬೆಳೆಯನ್ನು ಪರಿಶೀಲಿಸಿ.,,needs review
+advisory.answer_no_need,No need to spray today: {pest_name} is below the action level ({pests} per day).,ಇಂದು ಸಿಂಪಡಿಸುವ ಅಗತ್ಯವಿಲ್ಲ: {pest_name} ಕ್ರಮದ ಮಿತಿಗಿಂತ ಕಡಿಮೆ (ದಿನಕ್ಕೆ {pests}).,,needs review
+advisory.answer_biocontrol,Better not to spray: predators are keeping the pests down. Release more biocontrol instead.,ಸಿಂಪಡಿಸದಿರುವುದು ಉತ್ತಮ: ಪರಭಕ್ಷಕ ಕೀಟಗಳು ಕೀಟಗಳನ್ನು ನಿಯಂತ್ರಿಸುತ್ತಿವೆ. ಬದಲಿಗೆ ಜೈವಿಕ ನಿಯಂತ್ರಣ ಕೀಟಗಳನ್ನು ಬಿಡುಗಡೆ ಮಾಡಿ.,,needs review
+advisory.answer_need,"Yes, spraying is needed.","ಹೌದು, ಸಿಂಪಡಣೆ ಅಗತ್ಯವಿದೆ.",,needs review
+advisory.sensor,"Trap now: {temp}°C, humidity {hum}%.","ಈಗ ಬಲೆಯಲ್ಲಿ: {temp}°C, ತೇವಾಂಶ {hum}%.",,needs review
+advisory.action_CHECK_TRAP,Action: CHECK TRAP - the latest photo is not usable,ಕ್ರಮ: ಬಲೆಯನ್ನು ಪರಿಶೀಲಿಸಿ - ಇತ್ತೀಚಿನ ಚಿತ್ರ ಬಳಸಲು ಯೋಗ್ಯವಾಗಿಲ್ಲ,,needs review
+advisory.check_trap_reason,The latest tape photo is not usable ({reasons}). Check the trap - no spray or release advice until a good photo arrives.,ಇತ್ತೀಚಿನ ಟೇಪ್ ಚಿತ್ರ ಬಳಸಲು ಯೋಗ್ಯವಾಗಿಲ್ಲ ({reasons}). ಬಲೆಯನ್ನು ಪರಿಶೀಲಿಸಿ - ಉತ್ತಮ ಚಿತ್ರ ಬರುವವರೆಗೆ ಸಿಂಪಡಣೆ ಅಥವಾ ಬಿಡುಗಡೆ ಸಲಹೆ ಇಲ್ಲ.,,needs review
+advisory.answer_check_trap,Cannot advise right now: the latest trap photo is not usable. Please check the trap first.,ಈಗ ಸಲಹೆ ನೀಡಲು ಸಾಧ್ಯವಿಲ್ಲ: ಇತ್ತೀಚಿನ ಬಲೆಯ ಚಿತ್ರ ಬಳಸಲು ಯೋಗ್ಯವಾಗಿಲ್ಲ. ದಯವಿಟ್ಟು ಮೊದಲು ಬಲೆಯನ್ನು ಪರಿಶೀಲಿಸಿ.,,needs review
+advisory.quality_blurred,image blurred,ಚಿತ್ರ ಮಸುಕಾಗಿದೆ,,needs review
+advisory.quality_too_dark,image too dark,ಚಿತ್ರ ತುಂಬಾ ಕತ್ತಲೆ,,needs review
+advisory.quality_too_bright,image too bright,ಚಿತ್ರ ತುಂಬಾ ಪ್ರಕಾಶಮಾನ,,needs review
+advisory.quality_glare,glare on the tape,ಟೇಪ್ ಮೇಲೆ ಹೊಳಪು,,needs review
+advisory.quality_tape_not_advanced,tape did not advance,ಟೇಪ್ ಮುಂದೆ ಸರಿಯಲಿಲ್ಲ,,needs review
+ui.lang.toggle,ಕನ್ನಡ,English,,needs review
+ui.action.CHECK_TRAP,Check trap,ಬಲೆ ಪರಿಶೀಲಿಸಿ,,needs review
+ui.action.CHECK_TRAP.hint,The latest photo is not usable - no spray or release advice,ಇತ್ತೀಚಿನ ಚಿತ್ರ ಬಳಸಲು ಯೋಗ್ಯವಾಗಿಲ್ಲ - ಸಿಂಪಡಣೆ ಅಥವಾ ಬಿಡುಗಡೆ ಸಲಹೆ ಇಲ್ಲ,,needs review
+ui.quality.OK,Photo OK,ಚಿತ್ರ ಸರಿಯಾಗಿದೆ,,needs review
+ui.quality.WARN,Photo: check,ಚಿತ್ರ: ಪರಿಶೀಲಿಸಿ,,needs review
+ui.quality.BAD,Photo not usable,ಚಿತ್ರ ಬಳಸಲು ಯೋಗ್ಯವಲ್ಲ,,needs review
+ui.quality.blurred,image blurred,ಚಿತ್ರ ಮಸುಕಾಗಿದೆ,,needs review
+ui.quality.too_dark,image too dark,ಚಿತ್ರ ತುಂಬಾ ಕತ್ತಲೆ,,needs review
+ui.quality.too_bright,image too bright,ಚಿತ್ರ ತುಂಬಾ ಪ್ರಕಾಶಮಾನ,,needs review
+ui.quality.glare,glare on the tape,ಟೇಪ್ ಮೇಲೆ ಹೊಳಪು,,needs review
+ui.quality.tape_not_advanced,tape did not advance,ಟೇಪ್ ಮುಂದೆ ಸರಿಯಲಿಲ್ಲ,,needs review
+ui.quality.title,Photo quality,ಚಿತ್ರದ ಗುಣಮಟ್ಟ,,needs review
+ui.quality.metrics,sharpness {blur} · brightness {brightness} · glare {glare}% · similarity to previous photo {sim},ಸ್ಪಷ್ಟತೆ {blur} · ಪ್ರಕಾಶ {brightness} · ಹೊಳಪು {glare}% · ಹಿಂದಿನ ಚಿತ್ರಕ್ಕೆ ಹೋಲಿಕೆ {sim},,needs review
+pest_name.whitefly,Whitefly,ಬಿಳಿ ನೊಣ,,machine-drafted
+pest_name.macrolophus,Macrolophus (predator bug),ಮ್ಯಾಕ್ರೊಲೋಫಸ್ (ಪರಭಕ್ಷಕ ತಿಗಣೆ),,machine-drafted
+pest_name.nesidiocoris,Nesidiocoris (predator bug),ನೆಸಿಡಿಯೊಕೊರಿಸ್ (ಪರಭಕ್ಷಕ ತಿಗಣೆ),,machine-drafted

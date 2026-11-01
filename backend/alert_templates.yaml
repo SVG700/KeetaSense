@@ -24,6 +24,10 @@ en:
     🟢 KeetaSense - {trap_name}
     Action: WAIT
     {reason}
+  CHECK_TRAP: |
+    ⚪ KeetaSense - {trap_name}
+    Action: CHECK TRAP
+    The latest photo is not usable: {quality_text}. No spray or release advice until a good photo arrives.
 
 kn:
   days_known: "ಸುಮಾರು {days} ದಿನಗಳಲ್ಲಿ"
@@ -43,6 +47,10 @@ kn:
     ಕ್ರಮ: ಕಾಯಿರಿ
     {pest_name}: ದಿನಕ್ಕೆ ಸರಾಸರಿ {pests_per_day} - ಮಿತಿಗಿಂತ ಕಡಿಮೆ. ಗಮನಿಸುತ್ತಿರಿ.
     ಮುಂದಿನ ಪೀಳಿಗೆ: {days_text}.
+  CHECK_TRAP: |
+    ⚪ ಕೀಟಸೆನ್ಸ್ - {trap_name}
+    ಕ್ರಮ: ಬಲೆಯನ್ನು ಪರಿಶೀಲಿಸಿ
+    ಇತ್ತೀಚಿನ ಚಿತ್ರ ಬಳಸಲು ಯೋಗ್ಯವಾಗಿಲ್ಲ: {quality_text}. ಉತ್ತಮ ಚಿತ್ರ ಬರುವವರೆಗೆ ಸಿಂಪಡಣೆ ಅಥವಾ ಬಿಡುಗಡೆ ಸಲಹೆ ಇಲ್ಲ.
 
 hi:
   days_known: "लगभग {days} दिनों में"
@@ -62,6 +70,10 @@ hi:
     कार्रवाई: इंतज़ार करें
     {pest_name}: प्रतिदिन औसतन {pests_per_day} - सीमा से कम। निगरानी जारी रखें।
     अगली पीढ़ी: {days_text}।
+  CHECK_TRAP: |
+    ⚪ कीटसेंस - {trap_name}
+    कार्रवाई: ट्रैप जाँचें
+    नवीनतम फ़ोटो उपयोग योग्य नहीं: {quality_text}। अच्छी फ़ोटो आने तक छिड़काव या छोड़ने की सलाह नहीं।
 
 ta:
   days_known: "சுமார் {days} நாட்களில்"
@@ -81,3 +93,7 @@ ta:
     நடவடிக்கை: காத்திருக்கவும்
     {pest_name}: நாளொன்றுக்கு சராசரி {pests_per_day} - வரம்புக்குக் கீழே. கண்காணித்துக் கொண்டே இருங்கள்.
     அடுத்த தலைமுறை: {days_text}.
+  CHECK_TRAP: |
+    ⚪ கீடசென்ஸ் - {trap_name}
+    நடவடிக்கை: பொறியைச் சரிபார்க்கவும்
+    சமீபத்திய படம் பயன்படுத்த முடியாது: {quality_text}. நல்ல படம் வரும் வரை தெளிப்பு அல்லது விடுவிப்பு ஆலோசனை இல்லை.

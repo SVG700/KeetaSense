@@ -1,16 +1,26 @@
 // Small reusable UI pieces: decision badge, labels, error and empty states.
 import type { ReactNode } from "react";
-import { ApiError, type Action, type DetectorMode } from "../api";
+import { ApiError, type Action, type DetectorMode, type QualityReason, type QualityStatus } from "../api";
+import { useT } from "../i18n";
 
 /** Traffic light for a decision. Colour is never alone: always icon + words. */
 export const ACTION_INFO: Record<Action, { label: string; icon: string; color: string; hint: string }> = {
   SPRAY: { label: "Spray", icon: "▲", color: "var(--status-critical)", hint: "Pests high, predators not keeping pace" },
   RELEASE_BIOCONTROL: { label: "Release biocontrol", icon: "◆", color: "var(--status-warning)", hint: "Pests high, predators keeping pace" },
   WAIT: { label: "Wait", icon: "●", color: "var(--status-good)", hint: "Below the action threshold" },
+  CHECK_TRAP: { label: "Check trap", icon: "■", color: "var(--status-neutral)", hint: "The latest photo is not usable - no spray or release advice" },
 };
 
-export function DecisionBadge({ action, size = "md" }: { action: Action; size?: "md" | "lg" }) {
-  const info = ACTION_INFO[action];
+// Alerts can carry other kinds (EARLY_WARNING, ...): show them neutrally instead of crashing.
+const OTHER = { label: "", icon: "•", color: "var(--status-neutral)", hint: "" };
+
+export function DecisionBadge({ action, size = "md" }: { action: Action | string; size?: "md" | "lg" }) {
+  const t = useT();
+  const known = (ACTION_INFO as Record<string, typeof OTHER>)[action];
+  const info = known
+    ? { ...known, label: action === "CHECK_TRAP" ? t("action.CHECK_TRAP") : known.label,
+        hint: action === "CHECK_TRAP" ? t("action.CHECK_TRAP.hint") : known.hint }
+    : { ...OTHER, label: action.replaceAll("_", " ").toLowerCase() };
   const big = size === "lg";
   return (
     <span
@@ -26,7 +36,24 @@ export function DecisionBadge({ action, size = "md" }: { action: Action; size?: 
 
 /** Coloured strip down the side of a card: the "traffic light". */
 export function ActionStrip({ action }: { action: Action }) {
-  return <div className="absolute inset-y-0 left-0 w-1.5 rounded-l-2xl" style={{ background: ACTION_INFO[action].color }} aria-hidden />;
+  return <div className="absolute inset-y-0 left-0 w-1.5 rounded-l-2xl" style={{ background: (ACTION_INFO[action] ?? OTHER).color }} aria-hidden />;
+}
+
+/** F1: photo quality of a tape section (OK is quiet unless showOk; WARN/BAD say why). */
+export function QualityBadge({ status, reasons, showOk = false }: { status: QualityStatus | null | undefined; reasons: QualityReason[]; showOk?: boolean }) {
+  const t = useT();
+  if (!status || (status === "OK" && !showOk)) return null;
+  const why = reasons.map((r) => t(`quality.${r.code}`)).join(", ");
+  const tone = status === "BAD"
+    ? "border-stone-400 bg-stone-200 text-stone-800 dark:border-stone-500 dark:bg-stone-700 dark:text-stone-100"
+    : status === "WARN"
+      ? "border-amber-300 bg-amber-50 text-amber-900 dark:border-amber-700 dark:bg-amber-950 dark:text-amber-200"
+      : "border-leaf-600/40 bg-leaf-50 text-leaf-800 dark:border-leaf-700 dark:bg-leaf-900/40 dark:text-leaf-100";
+  return (
+    <span title={why} className={`inline-flex items-center gap-1 rounded-md border px-2 py-0.5 text-xs font-medium ${tone}`}>
+      {status === "OK" ? "✓" : status === "WARN" ? "!" : "■"} {t(`quality.${status}`)}{why ? `: ${why}` : ""}
+    </span>
+  );
 }
 
 export function Tag({ children, tone = "amber", title }: { children: ReactNode; tone?: "amber" | "stone" | "green"; title?: string }) {

@@ -15,7 +15,7 @@ import cv2
 import numpy as np
 from sqlmodel import Session, select
 
-from backend import alerts, settings
+from backend import alerts, image_quality, settings
 from backend.decision_engine import (DailyCatch, DailyTemperature, Thresholds, daily_degree_days,
                                      decide)
 from backend.models import ClimateReading, Decision, TapeSection, Trap
@@ -24,7 +24,8 @@ from ml.common import category_of
 
 log = logging.getLogger("keetasense.services")
 
-ONLINE_WITHIN = timedelta(hours=26)  # a trap reports at least daily; allow some slack
+ONLINE_WITHIN = timedelta(hours=26)
+CHECK_TRAP = "CHECK_TRAP"   # decision state when the latest photo is unusable (image quality gate)  # a trap reports at least daily; allow some slack
 
 
 # ---------------------------------------------------------------------------
@@ -100,6 +101,9 @@ def process_section(session: Session, trap: Trap, img: np.ndarray, timestamp: da
                     ) -> tuple[TapeSection, infer.DetectionResult, dict]:
     """Detect insects on one tape section, store it, and update the decision."""
     result = run_detection(img, detections, detector_mode)
+    q_status, q_reasons, q_metrics = image_quality.check(img, previous_image(session, trap))
+    if q_status != image_quality.OK:
+        log.warning("Image quality %s for %s: %s", q_status, trap.id, image_quality.reasons_text(q_reasons))
     stem = f"{trap.id}/{timestamp:%Y%m%d_%H%M%S}_{uuid.uuid4().hex[:6]}"
     section = TapeSection(
         trap_id=trap.id, timestamp=timestamp,
@@ -107,12 +111,22 @@ def process_section(session: Session, trap: Trap, img: np.ndarray, timestamp: da
         annotated_path=save_image(result.annotated_image, "annotated", stem),
         counts=result.counts, pest_total=result.pest_total, predator_total=result.predator_total,
         detector_mode=result.mode, simulated=simulated, source=source,
+        quality_status=q_status, quality_reasons=q_reasons, quality_metrics=q_metrics,
     )
     session.add(section)
     session.commit()
     session.refresh(section)
     decision = update_decision(session, trap, notify=notify, now=timestamp)
     return section, result, decision
+
+
+def previous_image(session: Session, trap: Trap) -> np.ndarray | None:
+    """The trap's latest stored photo (to check that the tape really advanced)."""
+    prev = session.exec(select(TapeSection).where(TapeSection.trap_id == trap.id)
+                        .order_by(TapeSection.timestamp.desc(), TapeSection.id.desc())).first()
+    if prev is None:
+        return None
+    return cv2.imread(str(settings.media_dir() / prev.image_path))
 
 
 def add_climate(session: Session, trap: Trap, timestamp: datetime, temperature_c: float,
@@ -153,13 +167,26 @@ def daily_climate(session: Session, trap: Trap, since: date | None = None) -> li
 # ---------------------------------------------------------------------------
 def compute_decision(session: Session, trap: Trap) -> dict:
     th = thresholds_for(trap.target_pest)
-    recent = session.exec(select(TapeSection).where(TapeSection.trap_id == trap.id)
+    # BAD photos (blurred, dark, glare, tape not advanced) are never counted
+    good = (TapeSection.quality_status.is_(None)) | (TapeSection.quality_status != image_quality.BAD)
+    recent = session.exec(select(TapeSection).where(TapeSection.trap_id == trap.id, good)
                           .order_by(TapeSection.timestamp.desc()).limit(th.rolling_window_days)).all()
     catches = [DailyCatch(s.pest_total, s.predator_total) for s in reversed(recent)]
     temps = [DailyTemperature(date.fromisoformat(d["date"]), d["tmin"], d["tmax"])
              for d in daily_climate(session, trap)]
-    result = decide(catches, temps, th, settings.pest_display_name(trap.target_pest).lower())
-    return result.to_dict()
+    result = decide(catches, temps, th, settings.pest_display_name(trap.target_pest).lower()).to_dict()
+    latest = session.exec(select(TapeSection).where(TapeSection.trap_id == trap.id)
+                          .order_by(TapeSection.timestamp.desc(), TapeSection.id.desc())).first()
+    result["quality"] = None
+    if latest is not None and latest.quality_status:
+        result["quality"] = {"status": latest.quality_status, "reasons": latest.quality_reasons,
+                             "section_id": latest.id}
+    if latest is not None and latest.quality_status == image_quality.BAD:
+        # CHECK TRAP: no spray / release advice until a usable photo arrives
+        result["underlying_action"] = result["action"]
+        result["action"] = CHECK_TRAP
+        result["reason"] = image_quality.check_trap_reason(latest.quality_reasons, "en")
+    return result
 
 
 def latest_decision(session: Session, trap_id: str) -> Decision | None:
@@ -190,6 +217,8 @@ def update_decision(session: Session, trap: Trap, notify: bool = True,
 # ---------------------------------------------------------------------------
 def section_to_dict(s: TapeSection) -> dict:
     return {
+        "quality_status": s.quality_status, "quality_reasons": s.quality_reasons or [],
+        "quality_metrics": s.quality_metrics or {},
         "id": s.id, "trap_id": s.trap_id, "timestamp": s.timestamp.isoformat(timespec="seconds"),
         "counts": s.counts, "pest_total": s.pest_total, "predator_total": s.predator_total,
         "image_url": media_url(s.image_path), "annotated_url": media_url(s.annotated_path),

@@ -41,6 +41,10 @@ class TapeSection(SQLModel, table=True):
     # where it came from: live (real trap) | mock (mock hardware) | replay (recorded cycle
     # replayed on stage) | seed (demo/seed.py) | upload (posted by hand, e.g. curl)
     source: str = "live"
+    # image quality gate (backend/image_quality.py): OK / WARN / BAD, why, and the measured numbers
+    quality_status: str | None = None
+    quality_reasons: list = Field(default_factory=list, sa_column=Column(JSON))
+    quality_metrics: dict = Field(default_factory=dict, sa_column=Column(JSON))
 
 
 SECTION_SOURCES = {"live", "mock", "replay", "seed", "upload"}

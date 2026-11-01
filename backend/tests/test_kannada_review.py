@@ -90,3 +90,36 @@ def test_templates_still_render_after_rewrite(files, tmp_path, monkeypatch):
     alerts.templates.cache_clear()
     assert "ಇನ್ನೂ ಗೊತ್ತಿಲ್ಲ" == alerts.templates()["kn"]["days_unknown"]
     alerts.templates.cache_clear()
+
+
+def test_export_marks_new_and_changed_kannada_as_needs_review(files, tmp_path):
+    t, p = files
+    first = tmp_path / "first.csv"
+    kr.write_csv(kr.export_rows(t, p, previous_csv=None), first)
+    rows = list(csv.DictReader(open(first, encoding="utf-8-sig")))
+    assert {r["status"] for r in rows} == {"needs review"}                 # nothing seen before
+    assert any(r["key"].startswith("advisory.") for r in rows) and any(r["key"].startswith("ui.") for r in rows)
+    # same texts again: no longer new
+    second = kr.export_rows(t, p, previous_csv=first)
+    assert all(r["status"] == "needs review" for r in second)               # status carried over
+    marked = [dict(r, status="machine-drafted") for r in rows]
+    kr.write_csv(marked, first)
+    again = {r["key"]: r["status"] for r in kr.export_rows(t, p, previous_csv=first)}
+    assert set(again.values()) == {"machine-drafted"}
+
+
+def test_import_dashboard_and_advisory_corrections(files, tmp_path):
+    import json
+    t, p = files
+    ui = tmp_path / "strings.json"
+    ui.write_text(json.dumps({"quality.BAD": {"en": "Photo not usable", "kn": "ಹಳೆಯದು"}}, ensure_ascii=False),
+                  encoding="utf-8")
+    adv = tmp_path / "advisory.yaml"
+    shutil.copy2(kr.ADVISORY, adv)
+    corrections = {"ui.quality.BAD": "ಹೊಸದು", "advisory.trend_stable": "ಸ್ಥಿರ.", "WAIT": None}
+    del corrections["WAIT"]
+    assert kr.apply_ui_corrections(corrections, ui) == 1
+    assert json.loads(ui.read_text(encoding="utf-8"))["quality.BAD"]["kn"] == "ಹೊಸದು"
+    assert kr.apply_advisory_corrections(corrections, adv, "R", date(2026, 11, 3)) == 1
+    assert yaml.safe_load(adv.read_text(encoding="utf-8"))["kn"]["trend_stable"] == "ಸ್ಥಿರ."
+    assert kr.apply_template_corrections(corrections, t, "R", date(2026, 11, 3)) == 0   # prefixed keys skipped

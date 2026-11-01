@@ -32,6 +32,7 @@
   --status-good: #0ca30c;
   --status-warning: #fab219;
   --status-critical: #d03b3b;
+  --status-neutral: #8a8984; /* CHECK TRAP: no advice - deliberately not a traffic-light colour */
 }
 .dark {
   --series-pest: #3987e5;

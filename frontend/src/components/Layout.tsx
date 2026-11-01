@@ -2,6 +2,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { NavLink, Outlet } from "react-router-dom";
 import { api } from "../api";
+import { useT } from "../i18n";
 import { LIVE_REFRESH_MS, useLiveData, useSettings } from "../settings";
 
 /** Thin bar under the header: which detector produced the counts on this screen. */
@@ -83,7 +84,8 @@ function NavItem({ to, children }: { to: string; children: string }) {
 }
 
 export default function Layout() {
-  const { live, setLive, theme, toggleTheme } = useSettings();
+  const { live, setLive, theme, toggleTheme, toggleUiLang } = useSettings();
+  const t = useT();
   return (
     <div className="min-h-screen">
       <header className="sticky top-0 z-10 border-b border-stone-200 bg-white/90 backdrop-blur dark:border-stone-800 dark:bg-stone-950/90">
@@ -113,6 +115,10 @@ export default function Layout() {
             >
               <span className={`h-2 w-2 rounded-full ${live ? "animate-pulse bg-leaf-500" : "bg-stone-400"}`} aria-hidden />
               Live {live ? "on" : "off"}
+            </button>
+            <button onClick={toggleUiLang} className="rounded-full border border-stone-300 px-3 py-1.5 text-sm dark:border-stone-700"
+                    aria-label="Switch dashboard language (English / Kannada)">
+              {t("lang.toggle")}
             </button>
             <button
               onClick={toggleTheme}

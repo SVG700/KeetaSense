@@ -37,7 +37,7 @@ from pathlib import Path
 import cv2
 import requests
 
-from edge import selfcheck
+from edge import faults, selfcheck
 from edge.config import EdgeConfig
 from edge.hardware import DHT22, Camera, Stepper
 from edge.offline_queue import OfflineQueue
@@ -75,6 +75,12 @@ class EdgeService:
         # how the backend/dashboard label this data
         self.source = "replay" if self.replay else ("mock" if cfg.mock_hardware else "live")
         self._last_climate: tuple[float, float] | None = None
+        self._last_image = None
+        if cfg.inject and not cfg.mock_hardware:
+            log.warning("--inject only works with mock hardware - ignored")
+            cfg.inject = ""
+        if cfg.inject:
+            log.warning("FAULT INJECTION (mock demo): %s", cfg.inject)
 
     def _start(self, name: str, factory):
         try:
@@ -103,14 +109,21 @@ class EdgeService:
         try:
             if self.camera is None:
                 raise RuntimeError(f"camera not available ({self.init_errors.get('camera')})")
-            if self.stepper is not None:
+            stuck = self.cfg.inject in ("stuck", "motor") and self._last_image is not None
+            if stuck:
+                log.warning("[MOCK fault] tape NOT advanced (%s)", self.cfg.inject)
+            elif self.stepper is not None:
                 self.stepper.advance_section()
             else:
                 log.error("Stepper not available - photographing the same tape section again")
             time.sleep(self.cfg.settle_seconds if not self.cfg.mock_hardware else 0.2)
-            img = self.camera.capture()
+            img = self._last_image.copy() if stuck else self.camera.capture()
+            self._last_image = img
+            if self.cfg.inject in ("blur", "dark", "glare"):
+                img = faults.degrade(img, self.cfg.inject)
+                log.warning("[MOCK fault] photo degraded: %s", self.cfg.inject)
             now = datetime.now()
-            path = self.images_dir / f"{self.cfg.trap_id}_{now:%Y%m%d_%H%M%S}.jpg"
+            path = self.images_dir / f"{self.cfg.trap_id}_{now:%Y%m%d_%H%M%S_%f}.jpg"
             cv2.imwrite(str(path), img, [cv2.IMWRITE_JPEG_QUALITY, 92])
             summary["captured"] = True
 
@@ -141,7 +154,7 @@ class EdgeService:
         """REPLAY: send the next recorded image + results as a new tape section."""
         entry = self.replay.next()
         now = datetime.now()
-        path = self.images_dir / f"{self.cfg.trap_id}_{now:%Y%m%d_%H%M%S}_replay.jpg"
+        path = self.images_dir / f"{self.cfg.trap_id}_{now:%Y%m%d_%H%M%S_%f}_replay.jpg"
         shutil.copy2(entry.image, path)
         payload = {"trap_id": self.cfg.trap_id, "timestamp": now.isoformat(timespec="seconds"),
                    "simulated": entry.simulated, "source": "replay"}
@@ -291,9 +304,12 @@ def main() -> None:
     ap.add_argument("--trap", help="override TRAP_ID")
     ap.add_argument("--replay", help="folder with a recording (manifest.jsonl) to replay instead of using hardware")
     ap.add_argument("--skip-selfcheck", action="store_true", help="do not run the startup self-check")
+    ap.add_argument("--inject", choices=faults.FAULTS, help="MOCK only: simulate a fault (see edge/faults.py)")
     args = ap.parse_args()
 
     cfg = EdgeConfig()
+    if args.inject:
+        cfg.inject = args.inject
     if args.trap:
         cfg.trap_id = args.trap
     if cfg.mock_hardware and not args.replay:
