@@ -8,7 +8,7 @@ Action: SPRAY
 ಕ್ರಮ: ಕೀಟನಾಶಕ ಸಿಂಪಡಿಸಿ
 {pest_name}: ದಿನಕ್ಕೆ ಸರಾಸರಿ {pests_per_day}. ಪ್ರತಿ ಪರಭಕ್ಷಕ ಕೀಟಕ್ಕೆ {ratio} ಹಾನಿಕಾರಕ ಕೀಟಗಳು - ಪರಭಕ್ಷಕಗಳು ನಿಯಂತ್ರಿಸಲು ಸಾಕಾಗುತ್ತಿಲ್ಲ.
 ಮುಂದಿನ ಪೀಳಿಗೆ: {days_text}.
-",,machine-drafted
+",,needs review
 RELEASE_BIOCONTROL,"🟠 KeetaSense - {trap_name}
 Action: RELEASE BIOCONTROL
 {reason}
@@ -16,7 +16,7 @@ Action: RELEASE BIOCONTROL
 ಕ್ರಮ: ಜೈವಿಕ ನಿಯಂತ್ರಣ ಕೀಟಗಳನ್ನು ಬಿಡುಗಡೆ ಮಾಡಿ
 {pest_name}: ದಿನಕ್ಕೆ ಸರಾಸರಿ {pests_per_day}, ಆದರೆ ಪರಭಕ್ಷಕ ಕೀಟಗಳು ಸಮನಾಗಿ ಹೆಚ್ಚುತ್ತಿವೆ. ಸಿಂಪಡಣೆ ಮಾಡಬೇಡಿ - ಅದು ಪರಭಕ್ಷಕಗಳನ್ನೂ ಕೊಲ್ಲುತ್ತದೆ.
 ಮುಂದಿನ ಪೀಳಿಗೆ: {days_text}.
-",,machine-drafted
+",,needs review
 WAIT,"🟢 KeetaSense - {trap_name}
 Action: WAIT
 {reason}
@@ -24,7 +24,7 @@ Action: WAIT
 ಕ್ರಮ: ಕಾಯಿರಿ
 {pest_name}: ದಿನಕ್ಕೆ ಸರಾಸರಿ {pests_per_day} - ಮಿತಿಗಿಂತ ಕಡಿಮೆ. ಗಮನಿಸುತ್ತಿರಿ.
 ಮುಂದಿನ ಪೀಳಿಗೆ: {days_text}.
-",,machine-drafted
+",,needs review
 CHECK_TRAP,"⚪ KeetaSense - {trap_name}
 Action: CHECK TRAP
 The latest photo is not usable: {quality_text}. No spray or release advice until a good photo arrives.
@@ -53,9 +53,15 @@ MOTOR FAULT: the tape is not advancing ({detail}). Check the motor and tape.
 ","⚙ ಕೀಟಸೆನ್ಸ್ - {trap_name}
 ಮೋಟಾರ್ ದೋಷ: ಟೇಪ್ ಮುಂದೆ ಸರಿಯುತ್ತಿಲ್ಲ ({detail}). ಮೋಟಾರ್ ಮತ್ತು ಟೇಪ್ ಪರಿಶೀಲಿಸಿ.
 ",,needs review
-digest_title,📋 KeetaSense daily summary - {trap_name} - {date},📋 ಕೀಟಸೆನ್ಸ್ ದೈನಂದಿನ ಸಾರಾಂಶ - {trap_name} - {date},,needs review
-digest_action,"Advice: {action}. {pest_name}: {pests} per day, predators: {predators} per day.","ಸಲಹೆ: {action}. {pest_name}: ದಿನಕ್ಕೆ {pests}, ಪರಭಕ್ಷಕಗಳು: ದಿನಕ್ಕೆ {predators}.",,needs review
+digest_title,📋 KeetaSense morning summary - {trap_name} - {date},📋 ಕೀಟಸೆನ್ಸ್ ಬೆಳಗಿನ ಸಾರಾಂಶ - {trap_name} - {date},,needs review
+digest_action,Advice: {action} (3-day average: {pests} {pest_name} and {predators} predators per day).,ಸಲಹೆ: {action} (3 ದಿನಗಳ ಸರಾಸರಿ: ದಿನಕ್ಕೆ {pests} {pest_name} ಮತ್ತು {predators} ಪರಭಕ್ಷಕಗಳು).,,needs review
 digest_health,"Trap: {state}, tape left {pct}%, photos waiting to upload: {queue}.","ಬಲೆ: {state}, ಉಳಿದ ಟೇಪ್ {pct}%, ಅಪ್‌ಲೋಡ್‌ಗೆ ಕಾಯುತ್ತಿರುವ ಚಿತ್ರಗಳು: {queue}.",,needs review
+digest_catch,"Caught from {start} to {end}: {pests} {pest_name}, {predators} predators.","{start} ರಿಂದ {end} ವರೆಗೆ ಹಿಡಿದವು: {pests} {pest_name}, {predators} ಪರಭಕ್ಷಕಗಳು.",,needs review
+digest_corrected,(corrected by scout),(ಸ್ಕೌಟ್ ಸರಿಪಡಿಸಿದ್ದಾರೆ),,needs review
+digest_bad_photo,The photo for {start} to {end} is not usable ({reasons}) - check the trap.,{start} ರಿಂದ {end} ವರೆಗಿನ ಚಿತ್ರ ಬಳಸಲು ಯೋಗ್ಯವಾಗಿಲ್ಲ ({reasons}) - ಬಲೆಯನ್ನು ಪರಿಶೀಲಿಸಿ.,,needs review
+digest_no_photo,No new tape photo since {time} - check the trap.,{time} ರಿಂದ ಹೊಸ ಟೇಪ್ ಚಿತ್ರವಿಲ್ಲ - ಬಲೆಯನ್ನು ಪರಿಶೀಲಿಸಿ.,,needs review
+digest_no_photo_yet,No tape photo yet.,ಇನ್ನೂ ಯಾವುದೇ ಟೇಪ್ ಚಿತ್ರವಿಲ್ಲ.,,needs review
+word_new_tape,new tape,ಹೊಸ ಟೇಪ್,,needs review
 word_SPRAY,SPRAY,ಸಿಂಪಡಿಸಿ,,needs review
 word_RELEASE_BIOCONTROL,RELEASE BIOCONTROL,ಜೈವಿಕ ನಿಯಂತ್ರಣ ಬಿಡುಗಡೆ,,needs review
 word_WAIT,WAIT,ಕಾಯಿರಿ,,needs review

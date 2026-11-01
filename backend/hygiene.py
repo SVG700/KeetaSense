@@ -10,7 +10,8 @@ directly from the tests with a fake clock. It:
   1. checks every trap's health (offline is only noticed by the clock, not by a heartbeat)
   2. delivers alerts held during quiet hours, once quiet hours are over
   3. repeats ONCE any action alert nobody acknowledged within realert_after_hours
-  4. sends one daily digest per trap at digest_hour:digest_minute
+  4. sends one daily digest per trap at digest_hour:digest_minute: the insects caught on the
+     newest tape section, with its time window (previous photo -> this photo), the advice and health
 Limits: config/pests.yaml -> health and alert_hygiene.
 """
 from __future__ import annotations
@@ -25,8 +26,8 @@ from pathlib import Path
 import yaml
 from sqlmodel import Session, select
 
-from backend import alerts, settings
-from backend.models import AlertLog, Trap, TrapHealth
+from backend import alerts, image_quality, settings
+from backend.models import AlertLog, TapeSection, Trap, TrapHealth
 
 log = logging.getLogger("keetasense.hygiene")
 
@@ -100,11 +101,53 @@ def health_text(lang: str, trap: Trap, problem: str, status: dict) -> str:
                              detail=status.get("motor_fault_detail") or "-").strip()
 
 
-def digest_text(lang: str, trap: Trap, decision: dict, status: dict, now: datetime) -> str:
+def _when(ts: datetime) -> str:
+    return ts.strftime("%H:%M %d-%m")
+
+
+def latest_catch(session: Session, trap: Trap, now: datetime) -> dict:
+    """The newest tape section up to `now` and the window it covers (previous photo -> this photo).
+
+    Each section is a fresh piece of tape, so its count is exactly what was caught in that window."""
+    max_age = timedelta(hours=float(alerts.hygiene_config()["digest_max_photo_age_hours"]))
+    latest = session.exec(select(TapeSection).where(TapeSection.trap_id == trap.id, TapeSection.timestamp <= now)
+                          .order_by(TapeSection.timestamp.desc())).first()
+    if latest is None:
+        return {"status": "none", "last_photo": None}
+    if now - latest.timestamp > max_age:
+        return {"status": "stale", "last_photo": latest.timestamp}
+    previous = session.exec(select(TapeSection).where(TapeSection.trap_id == trap.id,
+                                                      TapeSection.timestamp < latest.timestamp)
+                            .order_by(TapeSection.timestamp.desc())).first()
+    return {"status": "bad" if latest.quality_status == image_quality.BAD else "ok",
+            "start": previous.timestamp if previous else None, "end": latest.timestamp,
+            "pests": latest.effective_pest_total, "predators": latest.effective_predator_total,
+            "corrected": latest.corrected_pest_total is not None, "quality_reasons": latest.quality_reasons or []}
+
+
+def catch_text(lang: str, trap: Trap, catch: dict) -> str:
+    t = _texts().get(lang) or _texts()["en"]
+    if catch["status"] == "none":
+        return t["digest_no_photo_yet"]
+    if catch["status"] == "stale":
+        return t["digest_no_photo"].format(time=_when(catch["last_photo"]))
+    window = dict(start=_when(catch["start"]) if catch["start"] else t["word_new_tape"], end=_when(catch["end"]))
+    if catch["status"] == "bad":
+        return t["digest_bad_photo"].format(
+            reasons=image_quality.reasons_text(catch["quality_reasons"], lang, only_bad=True), **window)
+    line = t["digest_catch"].format(pests=catch["pests"], predators=catch["predators"],
+                                    pest_name=settings.pest_display_name(trap.target_pest, lang), **window)
+    return line + (" " + t["digest_corrected"] if catch["corrected"] else "")
+
+
+def digest_text(lang: str, trap: Trap, decision: dict, status: dict, now: datetime,
+                catch: dict | None = None) -> str:
     t = _texts().get(lang) or _texts()["en"]
     pest = settings.pest_display_name(trap.target_pest, lang)
-    lines = [t["digest_title"].format(trap_name=trap.name, date=now.strftime("%d-%m-%Y")),
-             t["digest_action"].format(action=t[f"word_{decision['action']}"], pests=f"{decision['pests_per_day']:g}",
+    lines = [t["digest_title"].format(trap_name=trap.name, date=now.strftime("%d-%m-%Y"))]
+    if catch is not None:
+        lines.append(catch_text(lang, trap, catch))
+    lines += [t["digest_action"].format(action=t[f"word_{decision['action']}"], pests=f"{decision['pests_per_day']:g}",
                                        predators=f"{decision['predators_per_day']:g}", pest_name=pest)]
     if status.get("known"):
         lines.append(t["digest_health"].format(
@@ -186,10 +229,11 @@ def send_digest(session: Session, now: datetime) -> int:
             continue
         decision = services.compute_decision(session, trap)
         status = health_status(session.get(TrapHealth, trap.id), now)
+        catch = latest_catch(session, trap, now)
         for lang in alerts.languages_for(trap.id):
             if lang in _texts():
-                alerts.send_alert(session, trap.id, "DIGEST", None, lang, digest_text(lang, trap, decision, status, now),
-                                  now=now)
+                alerts.send_alert(session, trap.id, "DIGEST", None, lang,
+                                  digest_text(lang, trap, decision, status, now, catch), now=now)
         n += 1
     return n
 
