@@ -10,7 +10,9 @@ What a farmer can do (in English, Kannada, Hindi or Tamil):
            "क्या आज छिड़काव करूँ?" / "இன்று தெளிக்கலாமா?"
            -> answered from the LIVE trap data, decision and weather forecast
   /lang    change language          /trap    change trap
-They also receive alerts for their trap (decision changes, early warnings).
+They also receive alerts for their trap (decision changes, early warnings). SPRAY /
+BIOCONTROL alerts carry buttons - Sprayed / Released / Not yet - which are recorded as
+actions on the backend (and pause repeat alerts for the cooldown).
 
 The bot only talks to the KeetaSense backend over HTTP (KEETA_API_URL, default
 http://127.0.0.1:8000), so it can run on the same laptop or anywhere else.
@@ -35,22 +37,26 @@ SPRAY_WORDS = ["spray", "pesticide", "ಸಿಂಪಡ", "ಸ್ಪ್ರೇ", "�
 STATUS_WORDS = ["status", "today", "report", "ಸ್ಥಿತಿ", "ವರದಿ", "स्थिति", "रिपोर्ट", "நிலை", "அறிக்கை"]
 
 MESSAGES = {
-    "en": {"welcome": "Welcome to KeetaSense! Choose your language:", "choose_trap": "Which trap is yours?",
+    "en": {"ack_done": "Recorded: {action}. Thank you! Repeat alerts for this trap pause for a while.", "ack_not_yet": "Recorded: not yet. We will remind you.",
+           "welcome": "Welcome to KeetaSense! Choose your language:", "choose_trap": "Which trap is yours?",
            "saved": "Saved. Ask me \"Can I spray today?\" any time, or send /status.",
            "no_trap": "First choose your trap: /trap",
            "help": "Ask \"Can I spray today?\", or send /status for today's advice. /lang changes the language, /trap the trap.",
            "offline": "The KeetaSense server cannot be reached right now. Please try again later."},
-    "kn": {"welcome": "ಕೀಟಸೆನ್ಸ್‌ಗೆ ಸ್ವಾಗತ! ನಿಮ್ಮ ಭಾಷೆ ಆರಿಸಿ:", "choose_trap": "ನಿಮ್ಮ ಬಲೆ ಯಾವುದು?",
+    "kn": {"ack_done": "ದಾಖಲಿಸಲಾಗಿದೆ: {action}. ಧನ್ಯವಾದಗಳು! ಈ ಬಲೆಯ ಪುನರಾವರ್ತಿತ ಎಚ್ಚರಿಕೆಗಳು ಸ್ವಲ್ಪ ಸಮಯ ನಿಲ್ಲುತ್ತವೆ.", "ack_not_yet": "ದಾಖಲಿಸಲಾಗಿದೆ: ಇನ್ನೂ ಇಲ್ಲ. ನಾವು ನಿಮಗೆ ನೆನಪಿಸುತ್ತೇವೆ.",
+           "welcome": "ಕೀಟಸೆನ್ಸ್‌ಗೆ ಸ್ವಾಗತ! ನಿಮ್ಮ ಭಾಷೆ ಆರಿಸಿ:", "choose_trap": "ನಿಮ್ಮ ಬಲೆ ಯಾವುದು?",
            "saved": "ಉಳಿಸಲಾಗಿದೆ. \"ಇಂದು ಸಿಂಪಡಿಸಬಹುದೇ?\" ಎಂದು ಯಾವಾಗ ಬೇಕಾದರೂ ಕೇಳಿ, ಅಥವಾ /status ಕಳುಹಿಸಿ.",
            "no_trap": "ಮೊದಲು ನಿಮ್ಮ ಬಲೆಯನ್ನು ಆರಿಸಿ: /trap",
            "help": "\"ಇಂದು ಸಿಂಪಡಿಸಬಹುದೇ?\" ಎಂದು ಕೇಳಿ, ಅಥವಾ ಇಂದಿನ ಸಲಹೆಗೆ /status ಕಳುಹಿಸಿ. /lang ಭಾಷೆ ಬದಲಿಸಲು, /trap ಬಲೆ ಬದಲಿಸಲು.",
            "offline": "ಕೀಟಸೆನ್ಸ್ ಸರ್ವರ್ ಈಗ ಲಭ್ಯವಿಲ್ಲ. ದಯವಿಟ್ಟು ನಂತರ ಪ್ರಯತ್ನಿಸಿ."},
-    "hi": {"welcome": "कीटसेंस में आपका स्वागत है! अपनी भाषा चुनें:", "choose_trap": "आपका ट्रैप कौन सा है?",
+    "hi": {"ack_done": "दर्ज किया गया: {action}। धन्यवाद! इस ट्रैप के दोहराए गए अलर्ट कुछ समय के लिए रुकेंगे।", "ack_not_yet": "दर्ज किया गया: अभी नहीं। हम आपको याद दिलाएँगे।",
+           "welcome": "कीटसेंस में आपका स्वागत है! अपनी भाषा चुनें:", "choose_trap": "आपका ट्रैप कौन सा है?",
            "saved": "सहेज लिया गया। कभी भी पूछें \"क्या आज छिड़काव करूँ?\", या /status भेजें।",
            "no_trap": "पहले अपना ट्रैप चुनें: /trap",
            "help": "पूछें \"क्या आज छिड़काव करूँ?\", या आज की सलाह के लिए /status भेजें। /lang से भाषा, /trap से ट्रैप बदलें।",
            "offline": "कीटसेंस सर्वर अभी उपलब्ध नहीं है। कृपया बाद में कोशिश करें।"},
-    "ta": {"welcome": "கீடசென்ஸுக்கு வரவேற்கிறோம்! உங்கள் மொழியைத் தேர்ந்தெடுக்கவும்:", "choose_trap": "உங்கள் பொறி எது?",
+    "ta": {"ack_done": "பதிவு செய்யப்பட்டது: {action}. நன்றி! இந்தப் பொறியின் மீண்டும் வரும் எச்சரிக்கைகள் சிறிது நேரம் நிறுத்தப்படும்.", "ack_not_yet": "பதிவு செய்யப்பட்டது: இன்னும் இல்லை. நாங்கள் உங்களுக்கு நினைவூட்டுவோம்.",
+           "welcome": "கீடசென்ஸுக்கு வரவேற்கிறோம்! உங்கள் மொழியைத் தேர்ந்தெடுக்கவும்:", "choose_trap": "உங்கள் பொறி எது?",
            "saved": "சேமிக்கப்பட்டது. \"இன்று தெளிக்கலாமா?\" என்று எப்போது வேண்டுமானாலும் கேளுங்கள், அல்லது /status அனுப்புங்கள்.",
            "no_trap": "முதலில் உங்கள் பொறியைத் தேர்ந்தெடுக்கவும்: /trap",
            "help": "\"இன்று தெளிக்கலாமா?\" என்று கேளுங்கள், அல்லது இன்றைய ஆலோசனைக்கு /status அனுப்புங்கள். /lang மொழியை மாற்ற, /trap பொறியை மாற்ற.",
@@ -93,6 +99,58 @@ def reply_to(text: str, user: dict, fetch=fetch_advisory) -> str:
     if adv is None:
         return msg["offline"]
     return adv["spray_answer"] if kind == "spray" else adv["rendered"]["text"]
+
+
+ACTION_WORDS = {
+    "en": {
+        "sprayed": "sprayed",
+        "released": "biocontrol released"
+    },
+    "kn": {
+        "sprayed": "ಸಿಂಪಡಿಸಲಾಗಿದೆ",
+        "released": "ಜೈವಿಕ ನಿಯಂತ್ರಣ ಬಿಡುಗಡೆ"
+    },
+    "hi": {
+        "sprayed": "छिड़काव किया",
+        "released": "जैविक नियंत्रण कीट छोड़े"
+    },
+    "ta": {
+        "sprayed": "தெளிக்கப்பட்டது",
+        "released": "உயிரியல் கட்டுப்பாடு விடுவிக்கப்பட்டது"
+    }
+}
+
+
+def parse_ack(data: str) -> tuple[int, str, str] | None:
+    """'ack|<alert id>|<trap id>|<action>' -> (alert_id, trap_id, action), or None if malformed."""
+    parts = (data or "").split("|")
+    if len(parts) != 4 or parts[0] != "ack" or not parts[1].isdigit() or parts[3] not in ("sprayed", "released", "not_yet"):
+        return None
+    return int(parts[1]), parts[2], parts[3]
+
+
+def post_action(trap_id: str, action: str, alert_id: int, timeout: float = 10) -> bool:
+    try:
+        r = requests.post(f"{API}/api/traps/{trap_id}/actions", timeout=timeout,
+                          json={"action": action, "source": "telegram", "alert_id": alert_id})
+        return r.ok
+    except requests.RequestException as e:
+        log.warning("Could not record the farmer's answer: %s", e)
+        return False
+
+
+def handle_ack(data: str, lang: str, post=post_action) -> str:
+    """A farmer pressed Sprayed / Released / Not yet under an alert."""
+    msg = MESSAGES.get(lang, MESSAGES["en"])
+    parsed = parse_ack(data)
+    if parsed is None:
+        return msg["help"]
+    alert_id, trap_id, action = parsed
+    if not post(trap_id, action, alert_id):
+        return msg["offline"]
+    if action == "not_yet":
+        return msg["ack_not_yet"]
+    return msg["ack_done"].format(action=ACTION_WORDS.get(lang, ACTION_WORDS["en"])[action])
 
 
 # ---------------------------------------------------------------------------
@@ -143,6 +201,13 @@ def main() -> None:
             user = bot_store.update(chat, trap_id=value)
         await q.message.reply_text(MESSAGES[user["lang"]]["saved"])
 
+    async def ack(update: Update, context: ContextTypes.DEFAULT_TYPE):
+        q = update.callback_query
+        await q.answer()
+        user = bot_store.get(q.message.chat.id)
+        await q.message.reply_text(handle_ack(q.data, user["lang"]))
+        await q.edit_message_reply_markup(reply_markup=None)   # one answer per alert
+
     async def text(update: Update, context: ContextTypes.DEFAULT_TYPE):
         user = bot_store.get(update.effective_chat.id)
         await update.message.reply_text(reply_to(update.message.text, user))
@@ -152,6 +217,7 @@ def main() -> None:
     app.add_handler(CommandHandler("lang", lang_cmd))
     app.add_handler(CommandHandler("trap", trap_cmd))
     app.add_handler(CommandHandler(["status", "spray", "help"], text))
+    app.add_handler(CallbackQueryHandler(ack, pattern=r"^ack\|"))   # alert buttons (F4)
     app.add_handler(CallbackQueryHandler(button))
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, text))
     log.info("KeetaSense bot running (backend %s). Press Ctrl+C to stop.", API)

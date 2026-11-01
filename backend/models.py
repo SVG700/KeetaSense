@@ -104,5 +104,20 @@ class AlertLog(SQLModel, table=True):
     previous_action: str | None = None
     language: str = "en"
     message: str
-    status: str = "logged"                         # "sent" | "logged" (no token) | "failed"
+    status: str = "logged"                         # "sent" | "logged" (no token) | "failed" | "suppressed"
     error: str | None = None
+    acknowledged_at: NaiveDatetime | None = None   # F4: a farmer answered (Sprayed / Released / Not yet)
+    ack_action: str | None = None
+
+
+class ActionLog(SQLModel, table=True):
+    """F4: what the farmer did (from the Telegram alert buttons or the dashboard)."""
+    id: int | None = Field(default=None, primary_key=True)
+    trap_id: str = Field(foreign_key="trap.id", index=True)
+    action: str                                    # sprayed | released | not_yet
+    quantity: float | None = None                  # optional: litres sprayed / predators released
+    note: str = ""
+    timestamp: NaiveDatetime = Field(default_factory=datetime.now, index=True)
+    source: str = "dashboard"                      # dashboard | telegram | seed (simulated demo history)
+    alert_id: int | None = None                    # the alert this answers (Telegram buttons)
+    simulated: bool = False

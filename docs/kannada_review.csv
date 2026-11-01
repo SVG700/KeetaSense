@@ -32,6 +32,9 @@ The latest photo is not usable: {quality_text}. No spray or release advice until
 ಕ್ರಮ: ಬಲೆಯನ್ನು ಪರಿಶೀಲಿಸಿ
 ಇತ್ತೀಚಿನ ಚಿತ್ರ ಬಳಸಲು ಯೋಗ್ಯವಾಗಿಲ್ಲ: {quality_text}. ಉತ್ತಮ ಚಿತ್ರ ಬರುವವರೆಗೆ ಸಿಂಪಡಣೆ ಅಥವಾ ಬಿಡುಗಡೆ ಸಲಹೆ ಇಲ್ಲ.
 ",,needs review
+button_sprayed,✅ Sprayed,✅ ಸಿಂಪಡಿಸಿದೆ,,needs review
+button_released,🐞 Released,🐞 ಬಿಡುಗಡೆ ಮಾಡಿದೆ,,needs review
+button_not_yet,⏳ Not yet,⏳ ಇನ್ನೂ ಇಲ್ಲ,,needs review
 advisory.title,KeetaSense - {trap_name},ಕೀಟಸೆನ್ಸ್ - {trap_name},,needs review
 advisory.action_SPRAY,Action: SPRAY,ಕ್ರಮ: ಕೀಟನಾಶಕ ಸಿಂಪಡಿಸಿ,,needs review
 advisory.action_RELEASE_BIOCONTROL,Action: RELEASE BIOCONTROL (do not spray),ಕ್ರಮ: ಜೈವಿಕ ನಿಯಂತ್ರಣ ಕೀಟಗಳನ್ನು ಬಿಡುಗಡೆ ಮಾಡಿ (ಸಿಂಪಡಿಸಬೇಡಿ),,needs review
@@ -99,6 +102,25 @@ ui.corrections.mae,"Count error of the detector on corrected captures: pests {pe
 ui.corrections.none,"No corrected captures yet. Use ""Edit counts"" on a trap page.","ಇನ್ನೂ ತಿದ್ದಿದ ಚಿತ್ರಗಳಿಲ್ಲ. ಬಲೆ ಪುಟದಲ್ಲಿ ""ಎಣಿಕೆ ತಿದ್ದಿ"" ಬಳಸಿ.",,needs review
 ui.corrections.export,Download corrections for retraining (YOLO zip),ಮರುತರಬೇತಿಗಾಗಿ ತಿದ್ದುಪಡಿಗಳನ್ನು ಡೌನ್‌ಲೋಡ್ ಮಾಡಿ (YOLO zip),,needs review
 ui.corrections.simulated,{n} of them are SIMULATED captures (synthetic images).,ಅವುಗಳಲ್ಲಿ {n} ಅನುಕರಿಸಿದ (ಕೃತಕ) ಚಿತ್ರಗಳು.,,needs review
+ui.actions.title,What did you do?,ನೀವು ಏನು ಮಾಡಿದಿರಿ?,,needs review
+ui.actions.help,Record it so KeetaSense can show the effect (same as the Telegram alert buttons).,ಪರಿಣಾಮವನ್ನು ತೋರಿಸಲು ಇದನ್ನು ದಾಖಲಿಸಿ (ಟೆಲಿಗ್ರಾಮ್ ಎಚ್ಚರಿಕೆಯ ಗುಂಡಿಗಳಂತೆಯೇ).,,needs review
+ui.actions.sprayed,Sprayed,ಸಿಂಪಡಿಸಿದೆ,,needs review
+ui.actions.released,Released,ಬಿಡುಗಡೆ ಮಾಡಿದೆ,,needs review
+ui.actions.not_yet,Not yet,ಇನ್ನೂ ಇಲ್ಲ,,needs review
+ui.actions.quantity,Quantity (optional: litres or predators),ಪ್ರಮಾಣ (ಐಚ್ಛಿಕ: ಲೀಟರ್ ಅಥವಾ ಪರಭಕ್ಷಕಗಳು),,needs review
+ui.actions.note,Note (optional),ಟಿಪ್ಪಣಿ (ಐಚ್ಛಿಕ),,needs review
+ui.actions.saved,Saved.,ಉಳಿಸಲಾಗಿದೆ.,,needs review
+ui.actions.cooldown,Repeat spray / biocontrol alerts paused until {until}.,ಪುನರಾವರ್ತಿತ ಸಿಂಪಡಣೆ / ಜೈವಿಕ ನಿಯಂತ್ರಣ ಎಚ್ಚರಿಕೆಗಳನ್ನು {until} ರವರೆಗೆ ನಿಲ್ಲಿಸಲಾಗಿದೆ.,,needs review
+ui.actions.recent,Recent actions,ಇತ್ತೀಚಿನ ಕ್ರಮಗಳು,,needs review
+ui.actions.none,No actions recorded yet.,ಇನ್ನೂ ಯಾವುದೇ ಕ್ರಮ ದಾಖಲಾಗಿಲ್ಲ.,,needs review
+ui.actions.source.telegram,via Telegram,ಟೆಲಿಗ್ರಾಮ್ ಮೂಲಕ,,needs review
+ui.actions.source.dashboard,via dashboard,ಡ್ಯಾಶ್‌ಬೋರ್ಡ್ ಮೂಲಕ,,needs review
+ui.actions.source.seed,simulated demo history,ಅನುಕರಿಸಿದ ಡೆಮೊ ಇತಿಹಾಸ,,needs review
+ui.effect.title,Effect of the last {action},ಕೊನೆಯ {action} ಪರಿಣಾಮ,,needs review
+ui.effect.values,Whiteflies per day: {before} in the {days} days before → {after} in the {days} days after ({change}),ದಿನಕ್ಕೆ ಬಿಳಿ ನೊಣ: ಮೊದಲಿನ {days} ದಿನಗಳಲ್ಲಿ {before} → ನಂತರದ {days} ದಿನಗಳಲ್ಲಿ {after} ({change}),,needs review
+ui.effect.waiting,Waiting for tape sections after the action ({n} of {days} days so far).,ಕ್ರಮದ ನಂತರದ ಟೇಪ್ ವಿಭಾಗಗಳಿಗಾಗಿ ಕಾಯಲಾಗುತ್ತಿದೆ ({days} ರಲ್ಲಿ {n} ದಿನಗಳು).,,needs review
+ui.effect.no_before,No tape sections before the action to compare with.,ಹೋಲಿಸಲು ಕ್ರಮದ ಮೊದಲು ಯಾವುದೇ ಟೇಪ್ ವಿಭಾಗಗಳಿಲ್ಲ.,,needs review
+ui.effect.note,Simple before/after comparison - weather and pest generations also change counts.,ಸರಳ ಮೊದಲು/ನಂತರ ಹೋಲಿಕೆ - ಹವಾಮಾನ ಮತ್ತು ಕೀಟಗಳ ಪೀಳಿಗೆಯೂ ಎಣಿಕೆಯನ್ನು ಬದಲಾಯಿಸುತ್ತವೆ.,,needs review
 pest_name.whitefly,Whitefly,ಬಿಳಿ ನೊಣ,,machine-drafted
 pest_name.macrolophus,Macrolophus (predator bug),ಮ್ಯಾಕ್ರೊಲೋಫಸ್ (ಪರಭಕ್ಷಕ ತಿಗಣೆ),,machine-drafted
 pest_name.nesidiocoris,Nesidiocoris (predator bug),ನೆಸಿಡಿಯೊಕೊರಿಸ್ (ಪರಭಕ್ಷಕ ತಿಗಣೆ),,machine-drafted

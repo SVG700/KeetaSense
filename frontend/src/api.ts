@@ -224,11 +224,37 @@ export interface ClimateDay {
   simulated: boolean;
 }
 
+export type FarmerAction = "sprayed" | "released" | "not_yet";
+
+export interface ActionEffect {
+  before_avg: number | null;
+  after_avg: number | null;
+  change_pct: number | null;
+  n_before: number;
+  n_after: number;
+  days: number;
+  status: "ok" | "waiting_for_data" | "no_data_before";
+}
+
+export interface ActionRow {
+  id: number;
+  trap_id: string;
+  action: FarmerAction;
+  quantity: number | null;
+  note: string;
+  timestamp: string;
+  source: "dashboard" | "telegram" | "seed";
+  alert_id: number | null;
+  simulated: boolean;
+  effect: ActionEffect | null;
+}
+
 export interface TrapHistory {
   trap: TrapSummary;
   sections: Section[];
   climate_daily: ClimateDay[];
   decisions: { timestamp: string; action: Action; reason: string }[];
+  actions: ActionRow[];
 }
 
 export interface Summary {
@@ -336,6 +362,12 @@ export const api = {
   undoCorrection: (id: number) =>
     request<{ section: SectionDetail; decision: Decision }>(`/api/corrections/${id}`, { method: "DELETE" }),
   correctionStats: () => request<CorrectionStats>("/api/corrections/stats"),
+  actions: (trapId: string) =>
+    request<{ actions: ActionRow[]; cooldown_until: string | null }>(`/api/traps/${encodeURIComponent(trapId)}/actions`),
+  postAction: (trapId: string, body: { action: FarmerAction; quantity?: number; note?: string }) =>
+    request<{ action: ActionRow; cooldown_until: string | null }>(`/api/traps/${encodeURIComponent(trapId)}/actions`, {
+      method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ ...body, source: "dashboard" }),
+    }),
   resetDemo: () =>
     request<{ removed: Record<string, number>; sections_created: number; seconds: number }>(
       "/api/reset-demo", { method: "POST" }, 120000),

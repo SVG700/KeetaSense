@@ -15,7 +15,7 @@ import cv2
 import numpy as np
 from sqlmodel import Session, select
 
-from backend import alerts, image_quality, settings
+from backend import actions, alerts, image_quality, settings
 from backend.decision_engine import (DailyCatch, DailyTemperature, Thresholds, daily_degree_days,
                                      decide)
 from backend.models import ClimateReading, Decision, TapeSection, Trap
@@ -208,7 +208,8 @@ def update_decision(session: Session, trap: Trap, notify: bool = True,
     changed = previous_action != decision["action"]
     first_and_actionable = previous_action is None and decision["action"] != "WAIT"
     if notify and ((previous_action is not None and changed) or first_and_actionable):
-        alerts.notify_decision_change(session, trap, decision, previous_action)
+        alerts.notify_decision_change(session, trap, decision, previous_action,
+                                      cooldown_until=actions.cooldown_until(session, trap.id, now))
     decision["changed"] = changed
     decision["previous_action"] = previous_action
     return decision

@@ -33,7 +33,7 @@ from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 from sqlmodel import Session, func, select
 
-from backend import (advisory, alerts, corrections, impact, model_reports, services, settings, thresholds_editor,
+from backend import (actions, advisory, alerts, corrections, impact, model_reports, services, settings, thresholds_editor,
                      weather)
 from backend.db import get_engine, get_session, init_db
 from backend.decision_engine import DailyCatch, decide
@@ -233,6 +233,7 @@ def trap_history(trap_id: str, days: int = 30, session: Session = Depends(get_se
         "climate_daily": services.daily_climate(session, trap, since.date()),
         "decisions": [{"timestamp": d.timestamp.isoformat(timespec="seconds"), "action": d.action,
                        "reason": d.reason} for d in decisions],
+        "actions": actions.history(session, trap.id, since),
     }
 
 
@@ -273,7 +274,9 @@ def recent_alerts(limit: int = 20, session: Session = Depends(get_session)):
     rows = session.exec(select(AlertLog).order_by(AlertLog.timestamp.desc()).limit(max(1, min(limit, 100)))).all()
     return [{"id": a.id, "trap_id": a.trap_id, "timestamp": a.timestamp.isoformat(timespec="seconds"),
              "action": a.action, "previous_action": a.previous_action, "language": a.language,
-             "message": a.message, "status": a.status} for a in rows]
+             "message": a.message, "status": a.status, "error": a.error,
+             "acknowledged_at": a.acknowledged_at.isoformat(timespec="seconds") if a.acknowledged_at else None,
+             "ack_action": a.ack_action} for a in rows]
 
 
 @app.get("/api/health")
@@ -410,6 +413,38 @@ def export_corrections(session: Session = Depends(get_session)):
     name = f"keetasense_corrections_{datetime.now():%Y%m%d_%H%M}.zip"
     return Response(content=data, media_type="application/zip",
                     headers={"Content-Disposition": f'attachment; filename="{name}"', "X-Captures": str(n)})
+
+
+# ---------------------------------------------------------------------------
+# F4: what the farmer did (Telegram buttons / dashboard)
+# ---------------------------------------------------------------------------
+class ActionIn(BaseModel):
+    action: str                          # sprayed | released | not_yet
+    quantity: float | None = None
+    note: str = ""
+    source: str = "dashboard"            # dashboard | telegram
+    alert_id: int | None = None
+
+
+@app.post("/api/traps/{trap_id}/actions")
+def post_action(trap_id: str, body: ActionIn, session: Session = Depends(get_session)):
+    trap = get_trap_or_404(session, trap_id)
+    if body.source == "seed":
+        raise HTTPException(422, "source 'seed' is reserved for the simulated demo history")
+    try:
+        row = actions.record(session, trap.id, body.action, body.quantity, body.note, body.source, body.alert_id)
+    except actions.ActionError as e:
+        raise HTTPException(422, str(e))
+    until = actions.cooldown_until(session, trap.id)
+    return {"action": actions.to_dict(row), "cooldown_until": until.isoformat(timespec="minutes") if until else None}
+
+
+@app.get("/api/traps/{trap_id}/actions")
+def list_actions(trap_id: str, session: Session = Depends(get_session)):
+    trap = get_trap_or_404(session, trap_id)
+    until = actions.cooldown_until(session, trap.id)
+    return {"actions": actions.history(session, trap.id),
+            "cooldown_until": until.isoformat(timespec="minutes") if until else None}
 
 
 @app.get("/api/weather/{trap_id}")

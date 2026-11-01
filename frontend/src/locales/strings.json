@@ -142,5 +142,81 @@
   "corrections.simulated": {
     "en": "{n} of them are SIMULATED captures (synthetic images).",
     "kn": "ಅವುಗಳಲ್ಲಿ {n} ಅನುಕರಿಸಿದ (ಕೃತಕ) ಚಿತ್ರಗಳು."
+  },
+  "actions.title": {
+    "en": "What did you do?",
+    "kn": "ನೀವು ಏನು ಮಾಡಿದಿರಿ?"
+  },
+  "actions.help": {
+    "en": "Record it so KeetaSense can show the effect (same as the Telegram alert buttons).",
+    "kn": "ಪರಿಣಾಮವನ್ನು ತೋರಿಸಲು ಇದನ್ನು ದಾಖಲಿಸಿ (ಟೆಲಿಗ್ರಾಮ್ ಎಚ್ಚರಿಕೆಯ ಗುಂಡಿಗಳಂತೆಯೇ)."
+  },
+  "actions.sprayed": {
+    "en": "Sprayed",
+    "kn": "ಸಿಂಪಡಿಸಿದೆ"
+  },
+  "actions.released": {
+    "en": "Released",
+    "kn": "ಬಿಡುಗಡೆ ಮಾಡಿದೆ"
+  },
+  "actions.not_yet": {
+    "en": "Not yet",
+    "kn": "ಇನ್ನೂ ಇಲ್ಲ"
+  },
+  "actions.quantity": {
+    "en": "Quantity (optional: litres or predators)",
+    "kn": "ಪ್ರಮಾಣ (ಐಚ್ಛಿಕ: ಲೀಟರ್ ಅಥವಾ ಪರಭಕ್ಷಕಗಳು)"
+  },
+  "actions.note": {
+    "en": "Note (optional)",
+    "kn": "ಟಿಪ್ಪಣಿ (ಐಚ್ಛಿಕ)"
+  },
+  "actions.saved": {
+    "en": "Saved.",
+    "kn": "ಉಳಿಸಲಾಗಿದೆ."
+  },
+  "actions.cooldown": {
+    "en": "Repeat spray / biocontrol alerts paused until {until}.",
+    "kn": "ಪುನರಾವರ್ತಿತ ಸಿಂಪಡಣೆ / ಜೈವಿಕ ನಿಯಂತ್ರಣ ಎಚ್ಚರಿಕೆಗಳನ್ನು {until} ರವರೆಗೆ ನಿಲ್ಲಿಸಲಾಗಿದೆ."
+  },
+  "actions.recent": {
+    "en": "Recent actions",
+    "kn": "ಇತ್ತೀಚಿನ ಕ್ರಮಗಳು"
+  },
+  "actions.none": {
+    "en": "No actions recorded yet.",
+    "kn": "ಇನ್ನೂ ಯಾವುದೇ ಕ್ರಮ ದಾಖಲಾಗಿಲ್ಲ."
+  },
+  "actions.source.telegram": {
+    "en": "via Telegram",
+    "kn": "ಟೆಲಿಗ್ರಾಮ್ ಮೂಲಕ"
+  },
+  "actions.source.dashboard": {
+    "en": "via dashboard",
+    "kn": "ಡ್ಯಾಶ್‌ಬೋರ್ಡ್ ಮೂಲಕ"
+  },
+  "actions.source.seed": {
+    "en": "simulated demo history",
+    "kn": "ಅನುಕರಿಸಿದ ಡೆಮೊ ಇತಿಹಾಸ"
+  },
+  "effect.title": {
+    "en": "Effect of the last {action}",
+    "kn": "ಕೊನೆಯ {action} ಪರಿಣಾಮ"
+  },
+  "effect.values": {
+    "en": "Whiteflies per day: {before} in the {days} days before → {after} in the {days} days after ({change})",
+    "kn": "ದಿನಕ್ಕೆ ಬಿಳಿ ನೊಣ: ಮೊದಲಿನ {days} ದಿನಗಳಲ್ಲಿ {before} → ನಂತರದ {days} ದಿನಗಳಲ್ಲಿ {after} ({change})"
+  },
+  "effect.waiting": {
+    "en": "Waiting for tape sections after the action ({n} of {days} days so far).",
+    "kn": "ಕ್ರಮದ ನಂತರದ ಟೇಪ್ ವಿಭಾಗಗಳಿಗಾಗಿ ಕಾಯಲಾಗುತ್ತಿದೆ ({days} ರಲ್ಲಿ {n} ದಿನಗಳು)."
+  },
+  "effect.no_before": {
+    "en": "No tape sections before the action to compare with.",
+    "kn": "ಹೋಲಿಸಲು ಕ್ರಮದ ಮೊದಲು ಯಾವುದೇ ಟೇಪ್ ವಿಭಾಗಗಳಿಲ್ಲ."
+  },
+  "effect.note": {
+    "en": "Simple before/after comparison - weather and pest generations also change counts.",
+    "kn": "ಸರಳ ಮೊದಲು/ನಂತರ ಹೋಲಿಕೆ - ಹವಾಮಾನ ಮತ್ತು ಕೀಟಗಳ ಪೀಳಿಗೆಯೂ ಎಣಿಕೆಯನ್ನು ಬದಲಾಯಿಸುತ್ತವೆ."
   }
 }

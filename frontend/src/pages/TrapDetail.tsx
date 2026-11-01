@@ -5,6 +5,7 @@ import { api, mediaUrl } from "../api";
 import { useT } from "../i18n";
 import { useLiveData } from "../settings";
 import { CountsChart, DegreeDayChart, DegreeDayMeter } from "../components/charts";
+import ActionPanel from "../components/ActionPanel";
 import TapeEditor from "../components/TapeEditor";
 import {
   ActionStrip, DecisionBadge, DetectorTag, EmptyState, ErrorState, QualityBadge, ReplayTag, SimulatedTag, Spinner, StatusDot,
@@ -78,7 +79,8 @@ export default function TrapDetail() {
           </div>
           <p className="mb-2 text-xs text-stone-500 dark:text-stone-400">Each point is one tape section (one day of exposure).</p>
           {sections.length ? (
-            <CountsChart sections={sections} threshold={trap.thresholds.action_threshold_per_day} pestName={pest} />
+            <CountsChart sections={sections} threshold={trap.thresholds.action_threshold_per_day} pestName={pest}
+                         actions={data.actions} />
           ) : (
             <EmptyState title="No tape sections in this period" />
           )}
@@ -125,6 +127,8 @@ export default function TrapDetail() {
             <EmptyState title="No image yet" />
           )}
         </section>
+
+        <ActionPanel trapId={trap.id} actions={data.actions} onChanged={reload} />
 
         <section className="card p-5">
           <h2 className="mb-3 font-semibold">Decision history</h2>

@@ -46,6 +46,10 @@ NEW_COLUMNS = {
         "corrected_pest_total": "INTEGER",
         "corrected_predator_total": "INTEGER",
     },
+    "alertlog": {
+        "acknowledged_at": "DATETIME",        # F4 action logging
+        "ack_action": "VARCHAR",
+    },
 }
 
 

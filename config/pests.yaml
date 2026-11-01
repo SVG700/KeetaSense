@@ -86,3 +86,13 @@ image_quality:
   glare_warn_pct: 3        # PLACEHOLDER - confirm on the real Pi camera
   duplicate_bad: 0.8       # PLACEHOLDER - confirm on the real Pi camera (similarity to previous capture)
   duplicate_warn: 0.6      # PLACEHOLDER - confirm on the real Pi camera
+
+# ---------------------------------------------------------------------------
+# 4. Farmer actions (F4): logging, cooldown, before/after effect
+# ---------------------------------------------------------------------------
+actions:
+  # After "sprayed" or "released", repeat SPRAY / BIOCONTROL alerts for that trap are held back
+  # for this long (the action needs time to work; CHECK TRAP alerts are never held back).
+  cooldown_hours: 48             # PLACEHOLDER - confirm with IIHR mentor
+  # Effect card: average whitefly per tape section this many days before vs after an action.
+  effect_window_days: 3          # Team decision (prep-round brief: 3 days before vs after)
